@@ -1,0 +1,49 @@
+name:                pboy
+version:             0.1.0.0
+github:              "2mol/pboy"
+license:             BSD3
+author:              "Juri Chomé"
+maintainer:          "juri.chome@gmail.com"
+copyright:           "2018 Juri Chomé"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            misc
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://github.com/2mol/pboy#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- brick >= 0.34 && < 1
+
+library:
+  source-dirs: src
+
+executables:
+  pboy:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - pboy
+
+tests:
+  pboy-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - pboy
