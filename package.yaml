@@ -22,6 +22,7 @@ description:         Please see the README on Github at <https://github.com/2mol
 dependencies:
 - base >= 4.7 && < 5
 - brick >= 0.34 && < 1
+- vty
 
 library:
   source-dirs: src
@@ -45,5 +46,10 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Wcompat
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wredundant-constraints
     dependencies:
     - pboy
