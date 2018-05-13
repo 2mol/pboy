@@ -1,10 +1,16 @@
 # PBOY specifications
 
+## Description
+
+`pboy` will watch a specified inbox folder (for example `~/Downloads`) for .pdf files and offer to import them into another specified documents folder.
+
+This import moves the file and renames it according to the title of the pdf.
+
 ## Design goals
 
-- minimize micro-management
-- application should be removable: files are nicely named and accessible in a visible folder.
-- great documentation.
+- minimize micro-management.
+- redundant application and not holding files hostage: all files are nicely named and accessible in a visible folder. Because of this, the application can be uninstalled at any time without losing any real data or organizational structure.
+- documentation aims to be excellent.
 
 
 ## Features
