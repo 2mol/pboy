@@ -1,17 +1,32 @@
 module Main where
 
 import           Brick
+import qualified Brick.Main as M
+import qualified Brick.AttrMap as A
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
-import qualified Brick.Widgets.Center       as C
+import qualified Brick.Widgets.Center as C
+import qualified Brick.Widgets.List as L
+import           Control.Monad (void)
+import           Data.Monoid ((<>))
+import qualified Data.Vector as Vec
+import qualified Graphics.Vty as V
 import qualified Lib
 
 main :: IO ()
-main = simpleMain (inboxScreen ["Fafifo/text.txt"])
+main = do
+    inboxDefault <- Lib.getInboxDefault
+    inboxFiles <- Lib.inboxFiles inboxDefault
+    let
+        fileList = L.list Inbox (Vec.fromList inboxFiles) 1
+        init = State [] fileList
+    --simpleMain $ drawUI init
+    void $ M.defaultMain app init
 
 -- the application state
 data State = State
     { inboxFiles :: [FilePath]
+    , inboxFileList :: L.List Name FilePath
     }
 
 data Event = Nope
@@ -25,21 +40,37 @@ app = App
     { appDraw = drawUI
     , appChooseCursor = neverShowCursor
     , appHandleEvent = handleEvent
-    , appStartEvent = return
+    , appStartEvent = pure
     , appAttrMap = const theMap
     }
 
-inboxScreen :: [FilePath] -> Widget Name
-inboxScreen files =
-    withBorderStyle BS.unicode $
-    B.borderWithLabel (str "PAPERBOY")
-        $ C.center (str "Welcome!")
+
+listDrawElement :: Bool -> FilePath -> Widget Name
+listDrawElement sel f =
+    let
+        selStr s =
+            if sel
+                then withAttr L.listSelectedAttr (str s)
+                else str s
+    in selStr f
 
 drawUI :: State -> [Widget Name]
-drawUI (State {inboxFiles}) = [inboxScreen inboxFiles]
+drawUI (State {inboxFiles, inboxFileList}) =
+    let
+        inboxScreen =
+            withBorderStyle BS.unicode
+                $ B.borderWithLabel (str "PAPERBOY")
+                -- $ C.center
+                $ L.renderList listDrawElement True inboxFileList
+    in
+        [inboxScreen]
 
 handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
 handleEvent = undefined
 
-theMap :: AttrMap
-theMap = undefined
+theMap :: A.AttrMap
+theMap = A.attrMap V.defAttr
+    [ --(L.listAttr,            V.white `on` V.blue)
+    -- , (L.listSelectedAttr,    V.blue `on` V.white)
+    -- , (customAttr,            fg V.cyan)
+    ]

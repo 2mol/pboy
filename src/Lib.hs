@@ -14,6 +14,11 @@ import qualified System.FilePath  as F
 -- 1. move file from download to library folder
 -- 2. rename file while moving
 
+getInboxDefault :: IO FilePath
+getInboxDefault = do
+    homeDir <- D.getHomeDirectory
+    pure (homeDir </> "Downloads")
+
 inboxFiles :: FilePath -> IO [FilePath]
 inboxFiles inboxPath = do
     -- homeDir <- D.getHomeDirectory
