@@ -8,9 +8,9 @@ This import moves the file and renames it according to the title of the pdf.
 
 ## Design goals
 
-- minimize micro-management.
+- avoid all temptations of micro-management.
 - redundant application and not holding files hostage: all files are nicely named and accessible in a visible folder. Because of this, the application can be uninstalled at any time without losing any real data or organizational structure.
-- documentation aims to be excellent.
+- put love and care towards documentation.
 
 
 ## Features

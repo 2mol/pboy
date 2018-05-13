@@ -2,7 +2,6 @@ module Main where
 
 import           Brick
 import qualified Brick.Main as M
-import qualified Brick.AttrMap as A
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
@@ -60,17 +59,25 @@ drawUI (State {inboxFiles, inboxFileList}) =
         inboxScreen =
             withBorderStyle BS.unicode
                 $ B.borderWithLabel (str "PAPERBOY")
-                -- $ C.center
                 $ L.renderList listDrawElement True inboxFileList
     in
         [inboxScreen]
 
 handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
-handleEvent = undefined
+handleEvent s@(State {inboxFiles, inboxFileList}) (VtyEvent e) =
+    case e of
+        V.EvKey V.KEsc [] -> M.halt s
 
-theMap :: A.AttrMap
-theMap = A.attrMap V.defAttr
-    [ --(L.listAttr,            V.white `on` V.blue)
-    -- , (L.listSelectedAttr,    V.blue `on` V.white)
+        ev ->
+            do
+                newL <- L.handleListEvent ev inboxFileList
+                let newS = State inboxFiles newL
+                M.continue newS
+handleEvent s _ = M.continue s
+
+theMap :: AttrMap
+theMap = attrMap V.defAttr
+    [ (L.listAttr,            V.white `on` V.black)
+    , (L.listSelectedAttr,    V.black `on` V.white)
     -- , (customAttr,            fg V.cyan)
     ]
