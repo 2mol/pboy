@@ -21,12 +21,15 @@ description: Please see the README on Github at <https://github.com/2mol/pboy#re
 
 dependencies:
   - base >= 4.7 && < 5
+  - text
+  - containers
+  - either
   - brick >= 0.34 && < 1
   - vty
   - optparse-applicative >= 0.14 && < 1
-  - text
   - filepath >= 1.4.1 && < 2
   - directory
+  - process
   - pdfinfo >= 1.5.4 && < 2
   - vector
 

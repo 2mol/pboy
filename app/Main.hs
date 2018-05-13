@@ -4,28 +4,25 @@ import           Brick
 import qualified Brick.Main as M
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
-import qualified Brick.Widgets.Center as C
+-- import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.List as L
 import           Control.Monad (void)
-import           Data.Monoid ((<>))
 import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
 import qualified Lib
 
 main :: IO ()
 main = do
-    inboxDefault <- Lib.getInboxDefault
-    inboxFiles <- Lib.inboxFiles inboxDefault
+    config <- Lib.getDefaultConfig
+    inboxFiles <- Lib.listFiles (Lib.inboxDir config)
     let
         fileList = L.list Inbox (Vec.fromList inboxFiles) 1
-        init = State [] fileList
-    --simpleMain $ drawUI init
-    void $ M.defaultMain app init
+        initState = State fileList
+    void $ M.defaultMain app initState
 
 -- the application state
 data State = State
-    { inboxFiles :: [FilePath]
-    , inboxFileList :: L.List Name FilePath
+    { inboxFiles :: L.List Name FilePath
     }
 
 data Event = Nope
@@ -54,24 +51,24 @@ listDrawElement sel f =
     in selStr f
 
 drawUI :: State -> [Widget Name]
-drawUI (State {inboxFiles, inboxFileList}) =
+drawUI (State {inboxFiles}) =
     let
         inboxScreen =
             withBorderStyle BS.unicode
                 $ B.borderWithLabel (str "PAPERBOY")
-                $ L.renderList listDrawElement True inboxFileList
+                $ L.renderList listDrawElement True inboxFiles
     in
         [inboxScreen]
 
 handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
-handleEvent s@(State {inboxFiles, inboxFileList}) (VtyEvent e) =
+handleEvent s@(State {inboxFiles}) (VtyEvent e) =
     case e of
         V.EvKey V.KEsc [] -> M.halt s
 
         ev ->
             do
-                newL <- L.handleListEvent ev inboxFileList
-                let newS = State inboxFiles newL
+                newL <- L.handleListEvent ev inboxFiles
+                let newS = State newL
                 M.continue newS
 handleEvent s _ = M.continue s
 
