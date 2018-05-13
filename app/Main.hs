@@ -77,7 +77,7 @@ handleEvent s _ = M.continue s
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-    [ (L.listAttr,            V.white `on` V.black)
-    , (L.listSelectedAttr,    V.black `on` V.white)
+    [ (L.listAttr,            V.brightWhite `on` V.black)
+    , (L.listSelectedAttr,    V.black `on` V.brightWhite)
     -- , (customAttr,            fg V.cyan)
     ]
