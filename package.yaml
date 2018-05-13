@@ -21,8 +21,12 @@ description:         Please see the README on Github at <https://github.com/2mol
 
 dependencies:
 - base >= 4.7 && < 5
-- brick >= 0.34 && < 1
-- vty
+# - brick >= 0.34 && < 1
+# - vty
+- optparse-applicative >= 0.14 && < 1
+- filepath >= 1.4.1 && < 2
+- directory
+- pdfinfo >= 1.5.4 && < 2
 
 library:
   source-dirs: src
@@ -35,17 +39,6 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    dependencies:
-    - pboy
-
-tests:
-  pboy-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     - -Wall
     - -Wcompat
     - -Wincomplete-record-updates
@@ -53,3 +46,19 @@ tests:
     - -Wredundant-constraints
     dependencies:
     - pboy
+
+# tests:
+#   pboy-test:
+#     main:                Spec.hs
+#     source-dirs:         test
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     - -Wall
+#     - -Wcompat
+#     - -Wincomplete-record-updates
+#     - -Wincomplete-uni-patterns
+#     - -Wredundant-constraints
+#     dependencies:
+#     - pboy
