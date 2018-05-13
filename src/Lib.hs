@@ -1,6 +1,7 @@
 module Lib where
 
 import Data.Either.Combinators (rightToMaybe)
+-- import Data.Function ((&))
 import qualified Data.Maybe as M
 import           Data.Set (Set)
 import qualified Data.Set as S
@@ -18,6 +19,7 @@ import qualified Text.PDF.Info as PDFI
 -- 1. move file from download to library folder
 -- 2. rename file while moving
 
+infixl 1 |>
 (|>) :: a -> (a -> b) -> b
 (|>) = flip ($)
 
@@ -67,7 +69,7 @@ fileNameSuggestions filePath = do
         infoTitle =
             rightToMaybe pdfInfo
                 >>= PDFI.pdfInfoTitle
-                -- >>= sanitize
+                |> fmap stripCrap
 
     pure $ case infoTitle of
                 Just t -> t : topContent
@@ -80,6 +82,6 @@ fileNameSuggestions filePath = do
 sanityCheck :: Text -> Bool
 sanityCheck t = T.length t >= 3 && T.length t <= 64
 
--- TODO: strip _everything_! special characters, non-ascii, ...
+-- TODO: strip _everything_: special characters, non-ascii, ...
 stripCrap :: Text -> Text
 stripCrap t = t

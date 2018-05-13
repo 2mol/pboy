@@ -1,14 +1,13 @@
 module Main where
 
 import           Brick
-import qualified Brick.Main as M
-import qualified Brick.Widgets.Border as B
+import qualified Brick.Main                 as M
+import qualified Brick.Widgets.Border       as B
 import qualified Brick.Widgets.Border.Style as BS
--- import qualified Brick.Widgets.Center as C
-import qualified Brick.Widgets.List as L
-import           Control.Monad (void)
-import qualified Data.Vector as Vec
-import qualified Graphics.Vty as V
+import qualified Brick.Widgets.List         as L
+import           Control.Monad              (void)
+import qualified Data.Vector                as Vec
+import qualified Graphics.Vty               as V
 import qualified Lib
 
 main :: IO ()
