@@ -17,17 +17,20 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/2mol/pboy#readme>
+description: Please see the README on Github at <https://github.com/2mol/pboy#readme>
 
 dependencies:
-- base >= 4.7 && < 5
-# - brick >= 0.34 && < 1
-# - vty
-- optparse-applicative >= 0.14 && < 1
-- text
-- filepath >= 1.4.1 && < 2
-- directory
-- pdfinfo >= 1.5.4 && < 2
+  - base >= 4.7 && < 5
+  - brick >= 0.34 && < 1
+  - optparse-applicative >= 0.14 && < 1
+  - text
+  - filepath >= 1.4.1 && < 2
+  - directory
+  - pdfinfo >= 1.5.4 && < 2
+
+default-extensions:
+  - OverloadedStrings
+  - NamedFieldPuns
 
 library:
   source-dirs: src

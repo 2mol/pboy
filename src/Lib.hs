@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Lib where
 
 import           Data.Semigroup   ((<>))
