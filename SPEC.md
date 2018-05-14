@@ -2,9 +2,11 @@
 
 ## Description
 
-`pboy` will watch a specified inbox folder (for example `~/Downloads`) for .pdf files and offer to import them into another specified documents folder.
+- `pboy` offers to import .pdf files from specified inbox folder (for example `~/Downloads`) into a documents folder.
 
-This import moves the file and renames it according to the title of the pdf.
+- It helps rename the file according to its title. To that end it suggests possible titles extracted from the file metadata and the raw text content.
+
+- The files in the library can be searched based on their content.
 
 ## Design goals
 
