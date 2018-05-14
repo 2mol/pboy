@@ -27,7 +27,6 @@ dependencies:
   - brick >= 0.34 && < 1
   - vty
   - microlens
-  - optparse-applicative >= 0.14 && < 1
   - filepath >= 1.4.1 && < 2
   - directory
   - process

@@ -1,7 +1,6 @@
 module Lib where
 
 import           Data.Either.Combinators (rightToMaybe)
-import qualified Data.Maybe              as M
 import           Data.Set                (Set)
 import qualified Data.Set                as S
 import           Data.Text               (Text)
