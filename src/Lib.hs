@@ -1,17 +1,16 @@
 module Lib where
 
-import Data.Either.Combinators (rightToMaybe)
--- import Data.Function ((&))
-import qualified Data.Maybe as M
-import           Data.Set (Set)
-import qualified Data.Set as S
-import           Data.Text (Text)
-import qualified Data.Text as T
-import qualified System.Directory as D
-import           System.FilePath ((</>), (<.>))
-import qualified System.FilePath as F
-import qualified System.Process as P
-import qualified Text.PDF.Info as PDFI
+import           Data.Either.Combinators (rightToMaybe)
+import qualified Data.Maybe              as M
+import           Data.Set                (Set)
+import qualified Data.Set                as S
+import           Data.Text               (Text)
+import qualified Data.Text               as T
+import qualified System.Directory        as D
+import           System.FilePath         ((<.>), (</>))
+import qualified System.FilePath         as F
+import qualified System.Process          as P
+import qualified Text.PDF.Info           as PDFI
 
 -- want:
 -- 0. list files available in Download/Inbox
@@ -27,7 +26,7 @@ constSupportedExtensions :: Set String
 constSupportedExtensions = S.fromList [".pdf"]
 
 data Config = Config
-    { inboxDir :: FilePath
+    { inboxDir   :: FilePath
     , libraryDir :: FilePath
     } deriving (Show)
 
@@ -72,7 +71,7 @@ fileNameSuggestions filePath = do
                 |> fmap stripCrap
 
     pure $ case infoTitle of
-                Just t -> t : topContent
+                Just t  -> t : topContent
                 Nothing -> topContent
 
 -- TODO: create or use a filename sanitization function
