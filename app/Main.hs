@@ -8,31 +8,34 @@ import qualified Brick.Widgets.List         as L
 import           Control.Monad              (void)
 import qualified Data.Vector                as Vec
 import qualified Graphics.Vty               as V
-import Lens.Micro ((^.))
+import           Lens.Micro ((^.), (.~))
 
 import qualified Lib
 
 main :: IO ()
 main = do
     config <- Lib.getDefaultConfig
-    inboxFiles <- Lib.listFiles (Lib.inboxDir config)
+    inboxList <- Lib.listFiles (Lib.inboxDir config)
     let
-        fileList = L.list Inbox (Vec.fromList inboxFiles) 1
-        initState = State fileList
+        fileList = L.list Inbox (Vec.fromList inboxList) 1
+        initState = State fileList Nah
     void $ defaultMain app initState
 
 -- the application state
 data State = State
-    { inboxFiles :: L.List Name FilePath
+    { inboxList :: L.List Name FilePath
+    , filenameSelect :: FilenameSelect
     }
 
-data Event = Nope
+data FilenameSelect = Nah
+
+-- data Event = Nope
 
 -- view names:
 data Name = Inbox | Library
     deriving (Eq, Ord, Show)
 
-app :: App State Event Name
+app :: App State () Name
 app = App
     { appDraw = drawUI
     , appChooseCursor = neverShowCursor
@@ -52,10 +55,10 @@ listDrawElement sel f =
     in selStr f
 
 drawUI :: State -> [Widget Name]
-drawUI (State {inboxFiles}) =
+drawUI (State {inboxList}) =
     let
         inboxWidget =
-            L.renderList listDrawElement True inboxFiles
+            L.renderList listDrawElement True inboxList
 
         libraryWidget =
             C.center (str "Library here")
@@ -67,21 +70,22 @@ drawUI (State {inboxFiles}) =
     in
         [screen]
 
-handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
-handleEvent s@(State {inboxFiles}) (VtyEvent e) =
+handleEvent :: State -> BrickEvent Name () -> EventM Name (Next State)
+handleEvent s@(State {inboxList}) (VtyEvent e) =
     case e of
         V.EvKey V.KEsc [] -> halt s
 
         V.EvKey V.KEnter [] ->
-            case inboxFiles ^. L.listSelectedL of
+            case inboxList ^. L.listSelectedL of
                 Nothing -> continue s
-                Just i -> continue $ State (L.listRemove i inboxFiles)
+                Just i -> continue $ State (L.listRemove i inboxList) Nah
 
         ev -> do
-                newInbox <- L.handleListEvent ev inboxFiles
-                let newState = State newInbox
+                newInbox <- L.handleListEvent ev inboxList
+                let newState = State newInbox Nah
                 continue newState
-handleEvent s _ = continue s
+handleEvent s _ =
+    continue s
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
