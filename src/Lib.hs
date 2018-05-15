@@ -1,16 +1,18 @@
 module Lib where
 
+import qualified Data.Char               as C
 import           Data.Either.Combinators (rightToMaybe)
-import qualified Data.Char as C
 import           Data.Set                (Set)
 import qualified Data.Set                as S
 import           Data.Text               (Text)
 import qualified Data.Text               as T
+import           Data.Time.Clock         (UTCTime)
 import qualified System.Directory        as D
 import           System.FilePath         ((<.>), (</>))
 import qualified System.FilePath         as F
 import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
+import  GHC.Exts (sortWith)
 
 -- want:
 -- 0. list files available in Download/Inbox
@@ -37,13 +39,27 @@ getDefaultConfig = do
         library = (homeDir </> "pboy-test")
     pure $ Config inbox library
 
-listFiles :: FilePath -> IO [FilePath]
-listFiles path = do
-    files <- D.getDirectoryContents path
-    pure $ filter isSupported files
+data FileInfo = FileInfo
+    { _fileName :: FilePath
+    , _modTime  :: UTCTime
+    }
 
-isSupported :: FilePath -> Bool
-isSupported f = S.member (F.takeExtension f) constSupportedExtensions
+listFiles :: FilePath -> IO [FileInfo]
+listFiles path = do
+    files <- D.listDirectory path
+    fileInfos <- mapM getFileInfo (fmap (\f -> path </> f) files)
+    let sortedFileInfos = reverse $ sortWith _modTime fileInfos
+    pure $ filter fileSupported sortedFileInfos
+
+getFileInfo :: FilePath -> IO FileInfo
+getFileInfo path = do
+    modTime <- D.getModificationTime path
+    pure $ FileInfo (F.takeFileName path) modTime
+
+fileSupported :: FileInfo -> Bool
+fileSupported fileInfo =
+    let extension = F.takeExtension $ _fileName fileInfo
+    in S.member extension constSupportedExtensions
 
 fileFile :: Config -> FilePath -> Text -> IO ()
 fileFile Config{libraryDir} origFilePath newFileName = do
@@ -80,8 +96,8 @@ fileNameSuggestions Config{inboxDir} filePath = do
                 |> (take 4)
 
     pure $ case infoTitle of
-                Just title  -> fileNameText : title : topContent
-                Nothing -> fileNameText : topContent
+                Just title -> fileNameText : title : topContent
+                Nothing    -> fileNameText : topContent
 
 -- TODO: create or use a filename sanitization function
 -- sanitize :: Text -> Maybe Text
@@ -106,4 +122,4 @@ validChars :: Char -> Bool
 validChars x =
     case x of
         '_' -> True
-        _ -> C.isLetter x || C.isSpace x
+        _   -> C.isLetter x || C.isSpace x

@@ -24,6 +24,7 @@ dependencies:
   - text
   - containers
   - either
+  - time
   - brick >= 0.34 && < 1
   - vty
   - microlens
