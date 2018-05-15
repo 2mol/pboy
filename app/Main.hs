@@ -18,7 +18,7 @@ import qualified Lib
 main :: IO ()
 main = do
     config <- Lib.getDefaultConfig
-    inboxFiles <- Lib.listFiles (Lib.inboxDir config)
+    inboxList <- Lib.listFiles (Lib.inboxDir config)
     let
         fileList = L.list Inbox (Vec.fromList inboxFiles) 1
         suggestions = L.list Import (Vec.fromList []) 1
@@ -33,7 +33,9 @@ data State = State
     , _import :: L.List Name Text
     }
 
-data Event = Nope
+data FilenameSelect = Nah
+
+-- data Event = Nope
 
 -- data ImportScreen = ImportScreen
 --     { _suggestions :: L.List Name Text
@@ -46,7 +48,7 @@ data Name
     | Import
     deriving (Eq, Ord, Show)
 
-app :: App State Event Name
+app :: App State () Name
 app = App
     { appDraw = drawUI
     , appChooseCursor = neverShowCursor
