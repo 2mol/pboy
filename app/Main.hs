@@ -6,9 +6,12 @@ import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center       as C
 import qualified Brick.Widgets.List         as L
 import           Control.Monad              (void)
+import           Data.Text                  (Text)
+import qualified Data.Text                  as T
 import qualified Data.Vector                as Vec
 import qualified Graphics.Vty               as V
-import Lens.Micro ((^.))
+-- import           Lens.Micro                 ((^.))
+import Control.Monad.IO.Class (liftIO)
 
 import qualified Lib
 
@@ -18,18 +21,29 @@ main = do
     inboxFiles <- Lib.listFiles (Lib.inboxDir config)
     let
         fileList = L.list Inbox (Vec.fromList inboxFiles) 1
-        initState = State fileList
+        suggestions = L.list Import (Vec.fromList []) 1
+        initState = State Inbox fileList suggestions
+
     void $ defaultMain app initState
 
 -- the application state
 data State = State
-    { inboxFiles :: L.List Name FilePath
+    { _focus     :: Name
+    , _inboxList :: L.List Name FilePath
+    , _import :: L.List Name Text
     }
 
 data Event = Nope
 
+-- data ImportScreen = ImportScreen
+--     { _suggestions :: L.List Name Text
+--     }
+
 -- view names:
-data Name = Inbox | Library
+data Name
+    = Inbox
+    | Library
+    | Import
     deriving (Eq, Ord, Show)
 
 app :: App State Event Name
@@ -52,36 +66,72 @@ listDrawElement sel f =
     in selStr f
 
 drawUI :: State -> [Widget Name]
-drawUI (State {inboxFiles}) =
+drawUI (State {_focus, _inboxList, _import}) =
     let
         inboxWidget =
-            L.renderList listDrawElement True inboxFiles
+            L.renderList listDrawElement (_focus == Inbox) _inboxList
 
         libraryWidget =
-            C.center (str "Library here")
+            C.center (str " ")
 
-        screen =
+        mainScreen =
             withBorderStyle BS.unicodeRounded
                 $ B.borderWithLabel (str "PAPERBOY")
                 $ libraryWidget <=> B.hBorder <=> inboxWidget
+
+        importWidget =
+            C.centerLayer
+                $ B.borderWithLabel (str "Import - Suggested File Names")
+                $ padAll 1 $ hLimit 64 $ vLimit 16
+                $ L.renderList (\_ s -> str (T.unpack s)) (_focus == Import) _import
+
+        ui =
+            case _focus of
+                Import ->
+                    [importWidget, mainScreen]
+                _ ->
+                    [mainScreen]
     in
-        [screen]
+        ui
 
 handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
-handleEvent s@(State {inboxFiles}) (VtyEvent e) =
-    case e of
-        V.EvKey V.KEsc [] -> halt s
+handleEvent s@(State {_focus, _inboxList, _import}) (VtyEvent e) =
+    case (e, _focus) of
+        (V.EvKey (V.KChar 'q') [V.MCtrl], _) -> halt s
+        (V.EvKey (V.KChar 'w') [V.MCtrl], _) -> halt s
 
-        V.EvKey V.KEnter [] ->
-            case inboxFiles ^. L.listSelectedL of
+        (V.EvKey V.KEsc [], _) ->
+            continue $ State Inbox _inboxList _import
+
+        (V.EvKey V.KEnter [], Inbox) ->
+            case L.listSelectedElement _inboxList of
                 Nothing -> continue s
-                Just i -> continue $ State (L.listRemove i inboxFiles)
+                Just (_, fileName) -> handleFileSelect s fileName
 
-        ev -> do
-                newInbox <- L.handleListEvent ev inboxFiles
-                let newState = State newInbox
+        (ev, Inbox) -> do
+                newL <- L.handleListEvent ev _inboxList
+                let newState = State _focus newL _import
                 continue newState
+
+        (ev, Import) -> do
+                newL <- L.handleListEvent ev _import
+                let newState = State _focus _inboxList newL
+                continue newState
+        _ ->
+            continue s
 handleEvent s _ = continue s
+
+handleFileSelect :: State -> FilePath -> EventM Name (Next State)
+handleFileSelect State{_focus, _inboxList, _import} fileName =
+    do
+        config <- liftIO $ Lib.getDefaultConfig
+        nameSuggestions <- liftIO $ Lib.fileNameSuggestions config fileName
+
+        let
+            newImport =
+                L.list Import (Vec.fromList nameSuggestions) 1
+
+        continue $ State Import _inboxList newImport
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr

@@ -45,16 +45,17 @@ isSupported :: FilePath -> Bool
 isSupported f = S.member (F.takeExtension f) constSupportedExtensions
 
 fileFile :: Config -> FilePath -> Text -> IO ()
-fileFile (Config {libraryDir}) origFilePath newFileName = do
+fileFile Config{libraryDir} origFilePath newFileName = do
     let newFilePath = libraryDir </> (T.unpack newFileName) <.> "pdf"
     D.createDirectoryIfMissing True libraryDir
     D.copyFile origFilePath newFilePath
 
-fileNameSuggestions :: FilePath -> IO [Text]
-fileNameSuggestions filePath = do
-    plainTextContent <- P.readProcess "pdftotext" [filePath, "-"] ""
+fileNameSuggestions :: Config -> FilePath -> IO [Text]
+fileNameSuggestions Config{inboxDir} filePath = do
+    let fullFilePath = inboxDir </> (F.takeFileName filePath)
+    plainTextContent <- P.readProcess "pdftotext" [fullFilePath, "-"] ""
 
-    pdfInfo <- PDFI.pdfInfo filePath
+    pdfInfo <- PDFI.pdfInfo fullFilePath
 
     let
         topContent =
@@ -62,7 +63,7 @@ fileNameSuggestions filePath = do
                 |> T.lines
                 |> fmap stripCrap
                 |> filter sanityCheck
-                |> (take 4)
+                |> (take 3)
 
         infoTitle =
             rightToMaybe pdfInfo
