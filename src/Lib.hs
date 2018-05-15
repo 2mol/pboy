@@ -70,13 +70,13 @@ fileNameSuggestions Config{inboxDir} filePath = do
             rightToMaybe pdfInfo
                 >>= PDFI.pdfInfoTitle
                 |> fmap strip
-                >>= sanityMaybe
+                >>= boolToMaybe lengthCheck
 
         topContent =
             T.pack plainTextContent
                 |> T.lines
                 |> fmap strip
-                |> filter sanityCheck
+                |> filter lengthCheck
                 |> (take 4)
 
     pure $ case infoTitle of
@@ -87,18 +87,18 @@ fileNameSuggestions Config{inboxDir} filePath = do
 -- sanitize :: Text -> Maybe Text
 -- sanitize t = Just t
 
-sanityCheck :: Text -> Bool
-sanityCheck t = T.length t >= 3 && T.length t <= 64
+-- 1. strip out all except ascii, alphanumeric, spaces, underscores, dashes
+-- 2. remove double spaces / underscores
 
-sanityMaybe :: Text -> Maybe Text
-sanityMaybe t =
-    if sanityCheck t
-        then Just t
+lengthCheck :: Text -> Bool
+lengthCheck t = T.length t >= 3 && T.length t <= 64
+
+boolToMaybe :: (a -> Bool) -> a -> Maybe a
+boolToMaybe check a =
+    if check a
+        then Just a
         else Nothing
 
--- boolToMaybe :: a -> Bool -> Maybe a
-
--- TODO: strip _everything_: special characters, non-ascii, ...
 strip :: Text -> Text
 strip t = (T.pack . filter validChars . T.unpack) t
 
