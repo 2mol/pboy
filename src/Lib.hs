@@ -1,7 +1,7 @@
 module Lib where
 
 import           Data.Either.Combinators (rightToMaybe)
-import Data.Char (isLetter)
+import qualified Data.Char as C
 import           Data.Set                (Set)
 import qualified Data.Set                as S
 import           Data.Text               (Text)
@@ -53,27 +53,35 @@ fileFile Config{libraryDir} origFilePath newFileName = do
 
 fileNameSuggestions :: Config -> FilePath -> IO [Text]
 fileNameSuggestions Config{inboxDir} filePath = do
-    let fullFilePath = inboxDir </> (F.takeFileName filePath)
+    let
+        fileName = F.takeFileName filePath
+        fullFilePath = inboxDir </> fileName
     plainTextContent <- P.readProcess "pdftotext" [fullFilePath, "-"] ""
 
     pdfInfo <- PDFI.pdfInfo fullFilePath
 
     let
-        topContent =
-            T.pack plainTextContent
-                |> T.lines
-                |> fmap stripCrap
-                |> filter sanityCheck
-                |> (take 3)
+        fileNameText =
+            F.takeBaseName fileName
+                |> T.pack
+                |> strip
 
         infoTitle =
             rightToMaybe pdfInfo
                 >>= PDFI.pdfInfoTitle
-                |> fmap stripCrap
+                |> fmap strip
+                >>= sanityMaybe
+
+        topContent =
+            T.pack plainTextContent
+                |> T.lines
+                |> fmap strip
+                |> filter sanityCheck
+                |> (take 4)
 
     pure $ case infoTitle of
-                Just t  -> t : topContent
-                Nothing -> topContent
+                Just title  -> fileNameText : title : topContent
+                Nothing -> fileNameText : topContent
 
 -- TODO: create or use a filename sanitization function
 -- sanitize :: Text -> Maybe Text
@@ -82,6 +90,20 @@ fileNameSuggestions Config{inboxDir} filePath = do
 sanityCheck :: Text -> Bool
 sanityCheck t = T.length t >= 3 && T.length t <= 64
 
+sanityMaybe :: Text -> Maybe Text
+sanityMaybe t =
+    if sanityCheck t
+        then Just t
+        else Nothing
+
+-- boolToMaybe :: a -> Bool -> Maybe a
+
 -- TODO: strip _everything_: special characters, non-ascii, ...
-stripCrap :: Text -> Text
-stripCrap t = t
+strip :: Text -> Text
+strip t = (T.pack . filter validChars . T.unpack) t
+
+validChars :: Char -> Bool
+validChars x =
+    case x of
+        '_' -> True
+        _ -> C.isLetter x || C.isSpace x
