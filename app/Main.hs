@@ -20,7 +20,7 @@ main = do
     config <- Lib.getDefaultConfig
     inboxList <- Lib.listFiles (Lib.inboxDir config)
     let
-        fileList = L.list Inbox (Vec.fromList inboxFiles) 1
+        fileList = L.list Inbox (Vec.fromList inboxList) 1
         suggestions = L.list Import (Vec.fromList []) 1
         initState = State Inbox fileList suggestions
 
@@ -30,12 +30,10 @@ main = do
 data State = State
     { _focus     :: Name
     , _inboxList :: L.List Name FilePath
-    , _import :: L.List Name Text
+    , _import    :: L.List Name Text
     }
 
-data FilenameSelect = Nah
-
--- data Event = Nope
+type Event = ()
 
 -- data ImportScreen = ImportScreen
 --     { _suggestions :: L.List Name Text
@@ -107,7 +105,7 @@ handleEvent s@(State {_focus, _inboxList, _import}) (VtyEvent e) =
 
         (V.EvKey V.KEnter [], Inbox) ->
             case L.listSelectedElement _inboxList of
-                Nothing -> continue s
+                Nothing            -> continue s
                 Just (_, fileName) -> handleFileSelect s fileName
 
         (ev, Inbox) -> do
