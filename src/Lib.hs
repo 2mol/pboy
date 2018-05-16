@@ -2,6 +2,7 @@ module Lib where
 
 import qualified Data.Char               as C
 import           Data.Either.Combinators (rightToMaybe)
+import           Data.Function           ((&))
 import qualified Data.List               as List
 import qualified Data.Maybe              as Maybe
 import           Data.Set                (Set)
@@ -16,16 +17,6 @@ import           System.FilePath         ((<.>), (</>))
 import qualified System.FilePath         as F
 import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
-
--- want:
--- 0. list files available in Download/Inbox
--- 0. read library path from config
--- 1. move file from download to library folder
--- 2. rename file while moving
-
-infixl 1 |>
-(|>) :: a -> (a -> b) -> b
-(|>) = flip ($)
 
 constSupportedExtensions :: Set String
 constSupportedExtensions = S.fromList [".pdf"]
@@ -82,27 +73,27 @@ fileNameSuggestions Config{inboxDir} filePath = do
     let
         fileNameText =
             F.takeBaseName fileName
-                |> T.pack
-                |> sanitize
-                |> Just
+                & T.pack
+                & sanitize
+                & Just
 
         maybeTitle =
             rightToMaybe pdfInfo
                 >>= PDFI.pdfInfoTitle
-                |> fmap sanitize
+                & fmap sanitize
                 >>= boolToMaybe lengthCheck
 
         topContent =
             T.pack plainTextContent
-                |> T.lines
-                |> take 16 -- totally arbitrary. subject to improvement later
-                |> fmap sanitize
-                |> filter lengthCheck
-                |> fmap Just
+                & T.lines
+                & take 16 -- totally arbitrary. subject to improvement later
+                & fmap sanitize
+                & filter lengthCheck
+                & fmap Just
 
         suggestions =
             fileNameText : maybeTitle : topContent
-                |> Maybe.catMaybes
+                & Maybe.catMaybes
 
     pure $ take 4 $ List.nub suggestions
 
@@ -121,12 +112,12 @@ boolToMaybe check a =
 sanitize :: Text -> Text
 sanitize text =
     text
-        |> T.replace "_" " "
-        |> T.unwords . T.words
-        |> T.unpack
-        |> filter validChars
-        |> titlecase
-        |> T.pack
+        & T.replace "_" " "
+        & T.unwords . T.words
+        & T.unpack
+        & filter validChars
+        & titlecase
+        & T.pack
 
 validChars :: Char -> Bool
 validChars x =
