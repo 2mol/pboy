@@ -126,17 +126,20 @@ boolToMaybe check a =
 sanitize :: Text -> Text
 sanitize text =
     let
-        replaceSpace c =
-            case c of
-                ' ' -> '_'
-                _ -> c
+        -- replaceSpace c =
+        --     case c of
+        --         ' ' -> '_'
+        --         _ -> c
     in
         text
-            |> T.strip
+            |> T.replace "_" " "
+            -- |> T.strip
+            -- |> T.dropAround (\c -> c == '_')
+            |> T.unwords . T.words
             |> T.unpack
             |> filter validChars
-            |> fmap replaceSpace
-            |> removeSuccessive '_'
+            -- |> fmap replaceSpace
+            -- |> removeSuccessive '_'
             |> titlecase
             |> T.pack
 
