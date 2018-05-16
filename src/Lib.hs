@@ -17,7 +17,6 @@ import qualified System.FilePath         as F
 import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
 
-
 -- want:
 -- 0. list files available in Download/Inbox
 -- 0. read library path from config
@@ -107,13 +106,6 @@ fileNameSuggestions Config{inboxDir} filePath = do
 
     pure $ take 4 $ List.nub suggestions
 
--- TODO: create or use a filename sanitization function
--- sanitize :: Text -> Maybe Text
--- sanitize t = Just t
-
--- 1. strip out all except ascii, alphanumeric, spaces, underscores, dashes
--- 2. remove double spaces / underscores
-
 lengthCheck :: Text -> Bool
 lengthCheck t = T.length t >= 3 && T.length t <= 64
 
@@ -123,6 +115,9 @@ boolToMaybe check a =
         then Just a
         else Nothing
 
+-- 1. remove double spaces / double underscores
+-- 2. strip out all except ascii, alphanumeric, spaces, underscores, dashes
+-- 3. display with spaces in UI, replace with '_' for filenames later
 sanitize :: Text -> Text
 sanitize text =
     text
@@ -137,4 +132,5 @@ validChars :: Char -> Bool
 validChars x =
     case x of
         '_' -> True
+        '-' -> True
         _   -> C.isLetter x || C.isSpace x
