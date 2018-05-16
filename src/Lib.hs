@@ -2,17 +2,21 @@ module Lib where
 
 import qualified Data.Char               as C
 import           Data.Either.Combinators (rightToMaybe)
+import qualified Data.List               as List
+import qualified Data.Maybe              as Maybe
 import           Data.Set                (Set)
 import qualified Data.Set                as S
 import           Data.Text               (Text)
 import qualified Data.Text               as T
+import           Data.Text.Titlecase     (titlecase)
 import           Data.Time.Clock         (UTCTime)
+import           GHC.Exts                (sortWith)
 import qualified System.Directory        as D
 import           System.FilePath         ((<.>), (</>))
 import qualified System.FilePath         as F
 import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
-import  GHC.Exts (sortWith)
+
 
 -- want:
 -- 0. list files available in Download/Inbox
@@ -80,24 +84,28 @@ fileNameSuggestions Config{inboxDir} filePath = do
         fileNameText =
             F.takeBaseName fileName
                 |> T.pack
-                |> strip
+                |> sanitize
+                |> Just
 
-        infoTitle =
+        maybeTitle =
             rightToMaybe pdfInfo
                 >>= PDFI.pdfInfoTitle
-                |> fmap strip
+                |> fmap sanitize
                 >>= boolToMaybe lengthCheck
 
         topContent =
             T.pack plainTextContent
                 |> T.lines
-                |> fmap strip
+                |> take 16 -- totally arbitrary. subject to improvement later
+                |> fmap sanitize
                 |> filter lengthCheck
-                |> (take 4)
+                |> fmap Just
 
-    pure $ case infoTitle of
-                Just title -> fileNameText : title : topContent
-                Nothing    -> fileNameText : topContent
+        suggestions =
+            fileNameText : maybeTitle : topContent
+                |> Maybe.catMaybes
+
+    pure $ take 4 $ List.nub suggestions
 
 -- TODO: create or use a filename sanitization function
 -- sanitize :: Text -> Maybe Text
@@ -115,8 +123,17 @@ boolToMaybe check a =
         then Just a
         else Nothing
 
-strip :: Text -> Text
-strip t = (T.pack . filter validChars . T.unpack) t
+sanitize :: Text -> Text
+sanitize t =
+    let
+        makeBetter str =
+            str
+                |> filter validChars
+                -- |> replace underscores
+                -- |> remove double spaces etc
+                |> titlecase
+
+    in (T.pack . makeBetter . T.unpack) t
 
 validChars :: Char -> Bool
 validChars x =

@@ -25,6 +25,7 @@ dependencies:
   - containers
   - either
   - time
+  - fmt
   - brick >= 0.34 && < 1
   - vty
   - microlens
@@ -33,6 +34,7 @@ dependencies:
   - process
   - pdfinfo >= 1.5.4 && < 2
   - vector
+  - titlecase
 
 default-extensions:
   - OverloadedStrings

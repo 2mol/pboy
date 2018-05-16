@@ -1,18 +1,20 @@
 module Main where
 
 import           Brick
-import qualified Brick.Widgets.Core as BC
 import qualified Brick.Widgets.Border       as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center       as C
+import qualified Brick.Widgets.Core         as BC
 import qualified Brick.Widgets.List         as L
 import           Control.Monad              (void)
+import           Control.Monad.IO.Class     (liftIO)
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as Vec
+import           Fmt                        (fmt)
+import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
 -- import           Lens.Micro                 ((^.))
-import Control.Monad.IO.Class (liftIO)
 
 import qualified Lib
 
@@ -27,11 +29,11 @@ main = do
 
     void $ defaultMain app initState
 
--- the application state
 data State = State
-    { _focus     :: Name
-    , _inboxList :: L.List Name Lib.FileInfo
-    , _import    :: L.List Name Text
+    { _focus   :: Name
+    -- , _library :: L.List Name Lib.FileInfo
+    , _inbox   :: L.List Name Lib.FileInfo
+    , _import  :: L.List Name Text
     }
 
 type Event = ()
@@ -40,7 +42,6 @@ type Event = ()
 --     { _suggestions :: L.List Name Text
 --     }
 
--- view names:
 data Name
     = Inbox
     | Library
@@ -56,20 +57,27 @@ app = App
     , appAttrMap = const theMap
     }
 
-
 drawFileInfo :: Bool -> Lib.FileInfo -> Widget Name
 drawFileInfo selected fileInfo =
-    let fileLabel = BC.vLimit 1 $ BC.hBox [str (Lib._fileName fileInfo), fill ' ', str (show $ Lib._modTime fileInfo)]
+    let
+        fileLabel =
+            [ str (Lib._fileName fileInfo)
+            , fill ' '
+            , str (fmt (dateDashF $ Lib._modTime fileInfo))
+            ]
+
+        fileLabelWidget =
+            BC.vLimit 1 $ BC.hBox fileLabel
     in
         if selected
-            then withAttr L.listSelectedAttr fileLabel
-            else fileLabel
+            then withAttr L.listSelectedAttr fileLabelWidget
+            else fileLabelWidget
 
 drawUI :: State -> [Widget Name]
-drawUI (State {_focus, _inboxList, _import}) =
+drawUI (State {_focus, _inbox, _import}) =
     let
         inboxWidget =
-            L.renderList drawFileInfo (_focus == Inbox) _inboxList
+            L.renderList drawFileInfo (_focus == Inbox) _inbox
 
         libraryWidget =
             C.center (str " ")
@@ -81,7 +89,7 @@ drawUI (State {_focus, _inboxList, _import}) =
 
         importWidget =
             C.centerLayer
-                $ B.borderWithLabel (str "Import - Suggested File Names")
+                $ B.borderWithLabel (str "Import")
                 $ padAll 1 $ hLimit 64 $ vLimit 16
                 $ L.renderList (\_ s -> str (T.unpack s)) (_focus == Import) _import
 
@@ -95,34 +103,34 @@ drawUI (State {_focus, _inboxList, _import}) =
         ui
 
 handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
-handleEvent s@(State {_focus, _inboxList, _import}) (VtyEvent e) =
+handleEvent s@(State {_focus, _inbox, _import}) (VtyEvent e) =
     case (e, _focus) of
         (V.EvKey (V.KChar 'q') [V.MCtrl], _) -> halt s
         (V.EvKey (V.KChar 'w') [V.MCtrl], _) -> halt s
 
         (V.EvKey V.KEsc [], _) ->
-            continue $ State Inbox _inboxList _import
+            continue $ State Inbox _inbox _import
 
         (V.EvKey V.KEnter [], Inbox) ->
-            case L.listSelectedElement _inboxList of
+            case L.listSelectedElement _inbox of
                 Nothing            -> continue s
                 Just (_, fileInfo) -> handleFileSelect s fileInfo
 
         (ev, Inbox) -> do
-                newL <- L.handleListEvent ev _inboxList
+                newL <- L.handleListEvent ev _inbox
                 let newState = State _focus newL _import
                 continue newState
 
         (ev, Import) -> do
                 newL <- L.handleListEvent ev _import
-                let newState = State _focus _inboxList newL
+                let newState = State _focus _inbox newL
                 continue newState
         _ ->
             continue s
 handleEvent s _ = continue s
 
 handleFileSelect :: State -> Lib.FileInfo -> EventM Name (Next State)
-handleFileSelect State{_focus, _inboxList, _import} fileInfo =
+handleFileSelect State{_focus, _inbox, _import} fileInfo =
     do
         config <- liftIO $ Lib.getDefaultConfig
         nameSuggestions <- liftIO $ Lib.fileNameSuggestions config (Lib._fileName fileInfo)
@@ -131,7 +139,7 @@ handleFileSelect State{_focus, _inboxList, _import} fileInfo =
             newImport =
                 L.list Import (Vec.fromList nameSuggestions) 1
 
-        continue $ State Import _inboxList newImport
+        continue $ State Import _inbox newImport
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
