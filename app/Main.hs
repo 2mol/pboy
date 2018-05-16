@@ -90,7 +90,7 @@ drawUI (State {_focus, _inbox, _import}) =
         importWidget =
             C.centerLayer
                 $ B.borderWithLabel (str "Import")
-                $ padAll 1 $ hLimit 64 $ vLimit 16
+                $ padLeftRight 2 $ padTopBottom 1 $ hLimit 64 $ vLimit 16
                 $ L.renderList (\_ s -> str (T.unpack s)) (_focus == Import) _import
 
         ui =
