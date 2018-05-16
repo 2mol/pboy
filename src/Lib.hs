@@ -75,7 +75,7 @@ fileNameSuggestions Config{inboxDir} filePath = do
             F.takeBaseName fileName
                 & T.pack
                 & sanitize
-                & Just
+                & boolToMaybe lengthCheck
 
         maybeTitle =
             rightToMaybe pdfInfo

@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell  #-}
 module UI where
 
@@ -17,7 +16,7 @@ import qualified Data.Vector                as Vec
 import           Fmt                        (fmt)
 import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
-import           Lens.Micro                 ((.~), (^.))
+import           Lens.Micro                 ((^.), (.~))
 import           Lens.Micro.TH              (makeLenses)
 
 import qualified Lib
@@ -138,12 +137,12 @@ handleFileSelect s fileInfo =
         suggestions <- liftIO $ Lib.fileNameSuggestions config (Lib._fileName fileInfo)
 
         let
-            newImport =
+            newFileNames =
                 L.list Import (Vec.fromList suggestions) 1
 
         continue $ s
             & focus .~ Import
-            & fileNames .~ newImport
+            & fileNames .~ newFileNames
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
