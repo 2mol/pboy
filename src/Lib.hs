@@ -124,16 +124,33 @@ boolToMaybe check a =
         else Nothing
 
 sanitize :: Text -> Text
-sanitize t =
+sanitize text =
     let
-        makeBetter str =
-            str
-                |> filter validChars
-                -- |> replace underscores
-                -- |> remove double spaces etc
-                |> titlecase
+        replaceSpace c =
+            case c of
+                ' ' -> '_'
+                _ -> c
+    in
+        text
+            |> T.strip
+            |> T.unpack
+            |> filter validChars
+            |> fmap replaceSpace
+            |> removeSuccessive '_'
+            |> titlecase
+            |> T.pack
 
-    in (T.pack . makeBetter . T.unpack) t
+removeSuccessive :: Char -> String -> String
+removeSuccessive = removeSuccessive_ False
+
+removeSuccessive_ :: Bool -> Char -> String -> String
+removeSuccessive_ lastWas_c c string =
+    case string of
+        "" -> ""
+        a:as ->
+            if a == c && lastWas_c
+                then removeSuccessive_ True c as
+                else a : removeSuccessive_ (a == c) c as
 
 validChars :: Char -> Bool
 validChars x =
