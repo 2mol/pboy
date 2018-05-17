@@ -223,3 +223,4 @@ language_extensions:
   - OverloadedStrings
   - NamedFieldPuns
   - GeneralizedNewtypeDeriving
+  - TemplateHaskell

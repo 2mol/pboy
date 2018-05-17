@@ -41,6 +41,7 @@ default-extensions:
   - OverloadedStrings
   - NamedFieldPuns
   - GeneralizedNewtypeDeriving
+  - TemplateHaskell
 
 library:
   source-dirs: src

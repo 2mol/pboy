@@ -12,6 +12,8 @@ import qualified Data.Text               as T
 import           Data.Text.Titlecase     (titlecase)
 import           Data.Time.Clock         (UTCTime)
 import           GHC.Exts                (sortWith)
+import           Lens.Micro              ((.~), (^.))
+import           Lens.Micro.TH           (makeLenses)
 import qualified System.Directory        as D
 import           System.FilePath         ((<.>), (</>))
 import qualified System.FilePath         as F
@@ -22,9 +24,11 @@ constSupportedExtensions :: Set String
 constSupportedExtensions = S.fromList [".pdf"]
 
 data Config = Config
-    { inboxDir   :: FilePath
-    , libraryDir :: FilePath
+    { _inboxDir   :: FilePath
+    , _libraryDir :: FilePath
     } deriving (Show)
+
+makeLenses ''Config
 
 getDefaultConfig :: IO Config
 getDefaultConfig = do
@@ -55,17 +59,13 @@ fileSupported fileInfo =
     let extension = F.takeExtension $ _fileName fileInfo
     in S.member extension constSupportedExtensions
 
-fileFile :: Config -> FilePath -> Text -> IO ()
-fileFile Config{libraryDir} origFilePath newFileName = do
-    let newFilePath = libraryDir </> (T.unpack newFileName) <.> "pdf"
-    D.createDirectoryIfMissing True libraryDir
-    D.copyFile origFilePath newFilePath
+-- Getting Filename suggestions:
 
 fileNameSuggestions :: Config -> FilePath -> IO [Text]
-fileNameSuggestions Config{inboxDir} filePath = do
+fileNameSuggestions Config{_inboxDir} filePath = do
     let
         fileName = F.takeFileName filePath
-        fullFilePath = inboxDir </> fileName
+        fullFilePath = _inboxDir </> fileName
     plainTextContent <- P.readProcess "pdftotext" [fullFilePath, "-"] ""
 
     pdfInfo <- PDFI.pdfInfo fullFilePath
@@ -125,3 +125,11 @@ validChars x =
         '_' -> True
         '-' -> True
         _   -> C.isLetter x || C.isSpace x
+
+-- shelving files into library folder
+
+fileFile :: Config -> FilePath -> Text -> IO ()
+fileFile Config{_libraryDir} origFilePath newFileName = do
+    let newFilePath = _libraryDir </> (T.unpack newFileName) <.> "pdf"
+    D.createDirectoryIfMissing True _libraryDir
+    D.copyFile origFilePath newFilePath

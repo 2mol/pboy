@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell  #-}
 module UI where
 
 import Control.Monad.IO.Class (liftIO)
@@ -45,7 +44,7 @@ makeLenses ''State
 initState :: IO State
 initState = do
     config <- Lib.getDefaultConfig
-    inboxFileInfos <- Lib.listFiles (Lib.inboxDir config)
+    inboxFileInfos <- Lib.listFiles (config ^. Lib.inboxDir)
     let
         fileList = L.list Inbox (Vec.fromList inboxFileInfos) 1
         suggestions = L.list Import (Vec.fromList []) 1
