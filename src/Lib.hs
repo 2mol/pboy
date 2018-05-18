@@ -12,7 +12,7 @@ import qualified Data.Text               as T
 import           Data.Text.Titlecase     (titlecase)
 import           Data.Time.Clock         (UTCTime)
 import           GHC.Exts                (sortWith)
-import           Lens.Micro              ((.~), (^.))
+import           Lens.Micro              ((^.))
 import           Lens.Micro.TH           (makeLenses)
 import qualified System.Directory        as D
 import           System.FilePath         ((<.>), (</>))
@@ -44,6 +44,7 @@ data FileInfo = FileInfo
 
 listFiles :: FilePath -> IO [FileInfo]
 listFiles path = do
+    D.createDirectoryIfMissing True path
     files <- D.listDirectory path
     fileInfos <- mapM getFileInfo (fmap (\f -> path </> f) files)
     let sortedFileInfos = reverse $ sortWith _modTime fileInfos
@@ -129,7 +130,6 @@ validChars x =
 -- shelving files into library folder
 
 fileFile :: Config -> FilePath -> Text -> IO ()
-fileFile Config{_libraryDir} origFilePath newFileName = do
-    let newFilePath = _libraryDir </> (T.unpack newFileName) <.> "pdf"
-    D.createDirectoryIfMissing True _libraryDir
+fileFile conf origFilePath newFileName = do
+    let newFilePath = conf ^. libraryDir </> (T.unpack newFileName) <.> "pdf"
     D.copyFile origFilePath newFilePath

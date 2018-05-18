@@ -1,6 +1,6 @@
 # TODO
 
-- [ ] exception handling to catch common errors like missing files and directories
+- [ ] missing directories Widget ("create?" prompt), catch exception.
 - [ ] extend model to contain the various dialog/focus combinations
 - [ ] renaming files and moving (copying) then to Library folder
 - [ ] configuration file
