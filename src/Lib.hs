@@ -1,5 +1,7 @@
 module Lib where
 
+import           Config                  (Config)
+import qualified Config
 import qualified Data.Char               as C
 import           Data.Either.Combinators (rightToMaybe)
 import           Data.Function           ((&))
@@ -23,19 +25,10 @@ import qualified Text.PDF.Info           as PDFI
 constSupportedExtensions :: Set String
 constSupportedExtensions = S.fromList [".pdf"]
 
-data Config = Config
-    { _inboxDir   :: FilePath
-    , _libraryDir :: FilePath
-    } deriving (Show)
-
-makeLenses ''Config
-
 getDefaultConfig :: IO Config
 getDefaultConfig = do
     homeDir <- D.getHomeDirectory
-    let inbox = (homeDir </> "Downloads")
-        library = (homeDir </> "pboy-test")
-    pure $ Config inbox library
+    pure $ Config.testDefaultConfig homeDir
 
 data FileInfo = FileInfo
     { _fileName :: FilePath
@@ -63,10 +56,10 @@ fileSupported fileInfo =
 -- Getting Filename suggestions:
 
 fileNameSuggestions :: Config -> FilePath -> IO [Text]
-fileNameSuggestions Config{_inboxDir} filePath = do
+fileNameSuggestions config filePath = do
     let
         fileName = F.takeFileName filePath
-        fullFilePath = _inboxDir </> fileName
+        fullFilePath = (config ^. Config.inboxDir) </> fileName
     plainTextContent <- P.readProcess "pdftotext" [fullFilePath, "-"] ""
 
     pdfInfo <- PDFI.pdfInfo fullFilePath
@@ -131,5 +124,5 @@ validChars x =
 
 fileFile :: Config -> FilePath -> Text -> IO ()
 fileFile conf origFilePath newFileName = do
-    let newFilePath = conf ^. libraryDir </> (T.unpack newFileName) <.> "pdf"
+    let newFilePath = conf ^. Config.libraryDir </> (T.unpack newFileName) <.> "pdf"
     D.copyFile origFilePath newFilePath

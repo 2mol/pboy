@@ -22,6 +22,7 @@ import qualified Graphics.Vty               as V
 import           Lens.Micro                 ((.~), (^.))
 import           Lens.Micro.TH              (makeLenses)
 
+import qualified Config
 import qualified Lib
 
 data State = State
@@ -33,7 +34,10 @@ data State = State
 
 type Event = ()
 
-type FileImport = L.List Name Text
+data FileImport = FileImport
+    { _suggestions :: L.List Name Text
+    , _bla :: ()
+    }
 
 data Name
     = Inbox
@@ -41,18 +45,21 @@ data Name
     | Import
     deriving (Eq, Ord, Show)
 
+makeLenses ''FileImport
+
 makeLenses ''State
+
 
 initState :: IO State
 initState = do
     config <- Lib.getDefaultConfig
-    libraryFileInfos <- Lib.listFiles (config ^. Lib.libraryDir)
-    inboxFileInfos <- Lib.listFiles (config ^. Lib.inboxDir)
+    libraryFileInfos <- Lib.listFiles (config ^. Config.libraryDir)
+    inboxFileInfos <- Lib.listFiles (config ^. Config.inboxDir)
     let
         libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
         inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
-        suggestions = L.list Import (Vec.fromList []) 1
-    pure $ State Inbox libraryList inboxList suggestions
+        fileImp = FileImport (L.list Import (Vec.fromList []) 1) ()
+    pure $ State Inbox libraryList inboxList fileImp
 
 app :: App State () Name
 app = App
@@ -98,7 +105,7 @@ drawUI s =
             C.centerLayer
                 $ B.borderWithLabel (str "Import")
                 $ padLeftRight 2 $ padTopBottom 1 $ hLimit 64 $ vLimit 16
-                $ L.renderList (\_ t -> str (T.unpack t)) (s ^. focus == Import) (s ^. fileImport)
+                $ L.renderList (\_ t -> str (T.unpack t)) (s ^. focus == Import) (s ^. fileImport ^. suggestions)
 
         ui =
             case s ^. focus of
@@ -134,8 +141,8 @@ handleEvent s (VtyEvent e) =
                 continue (s & inbox .~ newInbox)
 
         (ev, Import) -> do
-                newFileNames <- L.handleListEvent ev (s ^. fileImport)
-                continue (s & fileImport .~ newFileNames)
+                newFileNames <- L.handleListEvent ev (s ^. fileImport ^. suggestions)
+                continue (s & (fileImport . suggestions .~ newFileNames))
         _ ->
             continue s
 handleEvent s _ = continue s
@@ -144,15 +151,15 @@ handleFileSelect :: State -> Lib.FileInfo -> EventM Name (Next State)
 handleFileSelect s fileInfo =
     do
         config <- liftIO $ Lib.getDefaultConfig
-        suggestions <- liftIO $ Lib.fileNameSuggestions config (Lib._fileName fileInfo)
+        sugg <- liftIO $ Lib.fileNameSuggestions config (Lib._fileName fileInfo)
 
         let
             newFileNames =
-                L.list Import (Vec.fromList suggestions) 1
+                L.list Import (Vec.fromList sugg) 1
 
         continue $ s
             & focus .~ Import
-            & fileImport .~ newFileNames
+            & (fileImport .suggestions) .~ newFileNames
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
