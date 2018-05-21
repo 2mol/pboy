@@ -1,9 +1,8 @@
 # TODO
 
-- [ ] missing directories Widget ("create?" prompt), catch exception.
-- [ ] extend model to contain the various dialog/focus combinations
-- [ ] renaming files and moving (copying) then to Library folder
-- [ ] configuration file
-- [ ] edit field to rename file
-- [ ] status bar with keyboard shortcuts
-- [ ] inbox and library folders shown on main screen
+- read a configuration file.
+- initial setup screen when no config file exists.
+- exception handling if `pdfinfo` or `pdftotext` are missing.
+- inbox and library paths displayed on main screen.
+- documentation.
+- loading indicator when calling `pdftotext` takes a while.
