@@ -24,6 +24,7 @@ import           Lens.Micro.TH              (makeLenses)
 import qualified Config
 import qualified Lib
 
+
 data State = State
     { _focusRing  :: F.FocusRing Name
     , _library    :: L.List Name Lib.FileInfo
@@ -31,19 +32,23 @@ data State = State
     , _fileImport :: FileImport
     }
 
+
 type Event = ()
+
 
 data FileImport = FileImport
     { _suggestions :: L.List Name Text
     , _nameEdit    :: E.Editor Text Name
     }
 
+
 data Name
     = Inbox
     | Library
-    | Import
+    | NameSuggestions
     | FileNameEdit
     deriving (Eq, Ord, Show)
+
 
 makeLenses ''FileImport
 
@@ -60,7 +65,7 @@ initState = do
         inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
         fileImportInit =
             FileImport
-            { _suggestions = L.list Import (Vec.fromList []) 1
+            { _suggestions = L.list NameSuggestions (Vec.fromList []) 1
             , _nameEdit = E.editor FileNameEdit Nothing ""
             }
     pure
@@ -71,17 +76,20 @@ initState = do
         , _fileImport = fileImportInit
         }
 
+
 initFocus :: F.FocusRing Name
 initFocus = F.focusRing [Inbox, Library]
+
 
 app :: App State () Name
 app = App
     { appDraw = drawUI
-    , appChooseCursor = neverShowCursor
+    , appChooseCursor = appCursor
     , appHandleEvent = handleEvent
     , appStartEvent = pure
     , appAttrMap = const theMap
     }
+
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -91,6 +99,11 @@ theMap = attrMap V.defAttr
     , (E.editAttr, V.white `on` V.black)
     , (E.editFocusedAttr, V.black `on` V.yellow)
     ]
+
+
+appCursor :: State -> [CursorLocation Name] -> Maybe (CursorLocation Name)
+appCursor s c = F.focusRingCursor (^. focusRing) s c
+
 
 drawUI :: State -> [Widget Name]
 drawUI s =
@@ -113,12 +126,17 @@ drawUI s =
 
         ui =
             case focus of
-                Just Import ->
+                Just NameSuggestions ->
                     [importWidget, mainScreen]
+
+                Just FileNameEdit ->
+                    [importWidget, mainScreen]
+
                 _ ->
                     [mainScreen]
     in
         ui
+
 
 handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
 handleEvent s (VtyEvent e) =
@@ -139,11 +157,16 @@ handleEvent s (VtyEvent e) =
                 Just Inbox ->
                     handleInboxEvent s e
 
-                Just Import ->
+                Just NameSuggestions ->
                     handleImportScreenEvent s e
+
+                Just FileNameEdit ->
+                    handleImportScreenEvent s e
+
                 _ ->
                     continue s
 handleEvent s _ = continue s
+
 
 handleInboxEvent :: State -> V.Event -> EventM Name (Next State)
 handleInboxEvent s e =
@@ -164,6 +187,7 @@ handleInboxEvent s e =
             newInbox <- L.handleListEvent e (s ^. inbox)
             continue (s & inbox .~ newInbox)
 
+
 beginFileImport :: State -> Lib.FileInfo -> EventM Name (Next State)
 beginFileImport s fileInfo = do
     config <- liftIO $ Lib.getDefaultConfig
@@ -173,28 +197,44 @@ beginFileImport s fileInfo = do
         fileName :| sugg = fileNameSuggestions
 
         newFileNames =
-            L.list Import (Vec.fromList sugg) 1
-
-    continue $ s
-        & focusRing .~ (F.focusRing [Import])
-        & (fileImport . suggestions) .~ newFileNames
-        & (fileImport . nameEdit) .~ (E.editor FileNameEdit Nothing fileName)
-
-handleImportScreenEvent :: State -> V.Event -> EventM Name (Next State)
-handleImportScreenEvent s e = do
-    newFileNames <- L.handleListEvent e (s ^. fileImport ^. suggestions)
-    let
-        newEdit =
-            case L.listSelectedElement newFileNames of
-                Just (_, t) ->
-                    E.editor FileNameEdit Nothing t
-                _ -> s ^. fileImport ^. nameEdit
+            L.list NameSuggestions (Vec.fromList sugg) 1
 
         newState = s
-            & (fileImport . suggestions .~ newFileNames)
-            & (fileImport . nameEdit .~ newEdit)
+            & focusRing .~ (F.focusRing [FileNameEdit, NameSuggestions])
+            & (fileImport . suggestions) .~ newFileNames
+            & (fileImport . nameEdit) .~ (E.editor FileNameEdit Nothing fileName)
 
-    continue newState
+    handleImportScreenEvent newState (V.EvKey V.KDown [])
+
+
+handleImportScreenEvent :: State -> V.Event -> EventM Name (Next State)
+handleImportScreenEvent s e =
+    let focus = F.focusGetCurrent (s ^. focusRing)
+    in
+    case focus of
+        Just NameSuggestions ->
+            do
+                suggestionList <- L.handleListEvent e (s ^. fileImport ^. suggestions)
+
+                let
+                    newSuggestion =
+                        case L.listSelectedElement suggestionList of
+                            Just (_, t) ->
+                                E.editor FileNameEdit Nothing t
+
+                            _ -> s ^. fileImport ^. nameEdit
+
+                newEdit <- E.handleEditorEvent (V.EvKey V.KDown []) newSuggestion
+
+                continue $  s
+                    & (fileImport . suggestions .~ suggestionList)
+                    & (fileImport . nameEdit .~ newEdit)
+
+        Just FileNameEdit ->
+            do
+                continue =<< handleEventLensed s (fileImport . nameEdit) E.handleEditorEvent e
+
+        _ -> continue s
 
 --
 
@@ -212,11 +252,12 @@ drawFileInfo _ fileInfo =
     in
         fileLabelWidget
 
+
 drawImportWidget :: State -> Widget Name
 drawImportWidget s =
     C.centerLayer
         $ B.borderWithLabel (str "Import")
-        $ padLeftRight 2 $ padTopBottom 1 $ hLimit 64 $ vLimit 16
+        $ padLeftRight 2 $ padTopBottom 1 $ hLimit 64 $ vLimit 20
         $ vBox
             [ str "new filename:"
             , B.hBorder
@@ -228,9 +269,20 @@ drawImportWidget s =
             , vLimit 1 (fill ' ')
             , str "suggestions:"
             , B.hBorder
-            , L.renderList
-                (\_ t -> str (T.unpack t))
-                -- (F.focusGetCurrent (s ^. focusRing) == Just Import)
-                True
-                (s ^. fileImport ^. suggestions)
+            , vLimit 4
+                $ L.renderList
+                    (\_ t -> str (T.unpack t))
+                    -- (F.focusGetCurrent (s ^. focusRing) == Just Import)
+                    True
+                    (s ^. fileImport ^. suggestions)
+            , B.hBorder
+            , fill ' '
+            -- , str "Ctrl-a: go to beginning of line\n\
+            -- \Ctrl-e: go to end of line\n\
+            -- \Ctrl-d, Del: delete character at cursor position\n\
+            -- \Backspace: delete character prior to cursor position\n\
+            -- \Ctrl-k: delete all from cursor to end of line\n\
+            -- \Ctrl-u: delete all from cursor to beginning of line\n\
+            -- \Arrow keys: move cursor\n\
+            -- \Enter: break the current line at the cursor position"
             ]
