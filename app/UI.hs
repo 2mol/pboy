@@ -96,8 +96,10 @@ theMap = attrMap V.defAttr
     [ (L.listAttr, V.brightWhite `on` V.black)
     , (L.listSelectedAttr, V.black `on` V.white)
     , (L.listSelectedFocusedAttr, V.black `on` V.brightWhite)
-    , (E.editAttr, V.white `on` V.black)
+    , (E.editAttr, V.brightWhite `on` V.blue)
     , (E.editFocusedAttr, V.black `on` V.yellow)
+    , ("suggestionList", bg V.cyan)
+    , ("fileNamePreview", V.brightWhite `on` V.green)
     ]
 
 
@@ -257,26 +259,32 @@ drawImportWidget :: State -> Widget Name
 drawImportWidget s =
     C.centerLayer
         $ B.borderWithLabel (str "Import")
-        $ padLeftRight 2 $ padTopBottom 1 $ hLimit 64 $ vLimit 20
+        $ padLeftRight 2 $ padTopBottom 1 $ hLimit 70 $ vLimit 20
         $ vBox
             [ str "new filename:"
             , B.hBorder
             , vLimit 1
                 $ E.renderEditor
                     (str . T.unpack . T.unlines)
-                    True
+                    (F.focusGetCurrent (s ^. focusRing) == Just FileNameEdit)
                     (s ^. fileImport ^. nameEdit)
             , vLimit 1 (fill ' ')
             , str "suggestions:"
             , B.hBorder
-            , vLimit 4
+            , vLimit 4 -- $ withAttr "suggestionList"
                 $ L.renderList
                     (\_ t -> str (T.unpack t))
-                    -- (F.focusGetCurrent (s ^. focusRing) == Just Import)
-                    True
+                    (F.focusGetCurrent (s ^. focusRing) == Just NameSuggestions)
                     (s ^. fileImport ^. suggestions)
-            , B.hBorder
+            -- , B.hBorder
+            -- , vLimit 1 (fill ' ')
+            -- , str "filename preview:"
+            -- , withAttr "fileNamePreview" $ str (fileNamePreview $ s ^. fileImport ^. nameEdit)
             , fill ' '
+            , str
+                "Spaces will be replaced with _ and file extension will be appended.\n\
+                \- [Tab] to switch between editor and suggestions.\n\
+                \- [Enter] to rename the file and move it to your library folder."
             -- , str "Ctrl-a: go to beginning of line\n\
             -- \Ctrl-e: go to end of line\n\
             -- \Ctrl-d, Del: delete character at cursor position\n\
@@ -286,3 +294,9 @@ drawImportWidget s =
             -- \Arrow keys: move cursor\n\
             -- \Enter: break the current line at the cursor position"
             ]
+
+fileNamePreview :: E.Editor Text Name -> String
+fileNamePreview ed =
+    E.getEditContents ed
+        & T.unlines
+        & T.unpack
