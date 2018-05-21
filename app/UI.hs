@@ -129,50 +129,58 @@ handleEvent s (VtyEvent e) =
         V.EvKey V.KEsc [] ->
             continue (s & focusRing .~ initFocus)
 
-        V.EvKey V.KEnter [] ->
-            case ( F.focusGetCurrent (s ^. focusRing), L.listSelectedElement (s ^. inbox)) of
-                (Just Inbox, Just (_, fileInfo)) ->
-                    handleFileSelect s fileInfo
-                _ -> continue s
         _ ->
-            case F.focusGetCurrent (s ^. focusRing) of
-                Just Inbox -> do
-                    newInbox <- L.handleListEvent e (s ^. inbox)
-                    continue (s & inbox .~ newInbox)
+            let
+                focus = F.focusGetCurrent (s ^. focusRing)
+            in
+            case focus of
+                Just Inbox ->
+                    handleInboxEvent s e
 
-                Just Import -> do
-                        newFileNames <- L.handleListEvent e (s ^. fileImport ^. suggestions)
-                        continue (s & (fileImport . suggestions .~ newFileNames))
+                Just Import ->
+                    handleImportScreenEvent s e
                 _ ->
                     continue s
 handleEvent s _ = continue s
 
-handleFileSelect :: State -> Lib.FileInfo -> EventM Name (Next State)
-handleFileSelect s fileInfo =
-    do
-        config <- liftIO $ Lib.getDefaultConfig
-        sugg <- liftIO $ Lib.fileNameSuggestions config (Lib._fileName fileInfo)
+handleInboxEvent :: State -> V.Event -> EventM Name (Next State)
+handleInboxEvent s e =
+    let
+        importAction =
+            case L.listSelectedElement (s ^. inbox) of
+                Just (_, fileInfo) -> beginFileImport s fileInfo
+                _ -> continue s
+    in
+    case e of
+        V.EvKey V.KEnter [] ->
+            importAction
 
-        let
-            newFileNames =
-                L.list Import (Vec.fromList sugg) 1
+        V.EvKey (V.KChar ' ') [] ->
+            importAction
 
-        continue $ s
-            & focusRing .~ (F.focusRing [Import])
-            & (fileImport . suggestions) .~ newFileNames
+        _ -> do
+            newInbox <- L.handleListEvent e (s ^. inbox)
+            continue (s & inbox .~ newInbox)
+
+beginFileImport :: State -> Lib.FileInfo -> EventM Name (Next State)
+beginFileImport s fileInfo = do
+    config <- liftIO $ Lib.getDefaultConfig
+    sugg <- liftIO $ Lib.fileNameSuggestions config (Lib._fileName fileInfo)
+
+    let
+        newFileNames =
+            L.list Import (Vec.fromList sugg) 1
+
+    continue $ s
+        & focusRing .~ (F.focusRing [Import])
+        & (fileImport . suggestions) .~ newFileNames
+
+handleImportScreenEvent :: State -> V.Event -> EventM Name (Next State)
+handleImportScreenEvent s e = do
+    newFileNames <- L.handleListEvent e (s ^. fileImport ^. suggestions)
+    continue (s & (fileImport . suggestions .~ newFileNames))
 
 --
-
--- cycleFocus :: State -> State
--- cycleFocus s =
---     let
---         newFocus =
---             case s ^. focus of
---                 Inbox   -> Library
---                 Library -> Inbox
---                 _       -> s ^. focus
---     in
---         s & focus .~ newFocus
 
 drawFileInfo :: Bool -> Lib.FileInfo -> Widget Name
 drawFileInfo _ fileInfo =
@@ -187,9 +195,6 @@ drawFileInfo _ fileInfo =
             BC.vLimit 1 $ BC.hBox fileLabel
     in
         fileLabelWidget
-        -- if elementHasFocus
-        --     then fileLabelWidget
-        --     else withAttr unfocusedList fileLabelWidget
 
 drawImportWidget :: State -> Widget Name
 drawImportWidget s =
@@ -198,5 +203,6 @@ drawImportWidget s =
         $ padLeftRight 2 $ padTopBottom 1 $ hLimit 64 $ vLimit 16
         $ vBox
             [ str "suggestions:"
+            , B.hBorder
             , L.renderList (\_ t -> str (T.unpack t)) (F.focusGetCurrent (s ^. focusRing) == Just Import) (s ^. fileImport ^. suggestions)
             ]
