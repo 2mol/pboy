@@ -6,6 +6,7 @@ import qualified Data.Char               as C
 import           Data.Either.Combinators (rightToMaybe)
 import           Data.Function           ((&))
 import qualified Data.List               as List
+import           Data.List.NonEmpty      (NonEmpty (..))
 import qualified Data.Maybe              as Maybe
 import           Data.Set                (Set)
 import qualified Data.Set                as S
@@ -15,12 +16,11 @@ import           Data.Text.Titlecase     (titlecase)
 import           Data.Time.Clock         (UTCTime)
 import           GHC.Exts                (sortWith)
 import           Lens.Micro              ((^.))
-import           Lens.Micro.TH           (makeLenses)
-import qualified System.Directory        as D
-import           System.FilePath         ((<.>), (</>))
-import qualified System.FilePath         as F
-import qualified System.Process          as P
-import qualified Text.PDF.Info           as PDFI
+import qualified System.Directory as D
+import           System.FilePath  ((<.>), (</>))
+import qualified System.FilePath  as F
+import qualified System.Process   as P
+import qualified Text.PDF.Info    as PDFI
 
 constSupportedExtensions :: Set String
 constSupportedExtensions = S.fromList [".pdf"]
@@ -55,7 +55,7 @@ fileSupported fileInfo =
 
 -- Getting Filename suggestions:
 
-fileNameSuggestions :: Config -> FilePath -> IO [Text]
+fileNameSuggestions :: Config -> FilePath -> IO (NonEmpty Text)
 fileNameSuggestions config filePath = do
     let
         fileName = F.takeFileName filePath
@@ -65,9 +65,13 @@ fileNameSuggestions config filePath = do
     pdfInfo <- PDFI.pdfInfo fullFilePath
 
     let
-        fileNameText =
+        baseName =
             F.takeBaseName fileName
                 & T.pack
+                & T.replace "_" " "
+
+        cleanFileName =
+            baseName
                 & sanitize
                 & boolToMaybe lengthCheck
 
@@ -86,10 +90,10 @@ fileNameSuggestions config filePath = do
                 & fmap Just
 
         suggestions =
-            fileNameText : maybeTitle : topContent
+            cleanFileName : maybeTitle : topContent
                 & Maybe.catMaybes
 
-    pure $ take 4 $ List.nub suggestions
+    pure $ baseName :| take 4 (List.nub suggestions)
 
 lengthCheck :: Text -> Bool
 lengthCheck t = T.length t >= 3 && T.length t <= 64
@@ -103,6 +107,7 @@ boolToMaybe check a =
 -- 1. remove double spaces / double underscores
 -- 2. strip out all except ascii, alphanumeric, spaces, underscores, dashes
 -- 3. display with spaces in UI, replace with '_' for filenames later
+
 sanitize :: Text -> Text
 sanitize text =
     text
