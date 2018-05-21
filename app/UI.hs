@@ -4,8 +4,9 @@ import Control.Monad.IO.Class (liftIO)
 
 import Brick
 -- import qualified Brick.AttrMap              as A
-import           Brick.Forms                (Form, (@@=))
-import qualified Brick.Forms                as F
+import qualified Brick.Focus as F
+-- import           Brick.Forms                (Form, (@@=))
+-- import qualified Brick.Forms                as F
 import qualified Brick.Widgets.Border       as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center       as C
@@ -19,14 +20,14 @@ import qualified Data.Vector                as Vec
 import           Fmt                        (fmt)
 import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
-import           Lens.Micro                 ((.~), (^.))
+import           Lens.Micro                 ((.~), (^.), (%~))
 import           Lens.Micro.TH              (makeLenses)
 
 import qualified Config
 import qualified Lib
 
 data State = State
-    { _focus      :: Name
+    { _focusRing  :: F.FocusRing Name
     , _library    :: L.List Name Lib.FileInfo
     , _inbox      :: L.List Name Lib.FileInfo
     , _fileImport :: FileImport
@@ -59,8 +60,17 @@ initState = do
     let
         libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
         inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
-        fileImp = FileImport (L.list Import (Vec.fromList []) 1) ""
-    pure $ State Inbox libraryList inboxList fileImp
+        fileImportInit = FileImport (L.list Import (Vec.fromList []) 1) ""
+    pure
+        $ State
+        { _focusRing = initFocus
+        , _library = libraryList
+        , _inbox = inboxList
+        , _fileImport = fileImportInit
+        }
+
+initFocus :: F.FocusRing Name
+initFocus = F.focusRing [Inbox, Library]
 
 app :: App State () Name
 app = App
@@ -83,11 +93,13 @@ theMap = attrMap V.defAttr
 drawUI :: State -> [Widget Name]
 drawUI s =
     let
+        focus = F.focusGetCurrent (s ^. focusRing)
+
         inboxWidget =
-            L.renderList drawFileInfo (s ^. focus == Inbox) (s ^. inbox)
+            L.renderList drawFileInfo (focus == Just Inbox) (s ^. inbox)
 
         libraryWidget =
-            L.renderList drawFileInfo (s ^. focus == Library) (s ^. library)
+            L.renderList drawFileInfo (focus == Just Library) (s ^. library)
 
         mainScreen =
             withBorderStyle BS.unicodeRounded
@@ -98,8 +110,8 @@ drawUI s =
             drawImportWidget s
 
         ui =
-            case s ^. focus of
-                Import ->
+            case focus of
+                Just Import ->
                     [importWidget, mainScreen]
                 _ ->
                     [mainScreen]
@@ -108,30 +120,31 @@ drawUI s =
 
 handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
 handleEvent s (VtyEvent e) =
-    case (e, s ^. focus) of
-        (V.EvKey (V.KChar 'q') [V.MCtrl], _) -> halt s
-        (V.EvKey (V.KChar 'c') [V.MCtrl], _) -> halt s
+    case e of
+        V.EvKey (V.KChar 'c') [V.MCtrl] -> halt s
 
-        (V.EvKey (V.KChar 'c') [], _) ->
-            continue $ cycleFocus s
+        V.EvKey (V.KChar '\t') [] ->
+            continue $ s & focusRing %~ F.focusNext
 
-        (V.EvKey V.KEsc [], _) ->
-            continue (s & focus .~ Inbox)
+        V.EvKey V.KEsc [] ->
+            continue (s & focusRing .~ initFocus)
 
-        (V.EvKey V.KEnter [], Inbox) ->
-            case L.listSelectedElement (s ^. inbox) of
-                Nothing            -> continue s
-                Just (_, fileInfo) -> handleFileSelect s fileInfo
-
-        (ev, Inbox) -> do
-                newInbox <- L.handleListEvent ev (s ^. inbox)
-                continue (s & inbox .~ newInbox)
-
-        (ev, Import) -> do
-                newFileNames <- L.handleListEvent ev (s ^. fileImport ^. suggestions)
-                continue (s & (fileImport . suggestions .~ newFileNames))
+        V.EvKey V.KEnter [] ->
+            case ( F.focusGetCurrent (s ^. focusRing), L.listSelectedElement (s ^. inbox)) of
+                (Just Inbox, Just (_, fileInfo)) ->
+                    handleFileSelect s fileInfo
+                _ -> continue s
         _ ->
-            continue s
+            case F.focusGetCurrent (s ^. focusRing) of
+                Just Inbox -> do
+                    newInbox <- L.handleListEvent e (s ^. inbox)
+                    continue (s & inbox .~ newInbox)
+
+                Just Import -> do
+                        newFileNames <- L.handleListEvent e (s ^. fileImport ^. suggestions)
+                        continue (s & (fileImport . suggestions .~ newFileNames))
+                _ ->
+                    continue s
 handleEvent s _ = continue s
 
 handleFileSelect :: State -> Lib.FileInfo -> EventM Name (Next State)
@@ -145,21 +158,21 @@ handleFileSelect s fileInfo =
                 L.list Import (Vec.fromList sugg) 1
 
         continue $ s
-            & focus .~ Import
+            & focusRing .~ (F.focusRing [Import])
             & (fileImport . suggestions) .~ newFileNames
 
 --
 
-cycleFocus :: State -> State
-cycleFocus s =
-    let
-        newFocus =
-            case s ^. focus of
-                Inbox   -> Library
-                Library -> Inbox
-                _       -> s ^. focus
-    in
-        s & focus .~ newFocus
+-- cycleFocus :: State -> State
+-- cycleFocus s =
+--     let
+--         newFocus =
+--             case s ^. focus of
+--                 Inbox   -> Library
+--                 Library -> Inbox
+--                 _       -> s ^. focus
+--     in
+--         s & focus .~ newFocus
 
 drawFileInfo :: Bool -> Lib.FileInfo -> Widget Name
 drawFileInfo _ fileInfo =
@@ -183,25 +196,7 @@ drawImportWidget s =
     C.centerLayer
         $ B.borderWithLabel (str "Import")
         $ padLeftRight 2 $ padTopBottom 1 $ hLimit 64 $ vLimit 16
-        $ F.renderForm (mkImportForm (s ^. fileImport)) <=> L.renderList (\_ t -> str (T.unpack t)) (s ^. focus == Import) (s ^. fileImport ^. suggestions)
-
-mkImportForm :: FileImport -> Form FileImport e Name
-mkImportForm =
-    F.newForm [
-        --label "FileName" @@=
-        F.editTextField nameEdit FileNameEdit (Just 1)
-    -- , label "Address" @@=
-    --   B.borderWithLabel (str "Mailing") @@=
-    --     editTextField address AddressField (Just 3)
-    -- , label "Age" @@=
-    --     editShowableField age AgeField
-    -- , label "Password" @@=
-    --     editPasswordField password PasswordField
-    -- , label "Dominant hand" @@=
-    --     radioField handed [ (LeftHanded, LeftHandField, "Left")
-    --                       , (RightHanded, RightHandField, "Right")
-    --                       , (Ambidextrous, AmbiField, "Both")
-    --                       ]
-    -- , label "" @@=
-    --     checkboxField ridesBike BikeField "Do you ride a bicycle?"
-    ]
+        $ vBox
+            [ str "suggestions:"
+            , L.renderList (\_ t -> str (T.unpack t)) (F.focusGetCurrent (s ^. focusRing) == Just Import) (s ^. fileImport ^. suggestions)
+            ]
