@@ -37,7 +37,8 @@ type Event = ()
 
 
 data FileImport = FileImport
-    { _suggestions :: L.List Name Text
+    { _currentFile :: FilePath
+    , _suggestions :: L.List Name Text
     , _nameEdit    :: E.Editor Text Name
     }
 
@@ -63,11 +64,6 @@ initState = do
     let
         libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
         inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
-        fileImportInit =
-            FileImport
-            { _suggestions = L.list NameSuggestions (Vec.fromList []) 1
-            , _nameEdit = E.editor FileNameEdit Nothing ""
-            }
     pure
         $ State
         { _focusRing = initFocus
@@ -80,6 +76,13 @@ initState = do
 initFocus :: F.FocusRing Name
 initFocus = F.focusRing [Inbox, Library]
 
+fileImportInit :: FileImport
+fileImportInit =
+    FileImport
+    { _currentFile = ""
+    , _suggestions = L.list NameSuggestions (Vec.fromList []) 1
+    , _nameEdit = E.editor FileNameEdit Nothing ""
+    }
 
 app :: App State () Name
 app = App
@@ -149,7 +152,7 @@ handleEvent s (VtyEvent e) =
             continue $ s & focusRing %~ F.focusNext
 
         V.EvKey V.KEsc [] ->
-            continue (s & focusRing .~ initFocus)
+            continue $ s & focusRing .~ initFocus & fileImport .~ fileImportInit
 
         _ ->
             let
@@ -192,8 +195,9 @@ handleInboxEvent s e =
 
 beginFileImport :: State -> Lib.FileInfo -> EventM Name (Next State)
 beginFileImport s fileInfo = do
+    let originalFileName = Lib._fileName fileInfo
     config <- liftIO $ Lib.getDefaultConfig
-    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions config (Lib._fileName fileInfo)
+    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions config originalFileName
 
     let
         fileName :| sugg = fileNameSuggestions
@@ -203,6 +207,7 @@ beginFileImport s fileInfo = do
 
         newState = s
             & focusRing .~ (F.focusRing [FileNameEdit, NameSuggestions])
+            & (fileImport . currentFile) .~ originalFileName
             & (fileImport . suggestions) .~ newFileNames
             & (fileImport . nameEdit) .~ (E.editor FileNameEdit Nothing fileName)
 
@@ -211,10 +216,25 @@ beginFileImport s fileInfo = do
 
 handleImportScreenEvent :: State -> V.Event -> EventM Name (Next State)
 handleImportScreenEvent s e =
-    let focus = F.focusGetCurrent (s ^. focusRing)
+    let
+        focus = F.focusGetCurrent (s ^. focusRing)
     in
-    case focus of
-        Just NameSuggestions ->
+    case (focus, e) of
+        (_, V.EvKey V.KEnter []) ->
+            do
+                config <- liftIO $ Lib.getDefaultConfig
+                let
+                    newFileName = fileNamePreview (s ^. fileImport ^. nameEdit)
+
+                _ <- liftIO $ Lib.fileFile config (s ^. fileImport ^. currentFile) newFileName
+
+                libraryFileInfos <- liftIO $ Lib.listFiles (config ^. Config.libraryDir)
+
+                continue $ s
+                    & focusRing .~ initFocus & fileImport .~ fileImportInit
+                    & library .~ (L.list Library (Vec.fromList libraryFileInfos) 1)
+
+        (Just NameSuggestions, _) ->
             do
                 suggestionList <- L.handleListEvent e (s ^. fileImport ^. suggestions)
 
@@ -232,7 +252,7 @@ handleImportScreenEvent s e =
                     & (fileImport . suggestions .~ suggestionList)
                     & (fileImport . nameEdit .~ newEdit)
 
-        Just FileNameEdit ->
+        (Just FileNameEdit, _) ->
             do
                 continue =<< handleEventLensed s (fileImport . nameEdit) E.handleEditorEvent e
 
@@ -295,8 +315,8 @@ drawImportWidget s =
             -- \Enter: break the current line at the cursor position"
             ]
 
-fileNamePreview :: E.Editor Text Name -> String
+
+fileNamePreview :: E.Editor Text Name -> Text
 fileNamePreview ed =
     E.getEditContents ed
         & T.unlines
-        & T.unpack

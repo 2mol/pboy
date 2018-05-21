@@ -128,6 +128,12 @@ validChars x =
 -- shelving files into library folder
 
 fileFile :: Config -> FilePath -> Text -> IO ()
-fileFile conf origFilePath newFileName = do
-    let newFilePath = conf ^. Config.libraryDir </> (T.unpack newFileName) <.> "pdf"
+fileFile conf origFileName newFileName = do
+    let
+        newFilePath =
+            conf ^. Config.libraryDir </> (T.unpack newFileName) <.> "pdf"
+
+        origFilePath =
+            (conf ^. Config.inboxDir) </> (F.takeFileName origFileName)
+
     D.copyFile origFilePath newFilePath
