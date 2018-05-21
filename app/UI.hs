@@ -265,10 +265,12 @@ handleImportScreenEvent s e =
                 _ <- liftIO $ Lib.fileFile config (s ^. fileImport ^. currentFile) newFileName
 
                 libraryFileInfos <- liftIO $ Lib.listFiles (config ^. Config.libraryDir)
+                inboxFileInfos <- liftIO $ Lib.listFiles (config ^. Config.inboxDir)
 
                 continue $ s
                     & focusRing .~ initFocus & fileImport .~ fileImportInit
                     & library .~ (L.list Library (Vec.fromList libraryFileInfos) 1)
+                    & inbox .~ (L.list Inbox (Vec.fromList inboxFileInfos) 1)
 
         (Just NameSuggestions, _) ->
             do

@@ -22,18 +22,22 @@ import qualified System.FilePath  as F
 import qualified System.Process   as P
 import qualified Text.PDF.Info    as PDFI
 
+
 constSupportedExtensions :: Set String
 constSupportedExtensions = S.fromList [".pdf"]
+
 
 getDefaultConfig :: IO Config
 getDefaultConfig = do
     homeDir <- D.getHomeDirectory
     pure $ Config.testDefaultConfig homeDir
 
+
 data FileInfo = FileInfo
     { _fileName :: FilePath
     , _modTime  :: UTCTime
     }
+
 
 listFiles :: FilePath -> IO [FileInfo]
 listFiles path = do
@@ -43,10 +47,12 @@ listFiles path = do
     let sortedFileInfos = reverse $ sortWith _modTime fileInfos
     pure $ filter fileSupported sortedFileInfos
 
+
 getFileInfo :: FilePath -> IO FileInfo
 getFileInfo path = do
     modTime <- D.getModificationTime path
     pure $ FileInfo (F.takeFileName path) modTime
+
 
 fileSupported :: FileInfo -> Bool
 fileSupported fileInfo =
@@ -98,6 +104,7 @@ fileNameSuggestions config filePath = do
 lengthCheck :: Text -> Bool
 lengthCheck t = T.length t >= 3 && T.length t <= 64
 
+
 boolToMaybe :: (a -> Bool) -> a -> Maybe a
 boolToMaybe check a =
     if check a
@@ -118,6 +125,7 @@ sanitize text =
         & titlecase
         & T.pack
 
+
 validChars :: Char -> Bool
 validChars x =
     case x of
@@ -133,6 +141,7 @@ finalFileName text =
         & T.unwords . T.words
         & T.replace " " "_"
 
+
 fileFile :: Config -> FilePath -> Text -> IO ()
 fileFile conf origFileName newFileName = do
     let
@@ -142,7 +151,9 @@ fileFile conf origFileName newFileName = do
         origFilePath =
             (conf ^. Config.inboxDir) </> (F.takeFileName origFileName)
 
-    D.copyFile origFilePath newFilePath
+    case conf ^. Config.importAction of
+        Config.Copy -> D.copyFile origFilePath newFilePath
+        Config.Move -> D.renameFile origFilePath newFilePath
 
 openFile :: Config -> FilePath -> IO ()
 openFile conf fileName = do
