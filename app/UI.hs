@@ -121,10 +121,14 @@ drawUI s =
         libraryWidget =
             L.renderList drawFileInfo (focus == Just Library) (s ^. library)
 
-        mainScreen =
+        libraryAndInbox =
             withBorderStyle BS.unicodeRounded
                 $ B.borderWithLabel (str "PAPERBOY")
-                $ libraryWidget <=> B.hBorder <=> inboxWidget
+                $ vBox
+                    [ libraryWidget
+                    , B.hBorder
+                    , inboxWidget
+                    ]
 
         importWidget =
             drawImportWidget s
@@ -132,13 +136,13 @@ drawUI s =
         ui =
             case focus of
                 Just NameSuggestions ->
-                    [importWidget, mainScreen]
+                    [importWidget, libraryAndInbox]
 
                 Just FileNameEdit ->
-                    [importWidget, mainScreen]
+                    [importWidget, libraryAndInbox]
 
                 _ ->
-                    [mainScreen]
+                    [libraryAndInbox]
     in
         ui
 
@@ -159,6 +163,9 @@ handleEvent s (VtyEvent e) =
                 focus = F.focusGetCurrent (s ^. focusRing)
             in
             case focus of
+                Just Library ->
+                    handleLibraryEvent s e
+
                 Just Inbox ->
                     handleInboxEvent s e
 
@@ -171,6 +178,31 @@ handleEvent s (VtyEvent e) =
                 _ ->
                     continue s
 handleEvent s _ = continue s
+
+
+handleLibraryEvent :: State -> V.Event -> EventM Name (Next State)
+handleLibraryEvent s e =
+    let
+        openFile fileName = do
+            config <- liftIO $ Lib.getDefaultConfig
+            _ <- liftIO $ Lib.openFile config fileName
+            continue s
+
+        openAction =
+            case L.listSelectedElement (s ^. library) of
+                Just (_, fileInfo) -> openFile (Lib._fileName fileInfo)
+                _                  -> continue s
+    in
+    case e of
+        V.EvKey V.KEnter [] ->
+            openAction
+
+        V.EvKey (V.KChar ' ') [] ->
+            openAction
+
+        _ -> do
+            newLibrary <- L.handleListEvent e (s ^. library)
+            continue (s & library .~ newLibrary)
 
 
 handleInboxEvent :: State -> V.Event -> EventM Name (Next State)
@@ -224,7 +256,11 @@ handleImportScreenEvent s e =
             do
                 config <- liftIO $ Lib.getDefaultConfig
                 let
-                    newFileName = fileNamePreview (s ^. fileImport ^. nameEdit)
+                    newFileName =
+                        (s ^. fileImport ^. nameEdit)
+                            & E.getEditContents
+                            & T.unlines
+                            & Lib.finalFileName
 
                 _ <- liftIO $ Lib.fileFile config (s ^. fileImport ^. currentFile) newFileName
 
@@ -314,9 +350,3 @@ drawImportWidget s =
             -- \Arrow keys: move cursor\n\
             -- \Enter: break the current line at the cursor position"
             ]
-
-
-fileNamePreview :: E.Editor Text Name -> Text
-fileNamePreview ed =
-    E.getEditContents ed
-        & T.unlines

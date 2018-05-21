@@ -127,6 +127,12 @@ validChars x =
 
 -- shelving files into library folder
 
+finalFileName :: Text -> Text
+finalFileName text =
+    text
+        & T.unwords . T.words
+        & T.replace " " "_"
+
 fileFile :: Config -> FilePath -> Text -> IO ()
 fileFile conf origFileName newFileName = do
     let
@@ -137,3 +143,16 @@ fileFile conf origFileName newFileName = do
             (conf ^. Config.inboxDir) </> (F.takeFileName origFileName)
 
     D.copyFile origFilePath newFilePath
+
+openFile :: Config -> FilePath -> IO ()
+openFile conf fileName = do
+    let
+        cleanFileName =
+            F.takeFileName fileName
+
+        filePath =
+            conf ^. Config.libraryDir </> cleanFileName
+
+    _ <- P.readProcess "open" [filePath] ""
+
+    pure ()
