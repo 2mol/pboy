@@ -20,6 +20,7 @@ import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
 import           Lens.Micro                 ((%~), (.~), (^.))
 import           Lens.Micro.TH              (makeLenses)
+import Data.Monoid ((<>))
 
 import qualified Config
 import qualified Lib
@@ -123,6 +124,12 @@ drawUI s =
         libraryWidget =
             L.renderList drawFileInfo (focus == Just Library) (s ^. library)
 
+        inboxLabel =
+            "Inbox" <> " - " <> (s ^. config ^. Config.inboxDir)
+
+        libraryLabel =
+            "Library" <> " - " <> (s ^. config ^. Config.libraryDir)
+
         libraryAndInbox =
             withBorderStyle BS.unicodeRounded
                 $ B.borderWithLabel (str "PAPERBOY")
@@ -132,19 +139,29 @@ drawUI s =
                     , inboxWidget
                     ]
 
+        statusBar =
+            vLimit 1 $ hBox
+                [ str libraryLabel
+                , fill ' '
+                , str inboxLabel
+                ]
+
+        mainScreen =
+            libraryAndInbox <=> statusBar
+
         importWidget =
             drawImportWidget s
 
         ui =
             case focus of
                 Just NameSuggestions ->
-                    [importWidget, libraryAndInbox]
+                    [importWidget, mainScreen]
 
                 Just FileNameEdit ->
-                    [importWidget, libraryAndInbox]
+                    [importWidget, mainScreen]
 
                 _ ->
-                    [libraryAndInbox]
+                    [mainScreen]
     in
         ui
 
