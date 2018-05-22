@@ -36,6 +36,7 @@ dependencies:
   - pdfinfo >= 1.5.4 && < 2
   - vector
   - titlecase
+  - htoml-megaparsec
 
 default-extensions:
   - OverloadedStrings
