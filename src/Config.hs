@@ -35,6 +35,7 @@ testDefaultConfig home =
     , _importAction = Copy
     }
 
+
 readConfig :: IO (Either T.Text Table)
 readConfig = do
     home <- D.getHomeDirectory

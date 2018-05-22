@@ -26,7 +26,8 @@ import qualified Lib
 
 
 data State = State
-    { _focusRing  :: F.FocusRing Name
+    { _config     :: Config.Config
+    , _focusRing  :: F.FocusRing Name
     , _library    :: L.List Name Lib.FileInfo
     , _inbox      :: L.List Name Lib.FileInfo
     , _fileImport :: FileImport
@@ -58,15 +59,16 @@ makeLenses ''State
 
 initState :: IO State
 initState = do
-    config <- Lib.getDefaultConfig
-    libraryFileInfos <- Lib.listFiles (config ^. Config.libraryDir)
-    inboxFileInfos <- Lib.listFiles (config ^. Config.inboxDir)
+    conf <- Lib.getDefaultConfig
+    libraryFileInfos <- Lib.listFiles (conf ^. Config.libraryDir)
+    inboxFileInfos <- Lib.listFiles (conf ^. Config.inboxDir)
     let
         libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
         inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
     pure
         $ State
-        { _focusRing = initFocus
+        { _config = conf
+        , _focusRing = initFocus
         , _library = libraryList
         , _inbox = inboxList
         , _fileImport = fileImportInit
@@ -184,8 +186,7 @@ handleLibraryEvent :: State -> V.Event -> EventM Name (Next State)
 handleLibraryEvent s e =
     let
         openFile fileName = do
-            config <- liftIO $ Lib.getDefaultConfig
-            _ <- liftIO $ Lib.openFile config fileName
+            _ <- liftIO $ Lib.openFile (s ^. config) fileName
             continue s
 
         openAction =
@@ -228,8 +229,7 @@ handleInboxEvent s e =
 beginFileImport :: State -> Lib.FileInfo -> EventM Name (Next State)
 beginFileImport s fileInfo = do
     let originalFileName = Lib._fileName fileInfo
-    config <- liftIO $ Lib.getDefaultConfig
-    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions config originalFileName
+    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions ( s ^. config) originalFileName
 
     let
         fileName :| sugg = fileNameSuggestions
@@ -254,18 +254,19 @@ handleImportScreenEvent s e =
     case (focus, e) of
         (_, V.EvKey V.KEnter []) ->
             do
-                config <- liftIO $ Lib.getDefaultConfig
                 let
+                    conf = s ^. config
+
                     newFileName =
                         (s ^. fileImport ^. nameEdit)
                             & E.getEditContents
                             & T.unlines
                             & Lib.finalFileName
 
-                _ <- liftIO $ Lib.fileFile config (s ^. fileImport ^. currentFile) newFileName
+                _ <- liftIO $ Lib.fileFile conf (s ^. fileImport ^. currentFile) newFileName
 
-                libraryFileInfos <- liftIO $ Lib.listFiles (config ^. Config.libraryDir)
-                inboxFileInfos <- liftIO $ Lib.listFiles (config ^. Config.inboxDir)
+                libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
+                inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)
 
                 continue $ s
                     & focusRing .~ initFocus & fileImport .~ fileImportInit
