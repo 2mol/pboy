@@ -99,7 +99,7 @@ fileNameSuggestions config filePath = do
             cleanFileName : maybeTitle : topContent
                 & Maybe.catMaybes
 
-    pure $ baseName :| take 4 (List.nub suggestions)
+    pure $ baseName :| take 5 (List.nub suggestions)
 
 lengthCheck :: Text -> Bool
 lengthCheck t = T.length t >= 3 && T.length t <= 64
