@@ -168,6 +168,9 @@ drawUI s =
 
 handleEvent :: State -> BrickEvent Name Event -> EventM Name (Next State)
 handleEvent s (VtyEvent e) =
+    let
+        focus = F.focusGetCurrent (s ^. focusRing)
+    in
     case e of
         V.EvKey (V.KChar 'c') [V.MCtrl] -> halt s
 
@@ -175,12 +178,12 @@ handleEvent s (VtyEvent e) =
             continue $ s & focusRing %~ F.focusNext
 
         V.EvKey V.KEsc [] ->
-            continue $ s & focusRing .~ initFocus & fileImport .~ fileImportInit
+            if elem focus (Just <$> [Inbox, Library])
+                then halt s
+                else
+                    continue $ s & focusRing .~ initFocus & fileImport .~ fileImportInit
 
         _ ->
-            let
-                focus = F.focusGetCurrent (s ^. focusRing)
-            in
             case focus of
                 Just Library ->
                     handleLibraryEvent s e
