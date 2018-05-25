@@ -37,6 +37,7 @@ dependencies:
   - vector
   - titlecase
   - htoml-megaparsec
+  - aeson
 
 default-extensions:
   - OverloadedStrings

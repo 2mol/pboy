@@ -125,10 +125,10 @@ drawUI s =
             L.renderList drawFileInfo (focus == Just Library) (s ^. library)
 
         inboxLabel =
-            "Inbox" <> " - " <> (s ^. config ^. Config.inboxDir)
+            "Inbox: " <> (s ^. config ^. Config.inboxDir)
 
         libraryLabel =
-            "Library" <> " - " <> (s ^. config ^. Config.libraryDir)
+            "Library: " <> (s ^. config ^. Config.libraryDir)
 
         libraryAndInbox =
             withBorderStyle BS.unicodeRounded
