@@ -31,6 +31,13 @@ stack install
 
 This will give you an executable named `pboy` in your local bin folder.
 
+For nix users:
+```
+git clone github.com/2mol/pboy
+cd pboy
+nix-env -f . -i pboy
+```
+
 # Config
 
 PaperBoy creates a `.pboy.toml` in your home directory. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
