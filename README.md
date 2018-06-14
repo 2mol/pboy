@@ -22,7 +22,7 @@ PaperBoy aims to keep its file management dumb (no keeping files in a database o
 For now you need stack (cabal probably works too):
 
 ```
-git clone github.com/2mol/pboy
+git clone git@github.com/2mol/pboy.git
 cd pboy
 stack install
 ```
