@@ -6,7 +6,6 @@
 
 - It helps rename the file according to its title. To that end it suggests possible titles extracted from the file metadata and the raw text content.
 
-- The files in the library can be searched based on their content.
 
 ## Design goals
 
@@ -25,12 +24,20 @@
 - keeps a copy of the original file that is strictly read-only. On edit, creates a copy (cf Lightroom). Warns if original somehow gets modified (keeps hash? - how do we link documents that are mostly "the same"?).
 
 
+## Next actionable
+
+- exception handling if `pdftotext` or `pdfinfo` are missing.
+- nicer "first-use experience": Right now we simply write a default config file. It would be good to have an initial setup dialog asking for the inbox and library folder paths.
+
+
 ## Possible future features
 
+- make the utility work without a UI -> import documents using only command-line flags.
+- search functionality -> build a search index based on the content we get from `pdftotext`.
 - tagging or organizing into subfolders.
 - send files to a personalized email address, pboy will check and pull that.
 - tag files to sync to phone (or kindle).
-- personal (or global) machine learning model to categorize documents.
+- personal (or global) machine learning model to rename & categorize documents.
 
 
 ## Technical
