@@ -43,12 +43,9 @@ For large files, `pdftotext` can take quite a long time to parse the document.
 
 # Contribute
 
-You can open issues, send pull requests against the spec file https://github.com/2mol/pboy/blob/master/SPEC.md, and you're generally very welcome to share any opinions and fixes.
+You can open issues, send pull requests against the spec file https://github.com/2mol/pboy/blob/master/SPEC.md, and you're generally very welcome to share any opinions, fixes, refactoring succestions etc.
 
-Some ideas for what the next priorities are:
-
-- exception handling if `pdftotext` or `pdfinfo` are missing.
-- nicer handling in case of a missing or malformed config file. Right now we simply (over)write the config file with a fresh one. It would be good to have an initial setup dialog asking for the inbox and library folder paths.
+See the abovementioned document to get an idea of what some of the next priotities are.
 
 # Thanks
 
