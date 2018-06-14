@@ -1,16 +1,26 @@
-module Config where
+module Config
+    ( Config(..)
+    , inboxDir
+    , libraryDir
+    , importAction
+    , ImportAction(..)
+    , getOrCreateConfig
+    , makeDefaultConfig
+    ) where
 
 import           Control.Arrow     (left)
 import           Data.Function     ((&))
 import           Data.HashMap.Lazy ((!))
 import qualified Data.Text         as T
 import qualified Data.Text.IO      as TIO
+import           Lens.Micro        ((%~))
 import           Lens.Micro.TH     (makeLenses)
 import qualified System.Directory  as D
 import           System.FilePath   ((</>))
-import           Lens.Micro                 ((%~))
 import qualified Text.Toml         as Toml
-import           Text.Toml.Types   (Table, Node(..))
+import           Text.Toml.Types   (Node (..), Table)
+import Control.Exception
+
 
 data Config = Config
     { _inboxDir     :: FilePath
@@ -27,42 +37,55 @@ data ImportAction
 makeLenses ''Config
 
 
-testDefaultConfig :: FilePath -> Config
-testDefaultConfig home =
-    Config
-    { _inboxDir = home </> "Downloads"
-    , _libraryDir = home </> "pboy-test"
-    -- , _nameSuggestionsFileContent = True
-    -- , _nameSuggestionsMetaData = True
-    , _importAction = Copy
-    }
+-- defaultConfig :: IO Config
+-- defaultConfig = do
+--     home <- D.getHomeDirectory
+--     pure $
+--         Config
+--         { _inboxDir = home </> "Downloads"
+--         , _libraryDir = home </> "pboy"
+--         -- , _nameSuggestionsFileContent = True
+--         -- , _nameSuggestionsMetaData = True
+--         , _importAction = Copy
+--         }
 
-
-getDefaultConfig :: IO Config
-getDefaultConfig = do
-    homeDir <- D.getHomeDirectory
-    pure $ Config.testDefaultConfig homeDir
+getOrCreateConfig :: IO Config
+getOrCreateConfig = do
+    mconfig <- getConfig
+    case mconfig of
+        Just config -> pure config
+        Nothing -> do
+            makeDefaultConfig
+            getOrCreateConfig
 
 
 getConfig :: IO (Maybe Config)
-getConfig = undefined
-
-readConfig :: IO (Maybe Config)
-readConfig = do
+getConfig = do
     home <- D.getHomeDirectory
-    configTxt <- TIO.readFile (home </> ".pboy.toml")
-    let
-        configResult =
-            Toml.parseTomlDoc "" configTxt
-                & left (T.pack . Toml.parseErrorPretty)
+    configTxtResult <- tryJust displayErr (TIO.readFile (home </> ".pboy.toml"))
+    case configTxtResult of
+        Right configTxt -> do
+            let
+                configResult =
+                    Toml.parseTomlDoc "" configTxt
+                        & left (T.pack . Toml.parseErrorPretty)
 
-        config =
-            case configResult of
-                Left _ -> Nothing
-                Right configMap ->
-                    getConfigHelper configMap
+                config =
+                    case configResult of
+                        Left _ -> Nothing
+                        Right configMap ->
+                            getConfigHelper configMap
 
-    pure $ prependHome home <$> config
+            pure $ prependHome home <$> config
+
+        Left _ ->
+            pure Nothing
+
+
+displayErr :: SomeException -> Maybe String
+displayErr e =
+    Just $ displayException e
+
 
 getConfigHelper :: Table -> Maybe Config
 getConfigHelper configMap =
@@ -88,3 +111,15 @@ configHelper inb lib mov =
 prependHome :: FilePath -> Config -> Config
 prependHome home config =
     config & inboxDir %~ (home </>) & libraryDir %~ (home </>)
+
+makeDefaultConfig :: IO ()
+makeDefaultConfig = do
+    home <- D.getHomeDirectory
+    TIO.writeFile (home </> ".pboy.toml") configContent
+    where
+        configContent =
+            T.unlines
+            [ "inbox = \"Downloads\""
+            , "library = \"pboy\""
+            , "move = true"
+            ]

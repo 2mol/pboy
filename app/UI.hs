@@ -60,7 +60,7 @@ makeLenses ''State
 
 initState :: IO State
 initState = do
-    conf <- Config.getDefaultConfig
+    conf <- Config.getOrCreateConfig
     libraryFileInfos <- Lib.listFiles (conf ^. Config.libraryDir)
     inboxFileInfos <- Lib.listFiles (conf ^. Config.inboxDir)
     let
@@ -74,6 +74,7 @@ initState = do
         , _inbox = inboxList
         , _fileImport = fileImportInit
         }
+
 
 
 initFocus :: F.FocusRing Name
