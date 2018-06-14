@@ -60,7 +60,7 @@ makeLenses ''State
 
 initState :: IO State
 initState = do
-    conf <- Lib.getDefaultConfig
+    conf <- Config.getDefaultConfig
     libraryFileInfos <- Lib.listFiles (conf ^. Config.libraryDir)
     inboxFileInfos <- Lib.listFiles (conf ^. Config.inboxDir)
     let

@@ -23,21 +23,21 @@ dependencies:
   - base >= 4.7 && < 5
   - text
   - containers
+  - unordered-containers
   - either
   - time
   - fmt
-  - brick >= 0.34 && < 1
+  - brick
   - vty
   - microlens
   - microlens-th
-  - filepath >= 1.4.1 && < 2
+  - filepath
   - directory
   - process
-  - pdfinfo >= 1.5.4 && < 2
+  - pdfinfo
   - vector
   - titlecase
   - htoml-megaparsec
-  - aeson
 
 default-extensions:
   - OverloadedStrings

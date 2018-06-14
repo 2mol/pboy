@@ -27,12 +27,6 @@ constSupportedExtensions :: Set String
 constSupportedExtensions = S.fromList [".pdf"]
 
 
-getDefaultConfig :: IO Config
-getDefaultConfig = do
-    homeDir <- D.getHomeDirectory
-    pure $ Config.testDefaultConfig homeDir
-
-
 data FileInfo = FileInfo
     { _fileName :: FilePath
     , _modTime  :: UTCTime
