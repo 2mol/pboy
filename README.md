@@ -12,7 +12,7 @@ PaperBoy aims to keep its file management dumb (no keeping files in a database o
 
 # Usage
 
-- Open a new file import dialogue with <kbd>Space</kbd> or <kbd>Enter</kbd>.
+- Open a new file import dialog with <kbd>Space</kbd> or <kbd>Enter</kbd>.
 - Switch between the library and the inbox with <kbd>Tab</kbd>.
 - Open a file from the library with <kbd>Enter</kbd> or <kbd>Space</kbd>.
 - Quit the application with <kbd>Esc</kbd> or <kbd>Ctrl + c</kbd>.
@@ -41,8 +41,17 @@ Two command line tools are required for the suggestions: `pdftotext` and `pdfinf
 
 For large files, `pdftotext` can take quite a long time to parse the document.
 
+# Contribute
+
+You can open issues, send pull requests against the spec file https://github.com/2mol/pboy/blob/master/SPEC.md, and you're generally very welcome to share any opinions and fixes.
+
+Some ideas for what the next priorities are:
+
+- exception handling if `pdftotext` or `pdfinfo` are missing.
+- nicer handling in case of a missing or malformed config file. Right now we simply (over)write the config file with a fresh one. It would be good to have an initial setup dialog asking for the inbox and library folder paths.
+
 # Thanks
 
-`brick` [is lovely](https://github.com/jtdaugherty/brick/).
+[`brick` is lovely](https://github.com/jtdaugherty/brick/).
 
-The name for this tool is a nod to [this atrocity](https://en.wikipedia.org/wiki/Paperboy_(video_game)) which I had for the NES.
+The name for this tool is a nod to [this atrocity](https://en.wikipedia.org/wiki/Paperboy_(video_game)), which I had for the NES and never quite mastered.
