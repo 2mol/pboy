@@ -6,7 +6,7 @@ PaperBoy is a small .pdf management utility.
 
 I was frustrated that most PDFs have pretty useless file names.
 
-This tool helps renaming those files without too much fuss. It will rename/move documents to a specified folder, and it even give some filename suggestions by looking at the file content and the pdf metadata.
+This tool helps renaming those files without too much fuss. It will rename/move documents to a specified folder, and it even gives some filename suggestions by looking at the file content and the pdf metadata.
 
 PaperBoy aims to keep its file management dumb (no keeping files in a database or hidden library folder), so you can uninstall it at any time and your files will remain perfectly accessible.
 
