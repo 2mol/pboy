@@ -45,7 +45,7 @@ For large files, `pdftotext` can take quite a long time to parse the document, w
 
 Feel free to open issues, fix the Readme or send pull requests against the spec file https://github.com/2mol/pboy/blob/master/SPEC.md. You're generally very welcome to share any opinions, documentation improvements, fixes, refactoring suggestions etc.
 
-See the abovementioned document to get an idea of what some of the next priotities are.
+See the abovementioned document to get an idea of what some of the next priotities are, especially the section **Next actionable**.
 
 # Thanks
 
