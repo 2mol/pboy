@@ -17,14 +17,11 @@ PaperBoy aims to keep its file management dumb (no keeping files in a database o
 - Open a file from the library with <kbd>Enter</kbd> or <kbd>Space</kbd>.
 - Quit the application with <kbd>Esc</kbd> or <kbd>Ctrl + c</kbd>.
 
-
-# Dependencies
-
-1. `pdftotext`. If you have homebrew installed on your mac, you can install it with: `brew cask install pdftotext`. 
-
 # Install
 
-For now you need stack (cabal probably works too):
+Make sure you have both `pdftotext` and `pdfinfo` installed. If you are using homebrew on Mac you can get them with `brew install poppler`. On Linux, install `poppler` with your package manager of choice.
+
+For now you need stack to compile PaperBoy (cabal probably works too):
 
 ```
 git clone git@github.com/2mol/pboy.git
@@ -41,8 +38,6 @@ PaperBoy creates a `.pboy.toml` in your home directory. Use this to change your 
 # Current Limitations
 
 Consider this to be beta quality right now. Nothing in this tool will break your computer, but there is not a lot of exception handling for missing folders or missing utility programs.
-
-Two command line tools are required for the suggestions: `pdftotext` and `pdfinfo`. Both come with the poppler package, which is available via homebrew on Mac or your distro's package manager on Linux.
 
 For large files, `pdftotext` can take quite a long time to parse the document, which is stupid because we're only using the first couple of lines for file name suggestions.
 
