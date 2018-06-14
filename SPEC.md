@@ -28,6 +28,8 @@
 
 - exception handling if `pdftotext` or `pdfinfo` are missing.
 - option to open the document while in the middle of a rename/import. This way ambiguities about the title can be clarified.
+- allow renaming files after they have been imported.
+- refresh if any files move outside of the application.
 - nicer "first-use experience": Right now we simply write a default config file. It would be good to have an initial setup dialog asking for the inbox and library folder paths.
 - compiled releases for Mac & Linux so that people other than Haskellers with 24Gb worth of stack/GHC installs can actually use this.
 
