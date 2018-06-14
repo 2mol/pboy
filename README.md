@@ -17,12 +17,17 @@ PaperBoy aims to keep its file management dumb (no keeping files in a database o
 - Open a file from the library with <kbd>Enter</kbd> or <kbd>Space</kbd>.
 - Quit the application with <kbd>Esc</kbd> or <kbd>Ctrl + c</kbd>.
 
+
+# Dependencies
+
+1. `pdftotext`. If you have homebrew installed on your mac, you can install it with: `brew cask install pdftotext`. 
+
 # Install
 
 For now you need stack (cabal probably works too):
 
 ```
-git clone github.com/2mol/pboy
+git clone git@github.com/2mol/pboy.git
 cd pboy
 stack install
 ```
