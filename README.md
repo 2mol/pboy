@@ -2,13 +2,13 @@
 
 ![import screen](https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png)
 
-PaperBoy is a small .pdf management utility.
+Paperboy is a small .pdf management utility.
 
 I was frustrated that most PDFs have pretty useless file names.
 
 This tool helps renaming those files without too much fuss. It will rename/move documents to a specified folder, and it even gives some filename suggestions by looking at the file content and the pdf metadata.
 
-PaperBoy aims to keep its file management dumb (no keeping files in a database or hidden library folder), so you can uninstall it at any time and your files will remain perfectly accessible.
+Paperboy aims to keep its file management dumb (no keeping files in a database or hidden library folder), so you can uninstall it at any time and your files will remain perfectly accessible.
 
 # Usage
 
@@ -21,7 +21,7 @@ PaperBoy aims to keep its file management dumb (no keeping files in a database o
 
 Make sure you have `poppler` installed, which will provide both `pdftotext` and `pdfinfo`. If you are using homebrew on Mac you can do `brew install poppler`. On Linux, install `poppler` with your package manager of choice.
 
-For now you need stack to compile PaperBoy (cabal probably works too):
+For now you need stack to compile Paperboy (cabal probably works too):
 
 ```
 git clone git@github.com/2mol/pboy.git
@@ -33,7 +33,7 @@ This will give you an executable named `pboy` in your local bin folder.
 
 # Config
 
-PaperBoy creates a `.pboy.toml` in your home directory. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
+Paperboy creates a `.pboy.toml` in your home directory. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
 
 # Current Limitations
 
