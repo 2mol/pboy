@@ -1,7 +1,7 @@
-{ mkDerivation, base, brick, containers, directory, either
-, filepath, fmt, hpack, htoml-megaparsec, microlens, microlens-th
-, pdfinfo, process, stdenv, text, time, titlecase
-, unordered-containers, vector, vty, poppler_utils
+{ mkDerivation, base, brick, bytestring, containers, directory
+, either, filepath, fmt, hpack, htoml-megaparsec, microlens
+, microlens-th, pdfinfo, process, regex-compat, stdenv, tagsoup
+, text, time, titlecase, unordered-containers, vector, vty, wreq
 }:
 mkDerivation {
   pname = "pboy";
@@ -10,18 +10,17 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    base brick containers directory either filepath fmt
-    htoml-megaparsec microlens microlens-th pdfinfo process text time
-    titlecase unordered-containers vector vty
+    base brick bytestring containers directory either filepath fmt
+    htoml-megaparsec microlens microlens-th pdfinfo process
+    regex-compat tagsoup text time titlecase unordered-containers
+    vector vty wreq
   ];
   libraryToolDepends = [ hpack ];
   executableHaskellDepends = [
-    base brick containers directory either filepath fmt
-    htoml-megaparsec microlens microlens-th pdfinfo process text time
-    titlecase unordered-containers vector vty
-  ];
-  buildDepends = [
-    poppler_utils
+    base brick bytestring containers directory either filepath fmt
+    htoml-megaparsec microlens microlens-th pdfinfo process
+    regex-compat tagsoup text time titlecase unordered-containers
+    vector vty wreq
   ];
   preConfigure = "hpack";
   homepage = "https://github.com/2mol/pboy#readme";

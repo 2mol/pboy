@@ -16,12 +16,12 @@ import           Data.Text.Titlecase     (titlecase)
 import           Data.Time.Clock         (UTCTime)
 import           GHC.Exts                (sortWith)
 import           Lens.Micro              ((^.))
-import qualified System.Directory as D
-import           System.FilePath  ((<.>), (</>))
-import qualified System.FilePath  as F
-import qualified System.Process   as P
-import qualified Text.PDF.Info    as PDFI
-
+import qualified System.Directory        as D
+import           System.FilePath         ((<.>), (</>))
+import qualified System.FilePath         as F
+import qualified System.Process          as P
+import qualified Text.PDF.Info           as PDFI
+import           Web
 
 constSupportedExtensions :: Set String
 constSupportedExtensions = S.fromList [".pdf"]
@@ -63,6 +63,7 @@ fileNameSuggestions config filePath = do
     plainTextContent <- P.readProcess "pdftotext" [fullFilePath, "-"] ""
 
     pdfInfo <- PDFI.pdfInfo fullFilePath
+    maybeArXivTitle <- maybeGetArXivTitle fileName
 
     let
         baseName =
@@ -89,8 +90,10 @@ fileNameSuggestions config filePath = do
                 & filter lengthCheck
                 & fmap Just
 
+
+
         suggestions =
-            cleanFileName : maybeTitle : topContent
+            cleanFileName : maybeTitle : topContent ++ (sequence maybeArXivTitle)
                 & Maybe.catMaybes
 
     pure $ baseName :| take 5 (List.nub suggestions)

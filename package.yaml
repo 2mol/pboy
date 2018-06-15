@@ -38,6 +38,10 @@ dependencies:
   - vector
   - titlecase
   - htoml-megaparsec
+  - wreq
+  - tagsoup
+  - regex-compat
+  - bytestring
 
 default-extensions:
   - OverloadedStrings
