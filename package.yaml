@@ -39,12 +39,6 @@ dependencies:
   - titlecase
   - htoml-megaparsec
 
-default-extensions:
-  - OverloadedStrings
-  - NamedFieldPuns
-  - GeneralizedNewtypeDeriving
-  - TemplateHaskell
-
 library:
   source-dirs: src
 

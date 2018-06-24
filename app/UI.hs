@@ -1,3 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+
 module UI where
 
 import Control.Monad.IO.Class (liftIO)
@@ -12,6 +15,7 @@ import qualified Brick.Widgets.Edit         as E
 import qualified Brick.Widgets.List         as L
 import           Data.Function              ((&))
 import           Data.List.NonEmpty         (NonEmpty (..))
+import           Data.Monoid                ((<>))
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as Vec
@@ -20,7 +24,6 @@ import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
 import           Lens.Micro                 ((%~), (.~), (^.))
 import           Lens.Micro.TH              (makeLenses)
-import Data.Monoid ((<>))
 
 import qualified Config
 import qualified Lib

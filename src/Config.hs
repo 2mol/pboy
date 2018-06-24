@@ -1,3 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+
 module Config
     ( Config(..)
     , inboxDir
@@ -24,8 +27,6 @@ import qualified Text.Toml         as Toml
 data Config = Config
     { _inboxDir     :: FilePath
     , _libraryDir   :: FilePath
-    -- , _nameSuggestionsFileContent :: Bool
-    -- , _nameSuggestionsMetaData    :: Bool
     , _importAction :: ImportAction
     } deriving Show
 
@@ -35,18 +36,6 @@ data ImportAction
 
 makeLenses ''Config
 
-
--- defaultConfig :: IO Config
--- defaultConfig = do
---     home <- D.getHomeDirectory
---     pure $
---         Config
---         { _inboxDir = home </> "Downloads"
---         , _libraryDir = home </> "pboy"
---         -- , _nameSuggestionsFileContent = True
---         -- , _nameSuggestionsMetaData = True
---         , _importAction = Copy
---         }
 
 getOrCreateConfig :: IO Config
 getOrCreateConfig = do
