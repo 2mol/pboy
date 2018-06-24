@@ -35,6 +35,8 @@ This will give you an executable named `pboy` in your local bin folder.
 
 ## Nix
 
+If you have Nix then you're a smartypants who already knows what to do:
+
 ```
 git clone git@github.com/2mol/pboy.git
 cd pboy
