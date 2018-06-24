@@ -9,6 +9,7 @@ module Config
     ) where
 
 import           Control.Arrow     (left)
+import           Control.Exception
 import           Data.Function     ((&))
 import           Data.HashMap.Lazy ((!))
 import qualified Data.Text         as T
@@ -18,8 +19,6 @@ import           Lens.Micro.TH     (makeLenses)
 import qualified System.Directory  as D
 import           System.FilePath   ((</>))
 import qualified Text.Toml         as Toml
-import           Text.Toml.Types   (Node (..), Table)
-import Control.Exception
 
 
 data Config = Config
@@ -87,10 +86,10 @@ displayErr e =
     Just $ displayException e
 
 
-getConfigHelper :: Table -> Maybe Config
+getConfigHelper :: Toml.Table -> Maybe Config
 getConfigHelper configMap =
     case (configMap ! "inbox", configMap ! "library", configMap ! "move") of
-        (VString inb, VString lib, VBoolean mov) ->
+        (Toml.VString inb, Toml.VString lib, Toml.VBoolean mov) ->
             Just (configHelper inb lib mov)
         _ -> Nothing
 
