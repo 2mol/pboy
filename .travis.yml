@@ -1,0 +1,6 @@
+sudo: required
+os:
+- osx
+- linux
+language: nix
+script: nix-build
