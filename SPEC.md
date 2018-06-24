@@ -26,26 +26,26 @@
 
 ## Next actionable
 
-- exception handling if `pdftotext` or `pdfinfo` are missing.
-- option to open the document while in the middle of a rename/import. This way ambiguities about the title can be clarified.
-- allow renaming files after they have been imported.
-- refresh if any files move outside of the application.
-- nicer "first-use experience": Right now we simply write a default config file. It would be good to have an initial setup dialog asking for the inbox and library folder paths.
-- compiled releases for Mac & Linux so that people other than Haskellers with 24Gb worth of stack/GHC installs can actually use this.
+- [ ] exception handling if `pdftotext` or `pdfinfo` are missing.
+- [ ] warn when importing an already existing filename.
+- [ ] option to open the document while in the middle of a rename/import. This way ambiguities about the title can be clarified.
+- [ ] allow renaming files after they have been imported.
+- [ ] refresh if any files move outside of the application.
+- [ ] nicer "first-use experience": Right now we simply write a default config file. It would be good to have an initial setup dialog asking for the inbox and library folder paths.
+- [ ] compiled releases for Mac & Linux so that people other than Haskellers with 24Gb worth of stack/GHC installs can actually use this.
 
 
 ## Possible future features
 
+- ability to mark documents as 'to-read'.
 - make the utility work without a UI -> import documents using only command-line flags.
 - search functionality -> build a search index based on the content we get from `pdftotext`.
 - tagging or organizing into subfolders.
 - send files to a personalized email address, pboy will check and pull that.
 - tag files to sync to phone (or kindle).
-- personal (or global) machine learning model to rename & categorize documents.
 
 
-## Technical
+## Questions
 
-- opening files: rely on `open` system command. > Is that always available? <
-- title suggestions: pdftotext (poppler, not xpdf). > should/can we fork the code and ship it included? <
+- opening files: rely on `open` system command. Is that always available?
 
