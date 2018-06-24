@@ -19,7 +19,9 @@ Paperboy aims to keep its file management dumb (no keeping files in a database o
 
 # Install
 
-Make sure you have `poppler` installed, which will provide both `pdftotext` and `pdfinfo`. If you are using homebrew on Mac you can do `brew install poppler`. On Linux, install `poppler` with your package manager of choice.
+## Stack
+
+Make sure you have `poppler` installed, which will provide both `pdftotext` and `pdfinfo`. If you are using Homebrew on Mac you can do `brew install poppler`. On Linux, install `poppler` with your package manager of choice.
 
 For now you need stack to compile Paperboy (cabal probably works too):
 
@@ -30,6 +32,14 @@ stack install
 ```
 
 This will give you an executable named `pboy` in your local bin folder.
+
+## Nix
+
+```
+git clone git@github.com/2mol/pboy.git
+cd pboy
+nix-build
+```
 
 # Config
 
