@@ -26,7 +26,7 @@ Make sure you have `poppler` installed, which will provide both `pdftotext` and 
 For now you need stack to compile Paperboy (cabal probably works too):
 
 ```
-git clone git@github.com/2mol/pboy.git
+git clone git@github.com:2mol/pboy.git
 cd pboy
 stack install
 ```
@@ -38,7 +38,7 @@ This will give you an executable named `pboy` in your local bin folder.
 If you have Nix then you're a smartypants who already knows what to do:
 
 ```
-git clone git@github.com/2mol/pboy.git
+git clone git@github.com:2mol/pboy.git
 cd pboy
 nix-build
 ```
