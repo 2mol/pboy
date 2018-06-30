@@ -1,6 +1,6 @@
 os:
-- osx
-- linux
+  #- osx
+  - linux
 sudo: false
 matrix:
   include:
