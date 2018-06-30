@@ -1,5 +1,8 @@
 os:
 - osx
 - linux
-language: nix
-script: nix-build
+sudo: false
+matrix:
+  include:
+    - language: nix
+      script: nix-build
