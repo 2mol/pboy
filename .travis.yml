@@ -1,12 +1,15 @@
-os:
-  #- osx
-  - linux
 sudo: false
 matrix:
   include:
     - language: nix
+      os:
+        #- osx
+        - linux
       script: nix-build
     - language: generic
+      os:
+        - osx
+        - linux
 
       cache:
         directories:
