@@ -18,11 +18,11 @@ import           Data.Text.Titlecase     (titlecase)
 import           Data.Time.Clock         (UTCTime)
 import           GHC.Exts                (sortWith)
 import           Lens.Micro              ((^.))
-import qualified System.Directory as D
-import           System.FilePath  ((<.>), (</>))
-import qualified System.FilePath  as F
-import qualified System.Process   as P
-import qualified Text.PDF.Info    as PDFI
+import qualified System.Directory        as D
+import           System.FilePath         ((<.>), (</>))
+import qualified System.FilePath         as F
+import qualified System.Process          as P
+import qualified Text.PDF.Info           as PDFI
 
 
 constSupportedExtensions :: Set String
