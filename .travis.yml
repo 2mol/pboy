@@ -1,14 +1,8 @@
 matrix:
   include:
     - language: nix
-      os:
-      #- osx
-      - linux
       script: nix-build
     - language: generic
-      os:
-      - osx
-      - linux
       sudo: false
 
       cache:
@@ -26,3 +20,6 @@ matrix:
 
       script:
       - stack build --ghc-options -O2 --pedantic
+    os:
+    - osx
+    - linux
