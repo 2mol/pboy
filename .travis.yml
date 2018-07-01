@@ -20,6 +20,6 @@ matrix:
 
       script:
       - stack build --ghc-options -O2 --pedantic
-    os:
-    - osx
-    - linux
+    - os:
+      - osx
+      - linux
