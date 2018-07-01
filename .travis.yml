@@ -1,25 +1,28 @@
-matrix:
-  include:
-    - language: nix
-      script: nix-build
-    - language: generic
-      sudo: false
+# matrix:
+#   include:
+#     - language: nix
+#       os:
+#       #- osx
+#       - linux
+#       script: nix-build
+language: generic
+os:
+- osx
+- linux
+sudo: false
 
-      cache:
-        directories:
-        - $HOME/.local/bin
-        - $HOME/.stack
+cache:
+  directories:
+  - $HOME/.local/bin
+  - $HOME/.stack
 
-      addons:
-        apt:
-          packages:
-          - libgmp-dev
+addons:
+  apt:
+    packages:
+    - libgmp-dev
 
-      before_install:
-      - sh tools/install-stack.sh
+before_install:
+- sh tools/install-stack.sh
 
-      script:
-      - stack build --ghc-options -O2 --pedantic
-    - os:
-      - osx
-      - linux
+script:
+- stack build --ghc-options -O2 --pedantic
