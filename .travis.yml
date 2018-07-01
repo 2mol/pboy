@@ -10,19 +10,18 @@ os:
 - osx
 - linux
 sudo: false
-
-cache:
-  directories:
-  - $HOME/.local/bin
-  - $HOME/.stack
-
 addons:
   apt:
     packages:
     - libgmp-dev
-
+cache:
+  directories:
+  - $HOME/.local/bin
+  - $HOME/.stack
 before_install:
 - sh tools/install-stack.sh
-
+- sh tools/install-ghr.sh
 script:
 - stack build --ghc-options -O2 --pedantic
+after_success:
+- sh tools/attach-binary.sh
