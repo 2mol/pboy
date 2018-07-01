@@ -2,31 +2,27 @@ matrix:
   include:
     - language: nix
       os:
-        #- osx
-        - linux
+      #- osx
+      - linux
       script: nix-build
     - language: generic
+      os:
+      - osx
+      - linux
       sudo: false
-      # os:
-      #   - osx
-      #   - linux
 
       cache:
         directories:
+        - $HOME/.local/bin
         - $HOME/.stack
 
       addons:
         apt:
           packages:
-            - libgmp-dev
+          - libgmp-dev
 
       before_install:
-      - mkdir -p ~/.local/bin
-      - export PATH=$HOME/.local/bin:$PATH
-      - travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
-
-      install:
-      - stack --no-terminal --install-ghc test --only-dependencies
+      - sh tools/install-stack.sh
 
       script:
-      - stack --no-terminal test --haddock --no-haddock-deps
+      - stack build --ghc-options -O2 --pedantic
