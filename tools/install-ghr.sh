@@ -4,17 +4,21 @@ if test ! "$TRAVIS_TAG"
 then
   echo 'This is not a release build.'
 else
-    if [ "$TRAVIS_OS_NAME" = "linux" ] 
+    echo "Installing ghr"
+    if [ "$TRAVIS_OS_NAME" = "linux" ]
     then
-        ARCH="linux"
+        URL="https://github.com/tcnksm/ghr/releases/download/v0.10.0/ghr_v0.10.0_linux_386.tar.gz"
+        curl -L ${URL} > ghr.tgz
+        tar xzvvf ghr.tgz
     else
-        ARCH="darwin"
+        URL="https://github.com/tcnksm/ghr/releases/download/v0.10.0/ghr_v0.10.0_darwin_386.zip"
+        curl -L ${URL} > ghr.zip
+        unzip ghr.zip
     fi
-  echo "Installing ghr"
-  URL="https://github.com/tcnksm/ghr/releases/download/v0.10.0/ghr_v0.10.0_${ARCH}_386.zip"
-  curl -L ${URL} > ghr.zip
+
   mkdir -p "$HOME/bin"
+  mv */ghr "$HOME/bin/"
   export PATH="$HOME/bin:$PATH"
-  unzip ghr.zip -d "$HOME/bin"
-  rm ghr.zip
+
+  rm -rf ghr*
 fi
