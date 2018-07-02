@@ -21,6 +21,17 @@ Paperboy aims to keep its file management dumb (no keeping files in a database o
 
 # Install
 
+## Get the binary release
+
+Download the archive for your operating system from [https://github.com/2mol/pboy/releases](https://github.com/2mol/pboy/releases). Extract and install it with
+
+```
+tar zxvf pboy*.tar.gz
+mv pboy ~/.local/bin/
+```
+
+For the latter to work, `~/.local/bin/` needs to exist and be in your `PATH`. Alternatively, put it in `/usr/local/bin`.
+
 ## Stack
 
 Make sure you have `poppler` installed, which will provide both `pdftotext` and `pdfinfo`. On Linux, install `poppler` with your package manager of choice. If you are on Mac and using Homebrew you can do `brew install poppler`.
