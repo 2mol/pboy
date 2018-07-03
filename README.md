@@ -21,13 +21,21 @@ Paperboy aims to keep its file management dumb (no keeping files in a database o
 
 # Install
 
+## Homebrew on macOS
+
+If you're a Homebrew user, you can install the latest version and its dependencies from the repo's tap:
+
+```
+$ brew install 2mol/tools/pboy
+```
+
 ## Get the binary release
 
 Download the archive for your operating system from [https://github.com/2mol/pboy/releases](https://github.com/2mol/pboy/releases). Extract and install it with
 
 ```
-tar zxvf pboy*.tar.gz
-mv pboy ~/.local/bin/
+$ tar zxvf pboy*.tar.gz
+$ mv pboy ~/.local/bin/
 ```
 
 For the latter to work, `~/.local/bin/` needs to exist and be in your `PATH`. Alternatively, put it in `/usr/local/bin`.
@@ -39,9 +47,9 @@ Make sure you have `poppler` installed, which will provide both `pdftotext` and 
 Assuming you have stack, the following will compile, then install the `pboy` executable in your `.local/bin`:
 
 ```
-git clone git@github.com:2mol/pboy.git
-cd pboy
-stack install
+$ git clone git@github.com:2mol/pboy.git
+$ cd pboy
+$ stack install
 ```
 
 ## Nix
@@ -49,9 +57,9 @@ stack install
 If you have Nix, then you're a smartypants who already knows what to do:
 
 ```
-git clone git@github.com:2mol/pboy.git
-cd pboy
-nix-build
+$ git clone git@github.com:2mol/pboy.git
+$ cd pboy
+$ nix-build
 ```
 
 # Config
