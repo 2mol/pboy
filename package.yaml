@@ -26,9 +26,9 @@ dependencies:
   - unordered-containers
   - either
   - time
-  - fmt
   - brick
   - vty
+  - fmt
   - microlens
   - microlens-th
   - filepath

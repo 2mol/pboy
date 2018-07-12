@@ -4,6 +4,7 @@ module Lib where
 
 import           Config                  (Config)
 import qualified Config
+import           Control.Exception       as E
 import qualified Data.Char               as C
 import           Data.Either.Combinators (rightToMaybe)
 import           Data.Function           ((&))
@@ -160,6 +161,21 @@ openFile conf fileName = do
         filePath =
             conf ^. Config.libraryDir </> cleanFileName
 
+    _ <- P.readProcess "xdg-open" [filePath] ""
+            & tryJust displayErr
+
     _ <- P.readProcess "open" [filePath] ""
+            & tryJust displayErr
 
     pure ()
+
+displayErr :: SomeException -> Maybe String
+displayErr e =
+    Just $ displayException e
+
+-- openFunction :: IO FilePath
+-- openFunction = do
+--     exec <- listToMaybe . catMaybes <$> traverse findExecutable executables
+--     maybe (error $ "None of the open commands (" ++ intersperse ',' executables ++ ") are available.") pure exec
+--     where
+--     executables = ["open", "xdg-open"]
