@@ -152,7 +152,7 @@ fileFile conf origFileName newFileName = do
         Config.Copy -> D.copyFile origFilePath newFilePath
         Config.Move -> D.renameFile origFilePath newFilePath
 
-openFile :: Config -> FilePath -> IO ()
+openFile :: Config -> FilePath -> IO (Either String ())
 openFile conf fileName = do
     let
         cleanFileName =
@@ -161,21 +161,17 @@ openFile conf fileName = do
         filePath =
             conf ^. Config.libraryDir </> cleanFileName
 
-    _ <- P.readProcess "xdg-open" [filePath] ""
+    linuxOpen <- P.readProcess "xdg-open" [filePath] ""
             & tryJust displayErr
 
-    _ <- P.readProcess "open" [filePath] ""
-            & tryJust displayErr
-
-    pure ()
+    case linuxOpen of
+        Left _ ->
+            do
+                _ <- P.readProcess "open" [filePath] "" & tryJust displayErr
+                pure $ Right ()
+        Right _ ->
+            pure $ Right ()
 
 displayErr :: SomeException -> Maybe String
 displayErr e =
     Just $ displayException e
-
--- openFunction :: IO FilePath
--- openFunction = do
---     exec <- listToMaybe . catMaybes <$> traverse findExecutable executables
---     maybe (error $ "None of the open commands (" ++ intersperse ',' executables ++ ") are available.") pure exec
---     where
---     executables = ["open", "xdg-open"]
