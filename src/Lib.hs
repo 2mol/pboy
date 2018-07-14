@@ -56,6 +56,7 @@ fileSupported fileInfo =
     let extension = F.takeExtension $ _fileName fileInfo
     in S.member extension constSupportedExtensions
 
+
 -- Getting Filename suggestions:
 
 fileNameSuggestions :: Config -> FilePath -> IO (NonEmpty Text)
@@ -63,7 +64,10 @@ fileNameSuggestions config filePath = do
     let
         fileName = F.takeFileName filePath
         fullFilePath = (config ^. Config.inboxDir) </> fileName
-    plainTextContent <- P.readProcess "pdftotext" [fullFilePath, "-"] ""
+
+    plainTextContent <-
+        P.readProcess "pdftotext" [fullFilePath, "-"] ""
+            & tryJust displayErr
 
     pdfInfo <- PDFI.pdfInfo fullFilePath
 
@@ -85,18 +89,22 @@ fileNameSuggestions config filePath = do
                 >>= boolToMaybe lengthCheck
 
         topContent =
-            T.pack plainTextContent
-                & T.lines
-                & take 16 -- totally arbitrary. subject to improvement later
-                & fmap sanitize
-                & filter lengthCheck
-                & fmap Just
+            case plainTextContent of
+                Left _ -> []
+                Right content ->
+                    T.pack content
+                        & T.lines
+                        & take 16 -- totally arbitrary. subject to improvement later
+                        & fmap sanitize
+                        & filter lengthCheck
+                        & fmap Just
 
         suggestions =
             cleanFileName : maybeTitle : topContent
                 & Maybe.catMaybes
 
     pure $ baseName :| take 5 (List.nub suggestions)
+
 
 lengthCheck :: Text -> Bool
 lengthCheck t = T.length t >= 3 && T.length t <= 64
@@ -107,6 +115,7 @@ boolToMaybe check a =
     if check a
         then Just a
         else Nothing
+
 
 -- 1. remove double spaces / double underscores
 -- 2. strip out all except ascii, alphanumeric, spaces, underscores, dashes
@@ -130,6 +139,7 @@ validChars x =
         '-' -> True
         _   -> C.isLetter x || C.isSpace x
 
+
 -- shelving files into library folder
 
 finalFileName :: Text -> Text
@@ -152,6 +162,7 @@ fileFile conf origFileName newFileName = do
         Config.Copy -> D.copyFile origFilePath newFilePath
         Config.Move -> D.renameFile origFilePath newFilePath
 
+
 openFile :: Config -> FilePath -> IO (Either String ())
 openFile conf fileName = do
     let
@@ -161,16 +172,20 @@ openFile conf fileName = do
         filePath =
             conf ^. Config.libraryDir </> cleanFileName
 
-    linuxOpen <- P.readProcess "xdg-open" [filePath] ""
+    linuxOpen <-
+        P.readProcess "xdg-open" [filePath] ""
             & tryJust displayErr
 
     case linuxOpen of
         Left _ ->
             do
-                _ <- P.readProcess "open" [filePath] "" & tryJust displayErr
+                _ <-
+                    P.readProcess "open" [filePath] ""
+                        & tryJust displayErr
                 pure $ Right ()
         Right _ ->
             pure $ Right ()
+
 
 displayErr :: SomeException -> Maybe String
 displayErr e =
