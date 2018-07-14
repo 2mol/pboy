@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - arXiv support.
 
+## [1.0.0] - 2018-07-14
+
+1.0 release.
+
+### Added
+
+Exception handling for missing command-line utilities.
+
 ## [0.1.0] - 2018-07-02
 
 First proper binary release
