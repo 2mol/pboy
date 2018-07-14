@@ -68,13 +68,11 @@ Paperboy creates a `.pboy.toml` in your home directory. Use this to change your 
 
 # Current Limitations
 
-Consider this to be beta quality right now. Nothing in this tool will break your computer, but there is not a lot of exception handling for missing folders or missing utility programs.
-
 For large files, `pdftotext` can take quite a long time to parse the document, which is stupid because we're only using the first couple of lines for file name suggestions.
 
 # Contribute
 
-Feel free to open issues, fix the Readme or send pull requests against the spec file https://github.com/2mol/pboy/blob/master/SPEC.md. You're generally very welcome to share any opinions, documentation improvements, fixes, refactoring suggestions etc.
+Feel free to open issues, fix the Readme or send pull requests against the spec file https://github.com/2mol/pboy/blob/master/Spec.md. You're generally very welcome to share any opinions, documentation improvements, fixes, refactoring suggestions etc.
 
 See the abovementioned document to get an idea of what some of the next priotities are, especially the section **Next actionable**.
 
