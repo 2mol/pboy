@@ -136,7 +136,7 @@ finalFileName text =
         & T.replace " " "_"
 
 
-fileFile :: Config -> FilePath -> Text -> IO ()
+fileFile :: Config -> FilePath -> Text -> IO (Either () ())
 fileFile conf origFileName newFileName = do
     let
         newFilePath =
@@ -145,10 +145,15 @@ fileFile conf origFileName newFileName = do
         origFilePath =
             (conf ^. Config.inboxDir) </> (F.takeFileName origFileName)
 
-    case conf ^. Config.importAction of
-        Config.Copy -> D.copyFile origFilePath newFilePath
-        Config.Move -> D.renameFile origFilePath newFilePath
+    targetExists <- doesFileExist newFilePath
 
+    case targetExists of
+        True  -> return $ Left () -- can be a custom error type
+        False -> case conf ^. Config.importAction of
+            Config.Copy -> Right <$> D.copyFile origFilePath newFilePath
+            Config.Move -> Right <$> D.renameFile origFilePath newFilePath
+
+    retur
 openFile :: Config -> FilePath -> IO ()
 openFile conf fileName = do
     let
