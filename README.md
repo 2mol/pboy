@@ -6,9 +6,9 @@
 
 Paperboy is a small .pdf management utility.
 
-I was frustrated that most PDFs have pretty useless file names.
+It is borne out of the frustration of having a dowload folder full of PDFs with names like 'I08.pdf', '1412.4880.pdf' and so on. Since I want to save some of these files for later reading, it would be helpful to have more descriptive filenames.
 
-This tool helps renaming those files without too much fuss. It will rename/move documents to a specified folder, and it even gives some filename suggestions by looking at the file content and the pdf metadata.
+This tool helps with renaming those files. It will rename/move documents to a specified folder, and it even gives some filename suggestions by looking at the file content and the pdf metadata.
 
 Paperboy aims to keep its file management dumb (no keeping files in a database or hidden library folder), so you can uninstall it at any time and your files will remain perfectly accessible.
 
