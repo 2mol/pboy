@@ -28,6 +28,7 @@
 
 - [x] exception handling if `pdftotext` or `pdfinfo` are missing.
 - [ ] warn when importing an already existing filename.
+- [ ] use http://hackage.haskell.org/package/path for filepaths.
 - [ ] option to open the document while in the middle of a rename/import. This way ambiguities about the title can be clarified.
 - [ ] allow renaming files after they have been imported.
 - [ ] refresh if any files move outside of the application.

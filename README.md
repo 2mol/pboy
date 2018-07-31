@@ -54,13 +54,15 @@ $ stack install
 
 ## Nix
 
-If you have Nix, then you're a smartypants who already knows what to do:
+If you have Nix, then you can build with:
 
 ```
 $ git clone git@github.com:2mol/pboy.git
 $ cd pboy
 $ nix-build
 ```
+
+Alternatively, you can  XXX TODO
 
 # Config
 
