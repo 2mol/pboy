@@ -8,6 +8,8 @@ script: nix-build
 after_success:
 - ls -lha result/bin
 - tar --version
+- which tar
+- type -a tar
 
 # matrix:
 #   include:
