@@ -7,7 +7,7 @@ language: nix
 script: nix-build
 after_success:
 - ls -lha result/bin
-- echo YAY
+- tar --version
 
 # matrix:
 #   include:
