@@ -5,6 +5,9 @@ os:
 language: nix
 # before_install: nix-env --install --attr nixpkgs.haskellPackages.hpack
 script: nix-build
+after_success:
+- ls -lha result/bin
+- echo YAY
 
 # matrix:
 #   include:
