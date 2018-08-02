@@ -1,8 +1,11 @@
+sudo: true
 os:
 - osx
 - linux
 language: nix
+# before_install: nix-env --install --attr nixpkgs.haskellPackages.hpack
 script: nix-build
+
 # matrix:
 #   include:
 #     - language: nix
