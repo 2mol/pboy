@@ -12,7 +12,7 @@ else
   OWNER="$(echo "$TRAVIS_REPO_SLUG" | cut -f1 -d/)"
   REPO_NAME="$(echo "$TRAVIS_REPO_SLUG" | cut -f2 -d/)"
   BUNDLE_NAME="$REPO_NAME-$TRAVIS_TAG-$TRAVIS_OS_NAME.tar.gz"
-  cp "result/bin/$REPO_NAME" "."
+  cp `realpath result/bin/.$REPO_NAME-wrapped` $REPO_NAME
   tar -czf "$BUNDLE_NAME" "$REPO_NAME"
   echo "SHA256:"
   shasum -a 256 "$BUNDLE_NAME"

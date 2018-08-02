@@ -8,7 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 - arXiv support.
-- `nixpkgs` version is now pinned, so installation via nix is guaranteed to work.
+
+## [1.0.1] - 2018-08-03
+
+- `nixpkgs` version is pinned, so that installation via `nix` is guaranteed to work.
+- continuous integration is done via `nix`. As a bonus, this results in a much smaller executable size.
 
 ## [1.0.0] - 2018-07-14
 
