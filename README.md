@@ -4,13 +4,13 @@
 
 [![Build Status](https://travis-ci.org/2mol/pboy.svg?branch=master)](https://travis-ci.org/2mol/pboy)
 
-Paperboy is a small .pdf management utility.
+Paperboy is a tiny .pdf management utility.
 
-I was frustrated that most PDFs have pretty useless file names.
+Motivated by the frustration of having a download folder full of PDFs with names like 'I08.pdf' and '1412.4880.pdf', I wanted a way of efficiently renaming those documents that I saved for later reading.
 
-This tool helps renaming those files without too much fuss. It will rename/move documents to a specified folder, and it even gives some filename suggestions by looking at the file content and the pdf metadata.
+This tool helps with that. It will rename/move documents to a specified folder, and it even gives some filename suggestions by looking at the file content and the pdf metadata.
 
-Paperboy aims to keep its file management dumb (no keeping files in a database or hidden library folder), so you can uninstall it at any time and your files will remain perfectly accessible.
+Paperboy keeps its file management dumb on purpose (no keeping files in a database or hidden library folder), so you can uninstall it at any time and your files will remain perfectly accessible.
 
 # Usage
 
@@ -60,7 +60,7 @@ If you have Nix, then you can install `pboy` with one command:
 $ nix-env -if https://github.com/2mol/pboy/tarball/master
 ```
 
-If you only want to pull the source code and build, then simply do
+If you only build it, then simply do
 
 ```
 $ git clone git@github.com:2mol/pboy.git
@@ -78,12 +78,15 @@ For large files, `pdftotext` can take quite a long time to parse the document, w
 
 # Contribute
 
-Feel free to open issues, fix the Readme or send pull requests against the spec file https://github.com/2mol/pboy/blob/master/Spec.md. You're generally very welcome to share any opinions, documentation improvements, fixes, refactoring suggestions etc.
+You're very welcome to open issues, fix the Readme or send pull requests.
 
-See the abovementioned document to get an idea of what some of the next priotities are, especially the section **Next actionable**.
+If you have feature suggestions, please open an issue, or send a PR against the spec file https://github.com/2mol/pboy/blob/master/Spec.md.
+
+If you are just looking for a place to help, please see the abovementioned document to get an idea of what some of the next priotities are, especially the section **Next actionable**.
 
 # Thanks
 
-[`brick` is lovely](https://github.com/jtdaugherty/brick/).
+- [brick](https://github.com/jtdaugherty/brick) is a lovely way to a write a command-line UI.
+- [nmattia](https://github.com/nmattia) did the work to get Paperboy to build with [nix](https://github.com/NixOS/nix) and patiently explained some of the basics to me.
 
-The name for this tool is inspired by [this game](https://en.wikipedia.org/wiki/Paperboy_(video_game)), which I had for the NES and never quite mastered.
+The name 'Paperboy' is a reference to [this game](https://en.wikipedia.org/wiki/Paperboy_(video_game)), which I had for the NES and never quite mastered.
