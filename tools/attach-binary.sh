@@ -9,7 +9,6 @@ then
   exit 1
 else
   echo "Attaching binary for $TRAVIS_OS_NAME to $TRAVIS_TAG..."
-  sh tools/install-ghr.sh
   OWNER="$(echo "$TRAVIS_REPO_SLUG" | cut -f1 -d/)"
   REPO_NAME="$(echo "$TRAVIS_REPO_SLUG" | cut -f2 -d/)"
   BUNDLE_NAME="$REPO_NAME-$TRAVIS_TAG-$TRAVIS_OS_NAME.tar.gz"
