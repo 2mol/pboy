@@ -5,7 +5,7 @@ os:
 language: nix
 # before_install: nix-env --install --attr nixpkgs.haskellPackages.hpack
 before_install:
-- sh tools/install-ghr.sh
+- ./tools/install-ghr.sh
 script: nix-build
 after_success:
 - sh tools/attach-binary.sh
