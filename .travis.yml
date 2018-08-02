@@ -1,3 +1,15 @@
+sudo: true
+os:
+- osx
+- linux
+language: nix
+# before_install: nix-env --install --attr nixpkgs.haskellPackages.hpack
+before_install:
+- sh tools/install-ghr.sh
+script: nix-build
+after_success:
+- sh tools/attach-binary.sh
+
 # matrix:
 #   include:
 #     - language: nix
@@ -5,23 +17,23 @@
 #       #- osx
 #       - linux
 #       script: nix-build
-language: generic
-os:
-- osx
-- linux
-sudo: false
-addons:
-  apt:
-    packages:
-    - libgmp-dev
-cache:
-  directories:
-  - $HOME/.local/bin
-  - $HOME/.stack
-before_install:
-- sh tools/install-stack.sh
-- sh tools/install-ghr.sh
-script:
-- stack build --ghc-options -O2 --pedantic
-after_success:
-- sh tools/attach-binary.sh
+# language: generic
+# os:
+# - osx
+# - linux
+# sudo: false
+# addons:
+#   apt:
+#     packages:
+#     - libgmp-dev
+# cache:
+#   directories:
+#   - $HOME/.local/bin
+#   - $HOME/.stack
+# before_install:
+# - sh tools/install-stack.sh
+# - sh tools/install-ghr.sh
+# script:
+# - stack build --ghc-options -O2 --pedantic
+# after_success:
+# - sh tools/attach-binary.sh

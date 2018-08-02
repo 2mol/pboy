@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 - arXiv support.
+- `nixpkgs` version is now pinned, so installation via nix is guaranteed to work.
 
 ## [1.0.0] - 2018-07-14
 

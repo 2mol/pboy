@@ -1,2 +1,2 @@
-{ pkgs ? import <nixpkgs> {} }:
+let pkgs = import (import ./nix) {}; in
 pkgs.callPackage ./pboy.nix {}
