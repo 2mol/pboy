@@ -80,9 +80,9 @@ For large files, `pdftotext` can take quite a long time to parse the document, w
 
 You're very welcome to open issues, fix the Readme or send pull requests.
 
-If you have feature suggestions, please open an issue, or send a PR against the spec file https://github.com/2mol/pboy/blob/master/Spec.md.
+If you have feature suggestions, please open an issue, or send a PR against the todo file https://github.com/2mol/pboy/blob/master/Todo.md.
 
-If you are just looking for a place to help, please see the abovementioned document to get an idea of what some of the next priotities are, especially the section **Next actionable**.
+If you are just looking for a place to help, please see the abovementioned document to get an idea of what some of the next priotities are.
 
 # Thanks
 
