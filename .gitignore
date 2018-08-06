@@ -4,3 +4,4 @@ pboy.cabal
 *.swp
 *.pdf
 result
+dist-newstyle

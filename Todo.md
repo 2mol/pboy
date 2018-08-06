@@ -6,7 +6,9 @@
 - [ ] use xdg path for writing config file instead of home direcory.
 - [ ] warn when importing an already existing filename.
 - [ ] use http://hackage.haskell.org/package/path for filepaths.
-- [ ] option to open the document while in the middle of a rename/import.
+- [ ] asum for exception handling of missing executables.
+- [ ] 'o' to open the document while in the middle of a rename/import.
+- [ ] https://vaibhavsagar.com/blog/2018/01/03/static-haskell-nix/
 
 ## Done
 
