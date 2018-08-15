@@ -9,6 +9,7 @@
 - [ ] asum for exception handling of missing executables.
 - [ ] 'o' to open the document while in the middle of a rename/import.
 - [ ] https://vaibhavsagar.com/blog/2018/01/03/static-haskell-nix/
+- [ ] ditch nix for releases, use https://github.com/tfausak/github-release
 
 ## Done
 
