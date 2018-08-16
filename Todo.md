@@ -21,6 +21,7 @@
 
 ## Possible future features
 
+- custom color scheme that does not depend on the terminal color scheme?
 - allow renaming files after they have been imported.
 - refresh if any files move outside of the application.
 - nicer "first-use experience": Right now we simply write a default config file. It would be good to have an initial setup dialog asking for the inbox and library folder paths.
