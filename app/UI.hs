@@ -24,6 +24,8 @@ import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
 import           Lens.Micro                 ((%~), (.~), (^.))
 import           Lens.Micro.TH              (makeLenses)
+import           Path                       (Path, Abs, File)
+import qualified Path
 
 import qualified Config
 import qualified Lib
@@ -42,7 +44,7 @@ type Event = ()
 
 
 data FileImport = FileImport
-    { _currentFile :: FilePath
+    { _currentFile :: Maybe (Path Abs File)
     , _suggestions :: L.List Name Text
     , _nameEdit    :: E.Editor Text Name
     }
@@ -86,7 +88,7 @@ initFocus = F.focusRing [Inbox, Library]
 fileImportInit :: FileImport
 fileImportInit =
     FileImport
-    { _currentFile = ""
+    { _currentFile = Nothing
     , _suggestions = L.list NameSuggestions (Vec.fromList []) 1
     , _nameEdit = E.editor FileNameEdit Nothing ""
     }
@@ -129,10 +131,10 @@ drawUI s =
             L.renderList drawFileInfo (focus == Just Library) (s ^. library)
 
         inboxLabel =
-            "Inbox: " <> (s ^. config ^. Config.inboxDir)
+            "Inbox: " <> (Path.fromAbsDir $ s ^. config ^. Config.inboxDir)
 
         libraryLabel =
-            "Library: " <> (s ^. config ^. Config.libraryDir)
+            "Library: " <> (Path.fromAbsDir $ s ^. config ^. Config.libraryDir)
 
         libraryAndInbox =
             withBorderStyle BS.unicodeRounded
@@ -210,7 +212,7 @@ handleLibraryEvent :: State -> V.Event -> EventM Name (Next State)
 handleLibraryEvent s e =
     let
         openFile fileName = do
-            _ <- liftIO $ Lib.openFile (s ^. config) fileName
+            _ <- liftIO $ Lib.openFile fileName
             continue s
 
         openAction =
@@ -263,7 +265,7 @@ beginFileImport s fileInfo = do
 
         newState = s
             & focusRing .~ (F.focusRing [FileNameEdit, NameSuggestions])
-            & (fileImport . currentFile) .~ originalFileName
+            & (fileImport . currentFile) .~ Just originalFileName
             & (fileImport . suggestions) .~ newFileNames
             & (fileImport . nameEdit) .~ (E.editor FileNameEdit Nothing fileName)
 
@@ -287,7 +289,7 @@ handleImportScreenEvent s e =
                             & T.unlines
                             & Lib.finalFileName
 
-                _ <- liftIO $ Lib.fileFile conf (s ^. fileImport ^. currentFile) newFileName
+                _ <- liftIO $ maybe (pure ()) (\cf -> Lib.fileFile conf cf newFileName) (s ^. fileImport ^. currentFile)
 
                 libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
                 inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)
@@ -327,7 +329,7 @@ drawFileInfo :: Bool -> Lib.FileInfo -> Widget Name
 drawFileInfo _ fileInfo =
     let
         fileLabel =
-            [ str (Lib._fileName fileInfo)
+            [ str (Path.fromRelFile $ Path.filename $ Lib._fileName fileInfo)
             , fill ' '
             , str (fmt (dateDashF $ Lib._modTime fileInfo))
             ]

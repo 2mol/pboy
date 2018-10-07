@@ -19,14 +19,15 @@ import qualified Data.Text         as T
 import qualified Data.Text.IO      as TIO
 import           Lens.Micro        ((%~))
 import           Lens.Micro.TH     (makeLenses)
-import qualified System.Directory  as D
-import           System.FilePath   ((</>))
 import qualified Text.Toml         as Toml
+import           Path              (Path, Rel, Abs, Dir, File, (</>))
+import qualified Path
+import           Path.IO
 
 
 data Config = Config
-    { _inboxDir     :: FilePath
-    , _libraryDir   :: FilePath
+    { _inboxDir     :: Path Abs Dir
+    , _libraryDir   :: Path Abs Dir
     , _importAction :: ImportAction
     } deriving Show
 
@@ -49,8 +50,8 @@ getOrCreateConfig = do
 
 getConfig :: IO (Maybe Config)
 getConfig = do
-    configHome <- D.getXdgDirectory D.XdgConfig ""
-    configTxtResult <- tryJust displayErr (TIO.readFile (configHome </> ".pboy.toml"))
+    configHome <- getXdgDir XdgConfig Nothing
+    configTxtResult <- tryJust displayErr (TIO.readFile (Path.fromAbsFile (configHome </> defaultConfigFile)))
     case configTxtResult of
         Right configTxt -> do
             let
@@ -58,13 +59,11 @@ getConfig = do
                     Toml.parseTomlDoc "" configTxt
                         & left (T.pack . Toml.parseErrorPretty)
 
-                config =
-                    case configResult of
-                        Left _ -> Nothing
-                        Right configMap ->
-                            getConfigHelper configMap
+            case configResult of
+                Left _ -> pure Nothing
+                Right configMap ->
+                    getConfigHelper configMap
 
-            pure $ prependHome configHome <$> config
 
         Left _ ->
             pure Nothing
@@ -75,35 +74,33 @@ displayErr e =
     Just $ displayException e
 
 
-getConfigHelper :: Toml.Table -> Maybe Config
+getConfigHelper :: Toml.Table -> IO (Maybe Config)
 getConfigHelper configMap =
     case (configMap ! "inbox", configMap ! "library", configMap ! "move") of
         (Toml.VString inb, Toml.VString lib, Toml.VBoolean mov) ->
-            Just (configHelper inb lib mov)
-        _ -> Nothing
+            Just <$> configHelper inb lib mov
+        _ -> pure Nothing
 
-configHelper :: T.Text -> T.Text -> Bool -> Config
-configHelper inb lib mov =
+configHelper :: T.Text -> T.Text -> Bool -> IO Config
+configHelper inb lib mov = do
     let
         act =
             if mov
                 then Move
                 else Copy
-    in
-        Config
-        { _inboxDir = T.unpack inb
-        , _libraryDir = T.unpack lib
+    home <- getHomeDir
+    inbd <- resolveDir home $ T.unpack inb
+    libd <- resolveDir home $ T.unpack lib
+    pure Config
+        { _inboxDir = inbd
+        , _libraryDir = libd
         , _importAction = act
         }
 
-prependHome :: FilePath -> Config -> Config
-prependHome home config =
-    config & inboxDir %~ (home </>) & libraryDir %~ (home </>)
-
 makeDefaultConfig :: IO ()
 makeDefaultConfig = do
-    configHome <- D.getXdgDirectory D.XdgConfig ""
-    TIO.writeFile (configHome </> ".pboy.toml") configContent
+    configHome <- getXdgDir XdgConfig Nothing
+    TIO.writeFile (Path.fromAbsFile (configHome </> defaultConfigFile)) configContent
     where
         configContent =
             T.unlines
@@ -111,3 +108,7 @@ makeDefaultConfig = do
             , "library = \"pboy\""
             , "move = true"
             ]
+
+
+defaultConfigFile :: Path Rel File
+defaultConfigFile = $(Path.mkRelFile "pboy.toml")
