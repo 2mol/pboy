@@ -19,11 +19,13 @@ import           Data.Text.Titlecase     (titlecase)
 import           Data.Time.Clock         (UTCTime)
 import           GHC.Exts                (sortWith)
 import           Lens.Micro              ((^.))
-import qualified System.Directory        as D
-import           System.FilePath         ((<.>), (</>))
 import qualified System.FilePath         as F
 import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
+import           Path                    (Path, Rel, Abs, Dir, File, (</>))
+import qualified Path
+import qualified Path.IO                 as Path
+
 
 
 constSupportedExtensions :: Set String
@@ -31,49 +33,45 @@ constSupportedExtensions = S.fromList [".pdf"]
 
 
 data FileInfo = FileInfo
-    { _fileName :: FilePath
+    { _fileName :: Path Abs File
     , _modTime  :: UTCTime
     }
 
 
-listFiles :: FilePath -> IO [FileInfo]
+listFiles :: Path Abs Dir -> IO [FileInfo]
 listFiles path = do
-    D.createDirectoryIfMissing True path
-    files <- D.listDirectory path
-    fileInfos <- mapM getFileInfo (fmap (\f -> path </> f) files)
+    Path.ensureDir path
+    files <- snd <$> Path.listDir path
+    fileInfos <- mapM getFileInfo files
     let sortedFileInfos = reverse $ sortWith _modTime fileInfos
     pure $ filter fileSupported sortedFileInfos
 
 
-getFileInfo :: FilePath -> IO FileInfo
+getFileInfo :: Path Abs File -> IO FileInfo
 getFileInfo path = do
-    modTime <- D.getModificationTime path
-    pure $ FileInfo (F.takeFileName path) modTime
+    modTime <- Path.getModificationTime path
+    pure $ FileInfo path modTime
 
 
 fileSupported :: FileInfo -> Bool
 fileSupported fileInfo =
-    let extension = F.takeExtension $ _fileName fileInfo
+    let extension = Path.fileExtension $ _fileName fileInfo
     in S.member extension constSupportedExtensions
 
 
 -- Getting Filename suggestions:
 
-fileNameSuggestions :: Config -> FilePath -> IO (NonEmpty Text)
-fileNameSuggestions config filePath = do
-    let
-        fileName = F.takeFileName filePath
-        fullFilePath = (config ^. Config.inboxDir) </> fileName
-
+fileNameSuggestions :: Config -> Path Abs File -> IO (NonEmpty Text)
+fileNameSuggestions config fullFilePath = do
     plainTextContent <-
-        P.readProcess "pdftotext" [fullFilePath, "-"] ""
+        P.readProcess "pdftotext" [Path.fromAbsFile fullFilePath, "-"] ""
             & tryJust displayErr
 
-    pdfInfo <- PDFI.pdfInfo fullFilePath
+    pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile fullFilePath
 
     let
         baseName =
-            F.takeBaseName fileName
+            F.takeBaseName (Path.fromRelFile $ Path.filename fullFilePath)
                 & T.pack
                 & T.replace "_" " "
 
@@ -149,38 +147,29 @@ finalFileName text =
         & T.replace " " "_"
 
 
-fileFile :: Config -> FilePath -> Text -> IO ()
-fileFile conf origFileName newFileName = do
+fileFile :: Config -> Path Abs File -> Text -> IO ()
+fileFile conf origFilePath newFileName = do
+    newFile <- Path.parseRelFile (T.unpack newFileName ++ Path.fileExtension origFilePath)
     let
         newFilePath =
-            conf ^. Config.libraryDir </> (T.unpack newFileName) <.> "pdf"
-
-        origFilePath =
-            (conf ^. Config.inboxDir) </> (F.takeFileName origFileName)
+            conf ^. Config.libraryDir </> newFile
 
     case conf ^. Config.importAction of
-        Config.Copy -> D.copyFile origFilePath newFilePath
-        Config.Move -> D.renameFile origFilePath newFilePath
+        Config.Copy -> Path.copyFile origFilePath newFilePath
+        Config.Move -> Path.renameFile origFilePath newFilePath
 
 
-openFile :: Config -> FilePath -> IO (Either String ())
-openFile conf fileName = do
-    let
-        cleanFileName =
-            F.takeFileName fileName
-
-        filePath =
-            conf ^. Config.libraryDir </> cleanFileName
-
+openFile :: Path Abs File -> IO (Either String ())
+openFile filePath = do
     linuxOpen <-
-        P.readProcess "xdg-open" [filePath] ""
+        P.readProcess "xdg-open" [Path.fromAbsFile filePath] ""
             & tryJust displayErr
 
     case linuxOpen of
         Left _ ->
             do
                 _ <-
-                    P.readProcess "open" [filePath] ""
+                    P.readProcess "open" [Path.fromAbsFile filePath] ""
                         & tryJust displayErr
                 pure $ Right ()
         Right _ ->

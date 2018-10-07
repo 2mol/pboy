@@ -33,6 +33,8 @@ dependencies:
   - vector
   - titlecase
   - htoml-megaparsec
+  - path
+  - path-io
 
 library:
   source-dirs: src
