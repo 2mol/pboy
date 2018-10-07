@@ -254,8 +254,8 @@ handleInboxEvent s e =
 
 beginFileImport :: State -> Lib.FileInfo -> EventM Name (Next State)
 beginFileImport s fileInfo = do
-    let originalFileName = Lib._fileName fileInfo
-    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions originalFileName
+    let originalFile = Lib._fileName fileInfo
+    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions originalFile
 
     let
         fileName :| sugg = fileNameSuggestions
@@ -265,7 +265,7 @@ beginFileImport s fileInfo = do
 
         newState = s
             & focusRing .~ (F.focusRing [FileNameEdit, NameSuggestions])
-            & (fileImport . currentFile) .~ Just originalFileName
+            & (fileImport . currentFile) .~ Just originalFile
             & (fileImport . suggestions) .~ newFileNames
             & (fileImport . nameEdit) .~ (E.editor FileNameEdit Nothing fileName)
 
@@ -278,6 +278,14 @@ handleImportScreenEvent s e =
         focus = F.focusGetCurrent (s ^. focusRing)
     in
     case (focus, e) of
+        (_, V.EvKey (V.KChar 'o') [V.MCtrl]) ->
+            do
+                _ <- liftIO $
+                    maybe
+                        (pure (Left "failed to open preview"))
+                        Lib.openFile (s ^. fileImport . currentFile)
+                continue s
+
         (_, V.EvKey V.KEnter []) ->
             do
                 let
@@ -289,7 +297,11 @@ handleImportScreenEvent s e =
                             & T.unlines
                             & Lib.finalFileName
 
-                _ <- liftIO $ maybe (pure ()) (\cf -> Lib.fileFile conf cf newFileName) (s ^. fileImport ^. currentFile)
+                _ <- liftIO $
+                    maybe
+                        (pure ())
+                        (\cf -> Lib.fileFile conf cf newFileName)
+                        (s ^. fileImport ^. currentFile)
 
                 libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
                 inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)
@@ -356,7 +368,7 @@ drawImportWidget s =
             , vLimit 1 (fill ' ')
             , str "suggestions:"
             , B.hBorder
-            , vLimit 4 -- $ withAttr "suggestionList"
+            , vLimit 6 -- $ withAttr "suggestionList"
                 $ L.renderList
                     (\_ t -> str (T.unpack t))
                     (F.focusGetCurrent (s ^. focusRing) == Just NameSuggestions)
@@ -369,7 +381,8 @@ drawImportWidget s =
             , str
                 "Spaces will be replaced with _ and file extension will be appended.\n\
                 \- [Tab] to switch between editor and suggestions.\n\
-                \- [Enter] to rename the file and move it to your library folder."
+                \- [Enter] to rename the file and move it to your library folder.\n\
+                \- [Ctrl-o] to open the file that you're currently renaming."
             -- , str "Ctrl-a: go to beginning of line\n\
             -- \Ctrl-e: go to end of line\n\
             -- \Ctrl-d, Del: delete character at cursor position\n\
