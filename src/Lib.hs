@@ -22,7 +22,7 @@ import           Lens.Micro              ((^.))
 import qualified System.FilePath         as F
 import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
-import           Path                    (Path, Rel, Abs, Dir, File, (</>))
+import           Path                    (Path, Abs, Dir, File, (</>))
 import qualified Path
 import qualified Path.IO                 as Path
 
@@ -61,8 +61,8 @@ fileSupported fileInfo =
 
 -- Getting Filename suggestions:
 
-fileNameSuggestions :: Config -> Path Abs File -> IO (NonEmpty Text)
-fileNameSuggestions config fullFilePath = do
+fileNameSuggestions :: Path Abs File -> IO (NonEmpty Text)
+fileNameSuggestions fullFilePath = do
     plainTextContent <-
         P.readProcess "pdftotext" [Path.fromAbsFile fullFilePath, "-"] ""
             & tryJust displayErr

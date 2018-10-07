@@ -255,7 +255,7 @@ handleInboxEvent s e =
 beginFileImport :: State -> Lib.FileInfo -> EventM Name (Next State)
 beginFileImport s fileInfo = do
     let originalFileName = Lib._fileName fileInfo
-    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions ( s ^. config) originalFileName
+    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions originalFileName
 
     let
         fileName :| sugg = fileNameSuggestions

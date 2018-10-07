@@ -1,0 +1,11 @@
+Changelog
+
+1.1.0 candidate, unreleased
+    more robust filepath handling
+    moving config file to respect the XDG Base Directory Specification
+
+1.0.1, 2018-08-03
+    building with nix, moving CI to nix
+
+1.0.0, 2018-07-14
+    first major release

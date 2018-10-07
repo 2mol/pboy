@@ -11,13 +11,10 @@ module Config
     , makeDefaultConfig
     ) where
 
-import           Control.Arrow     (left)
 import           Control.Exception
-import           Data.Function     ((&))
 import           Data.HashMap.Lazy ((!))
 import qualified Data.Text         as T
 import qualified Data.Text.IO      as TIO
-import           Lens.Micro        ((%~))
 import           Lens.Micro.TH     (makeLenses)
 import qualified Text.Toml         as Toml
 import           Path              (Path, Rel, Abs, Dir, File, (</>))
@@ -57,7 +54,7 @@ getConfig = do
             let
                 configResult =
                     Toml.parseTomlDoc "" configTxt
-                        & left (T.pack . Toml.parseErrorPretty)
+                        -- & left (T.pack . Toml.parseErrorPretty)
 
             case configResult of
                 Left _ -> pure Nothing

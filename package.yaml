@@ -1,5 +1,5 @@
 name:                pboy
-version:             1.0.1
+version:             1.1.0
 github:              "2mol/pboy"
 license:             BSD3
 author:              "Juri Chomé"
@@ -8,9 +8,9 @@ copyright:           "2018 Juri Chomé"
 
 extra-source-files:
 - README.md
-- ChangeLog.md
+- Changelog.txt
 
-synopsis:            "a small .pdf management utility"
+synopsis: "a small .pdf management utility"
 description: Please see the README on Github at <https://github.com/2mol/pboy#readme>
 
 dependencies:
