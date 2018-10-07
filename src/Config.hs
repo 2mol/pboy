@@ -49,8 +49,8 @@ getOrCreateConfig = do
 
 getConfig :: IO (Maybe Config)
 getConfig = do
-    home <- D.getHomeDirectory
-    configTxtResult <- tryJust displayErr (TIO.readFile (home </> ".pboy.toml"))
+    configHome <- D.getXdgDirectory D.XdgConfig ""
+    configTxtResult <- tryJust displayErr (TIO.readFile (configHome </> ".pboy.toml"))
     case configTxtResult of
         Right configTxt -> do
             let
@@ -64,7 +64,7 @@ getConfig = do
                         Right configMap ->
                             getConfigHelper configMap
 
-            pure $ prependHome home <$> config
+            pure $ prependHome configHome <$> config
 
         Left _ ->
             pure Nothing
@@ -102,8 +102,8 @@ prependHome home config =
 
 makeDefaultConfig :: IO ()
 makeDefaultConfig = do
-    home <- D.getHomeDirectory
-    TIO.writeFile (home </> ".pboy.toml") configContent
+    configHome <- D.getXdgDirectory D.XdgConfig ""
+    TIO.writeFile (configHome </> ".pboy.toml") configContent
     where
         configContent =
             T.unlines
