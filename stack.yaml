@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-12.5
+resolver: lts-12.11
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -40,7 +40,8 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: [
-  htoml-megaparsec-2.0.0.2,
+  htoml-megaparsec-2.1.0.0,
+  megaparsec-7.0.0,
   fmt-0.6
 ]
 
