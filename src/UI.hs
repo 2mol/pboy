@@ -13,6 +13,7 @@ import qualified Brick.Widgets.Center       as C
 import qualified Brick.Widgets.Core         as BC
 import qualified Brick.Widgets.Edit         as E
 import qualified Brick.Widgets.List         as L
+import           Control.Monad              (void)
 import           Data.Function              ((&))
 import           Data.List.NonEmpty         (NonEmpty (..))
 import           Data.Monoid                ((<>))
@@ -24,7 +25,7 @@ import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
 import           Lens.Micro                 ((%~), (.~), (^.))
 import           Lens.Micro.TH              (makeLenses)
-import           Path                       (Path, Abs, File)
+import           Path                       (Abs, File, Path)
 import qualified Path
 
 import qualified Config
@@ -63,6 +64,11 @@ makeLenses ''FileImport
 makeLenses ''State
 
 
+main :: IO ()
+main = do
+    void $ initState >>= defaultMain app
+
+
 initState :: IO State
 initState = do
     conf <- Config.getOrCreateConfig
@@ -79,7 +85,6 @@ initState = do
         , _inbox = inboxList
         , _fileImport = fileImportInit
         }
-
 
 
 initFocus :: F.FocusRing Name
