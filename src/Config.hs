@@ -16,10 +16,10 @@ import           Data.HashMap.Lazy ((!))
 import qualified Data.Text         as T
 import qualified Data.Text.IO      as TIO
 import           Lens.Micro.TH     (makeLenses)
-import qualified Text.Toml         as Toml
-import           Path              (Path, Rel, Abs, Dir, File, (</>))
+import           Path              (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
 import           Path.IO
+import qualified Text.Toml         as Toml
 
 
 data Config = Config

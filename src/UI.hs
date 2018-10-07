@@ -31,6 +31,12 @@ import qualified Path
 import qualified Config
 import qualified Lib
 
+import Paths_pboy (version)
+import Data.Version (showVersion)
+
+pboyVersion :: String
+pboyVersion = showVersion version
+
 
 data State = State
     { _config     :: Config.Config
@@ -90,6 +96,7 @@ initState = do
 initFocus :: F.FocusRing Name
 initFocus = F.focusRing [Inbox, Library]
 
+
 fileImportInit :: FileImport
 fileImportInit =
     FileImport
@@ -97,6 +104,7 @@ fileImportInit =
     , _suggestions = L.list NameSuggestions (Vec.fromList []) 1
     , _nameEdit = E.editor FileNameEdit Nothing ""
     }
+
 
 app :: App State () Name
 app = App
@@ -143,7 +151,7 @@ drawUI s =
 
         libraryAndInbox =
             withBorderStyle BS.unicodeRounded
-                $ B.borderWithLabel (str "PAPERBOY")
+                $ B.borderWithLabel (str ("PAPERBOY " ++ pboyVersion))
                 $ vBox
                     [ libraryWidget
                     , B.hBorder
@@ -388,12 +396,4 @@ drawImportWidget s =
                 \- [Tab] to switch between editor and suggestions.\n\
                 \- [Enter] to rename the file and move it to your library folder.\n\
                 \- [Ctrl-o] to open the file that you're currently renaming."
-            -- , str "Ctrl-a: go to beginning of line\n\
-            -- \Ctrl-e: go to end of line\n\
-            -- \Ctrl-d, Del: delete character at cursor position\n\
-            -- \Backspace: delete character prior to cursor position\n\
-            -- \Ctrl-k: delete all from cursor to end of line\n\
-            -- \Ctrl-u: delete all from cursor to beginning of line\n\
-            -- \Arrow keys: move cursor\n\
-            -- \Enter: break the current line at the cursor position"
             ]

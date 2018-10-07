@@ -19,13 +19,12 @@ import           Data.Text.Titlecase     (titlecase)
 import           Data.Time.Clock         (UTCTime)
 import           GHC.Exts                (sortWith)
 import           Lens.Micro              ((^.))
+import           Path                    (Abs, Dir, File, Path, (</>))
+import qualified Path
+import qualified Path.IO                 as Path
 import qualified System.FilePath         as F
 import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
-import           Path                    (Path, Abs, Dir, File, (</>))
-import qualified Path
-import qualified Path.IO                 as Path
-
 
 
 constSupportedExtensions :: Set String
