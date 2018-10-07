@@ -3,13 +3,14 @@
 ## Next release
 
 - [ ] show version number at the bottom of the UI.
-- [ ] use xdg path for writing config file instead of home direcory.
+- [x] use xdg path for writing config file instead of home direcory.
 - [ ] warn when importing an already existing filename.
-- [ ] use http://hackage.haskell.org/package/path for filepaths.
+- [x] use http://hackage.haskell.org/package/path for filepaths.
 - [ ] asum for exception handling of missing executables.
 - [ ] 'o' to open the document while in the middle of a rename/import.
 - [ ] https://vaibhavsagar.com/blog/2018/01/03/static-haskell-nix/
 - [ ] ditch nix for releases, use https://github.com/tfausak/github-release
+- [ ] fix that there are more suggestions than space in the import screen
 
 ## Done
 
