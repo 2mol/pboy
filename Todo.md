@@ -7,19 +7,19 @@
 - [x] use xdg path for writing config file instead of home direcory.
     - [ ] show a screen on first launch to inform where the config file is stored.
     - [ ] change config format to config-ini while, ditch htoml.
-- [ ] warn when importing an already existing filename.
 - [x] use http://hackage.haskell.org/package/path for filepaths.
-- [ ] asum for exception handling of missing executables.
 - [x] 'Ctrl-o' to open the document while in the middle of a rename/import.
-- [ ] https://vaibhavsagar.com/blog/2018/01/03/static-haskell-nix/
 - [ ] ditch nix for releases, use https://github.com/tfausak/github-release
 - [x] fix that there are more suggestions than space in the import screen
+- [ ] help screen with shortcuts and location of config file.
 
 
-## Next-NEXT release
+## Future release
 
 - [ ] improve color scheme
 - [ ] ability to mark documents as 'to-read'.
+- [ ] warn when importing an already existing filename.
+- [ ] asum for exception handling of missing executables.
 
 
 ## Done
