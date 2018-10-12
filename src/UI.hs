@@ -24,7 +24,7 @@ import qualified Data.Vector                as Vec
 import           Fmt                        (fmt)
 import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
-import           Lens.Micro                 ((%~), (.~), (^.))
+import           Lens.Micro                 ((%~), (.~), (?~), (^.))
 import           Lens.Micro.TH              (makeLenses)
 import           Path                       (Abs, File, Path)
 import qualified Path
@@ -72,7 +72,7 @@ type Event = ()
 
 
 main :: IO ()
-main = do
+main =
     void $ initState >>= defaultMain app
 
 
@@ -137,7 +137,7 @@ theMap s =
 
 
 appCursor :: State -> [CursorLocation Name] -> Maybe (CursorLocation Name)
-appCursor s c = F.focusRingCursor (^. focusRing) s c
+appCursor = F.focusRingCursor (^. focusRing)
 
 
 drawUI :: State -> [Widget Name]
@@ -152,10 +152,10 @@ drawUI s =
             L.renderList drawFileInfo (focus == Just Library) (s ^. library)
 
         inboxLabel =
-            "Inbox: " <> (Path.fromAbsDir $ s ^. config ^. Config.inboxDir)
+            "Inbox: " <> Path.fromAbsDir (s ^. config . Config.inboxDir)
 
         libraryLabel =
-            "Library: " <> (Path.fromAbsDir $ s ^. config ^. Config.libraryDir)
+            "Library: " <> Path.fromAbsDir (s ^. config . Config.libraryDir)
 
         libraryAndInbox =
             withBorderStyle BS.unicodeRounded
@@ -207,7 +207,7 @@ handleEvent s (VtyEvent e) =
             continue $ s & focusRing %~ F.focusNext
 
         V.EvKey V.KEsc [] ->
-            if elem focus (Just <$> [Inbox, Library])
+            if focus `elem` (Just <$> [Inbox, Library])
                 then halt s
                 else
                     continue $ s & focusRing .~ initFocus & fileImport .~ fileImportInit
@@ -289,10 +289,10 @@ beginFileImport s fileInfo = do
             L.list NameSuggestions (Vec.fromList sugg) 1
 
         newState = s
-            & focusRing .~ (F.focusRing [FileNameEdit, NameSuggestions])
-            & (fileImport . currentFile) .~ Just originalFile
+            & focusRing .~ F.focusRing [FileNameEdit, NameSuggestions]
+            & (fileImport . currentFile) ?~ originalFile
             & (fileImport . suggestions) .~ newFileNames
-            & (fileImport . nameEdit) .~ (E.editor FileNameEdit Nothing fileName)
+            & (fileImport . nameEdit) .~ E.editor FileNameEdit Nothing fileName
 
     handleImportScreenEvent newState (V.EvKey V.KDown [])
 
@@ -317,7 +317,7 @@ handleImportScreenEvent s e =
                     conf = s ^. config
 
                     newFileName =
-                        (s ^. fileImport ^. nameEdit)
+                        (s ^. fileImport . nameEdit)
                             & E.getEditContents
                             & T.unlines
                             & Lib.finalFileName
@@ -326,19 +326,19 @@ handleImportScreenEvent s e =
                     maybe
                         (pure ())
                         (\cf -> Lib.fileFile conf cf newFileName)
-                        (s ^. fileImport ^. currentFile)
+                        (s ^. fileImport . currentFile)
 
                 libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
                 inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)
 
                 continue $ s
                     & focusRing .~ initFocus & fileImport .~ fileImportInit
-                    & library .~ (L.list Library (Vec.fromList libraryFileInfos) 1)
-                    & inbox .~ (L.list Inbox (Vec.fromList inboxFileInfos) 1)
+                    & library .~ L.list Library (Vec.fromList libraryFileInfos) 1
+                    & inbox .~ L.list Inbox (Vec.fromList inboxFileInfos) 1
 
         (Just NameSuggestions, _) ->
             do
-                suggestionList <- L.handleListEvent e (s ^. fileImport ^. suggestions)
+                suggestionList <- L.handleListEvent e (s ^. fileImport . suggestions)
 
                 let
                     newSuggestion =
@@ -346,7 +346,7 @@ handleImportScreenEvent s e =
                             Just (_, t) ->
                                 E.editor FileNameEdit Nothing t
 
-                            _ -> s ^. fileImport ^. nameEdit
+                            _ -> s ^. fileImport . nameEdit
 
                 newEdit <- E.handleEditorEvent (V.EvKey V.KDown []) newSuggestion
 
@@ -355,8 +355,7 @@ handleImportScreenEvent s e =
                     & (fileImport . nameEdit .~ newEdit)
 
         (Just FileNameEdit, _) ->
-            do
-                continue =<< handleEventLensed s (fileImport . nameEdit) E.handleEditorEvent e
+            continue =<< handleEventLensed s (fileImport . nameEdit) E.handleEditorEvent e
 
         _ -> continue s
 
@@ -389,7 +388,7 @@ drawImportWidget s =
                 $ E.renderEditor
                     (str . T.unpack . T.unlines)
                     (F.focusGetCurrent (s ^. focusRing) == Just FileNameEdit)
-                    (s ^. fileImport ^. nameEdit)
+                    (s ^. fileImport . nameEdit)
             , vLimit 1 (fill ' ')
             , str "suggestions:"
             , B.hBorder
@@ -397,7 +396,7 @@ drawImportWidget s =
                 $ L.renderList
                     (\_ t -> str (T.unpack t))
                     (F.focusGetCurrent (s ^. focusRing) == Just NameSuggestions)
-                    (s ^. fileImport ^. suggestions)
+                    (s ^. fileImport . suggestions)
             -- , B.hBorder
             -- , vLimit 1 (fill ' ')
             -- , str "filename preview:"
