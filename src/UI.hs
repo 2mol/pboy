@@ -123,7 +123,7 @@ theMap s =
         selectColor =
             case F.focusGetCurrent (s ^. focusRing) of
                 Just Library -> V.green
-                _ -> V.yellow
+                _            -> V.yellow
     in
     attrMap V.defAttr
         [ (L.listAttr, V.brightWhite `on` V.black)

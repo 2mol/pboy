@@ -32,7 +32,7 @@
 - [x] pin nixpkgs version.
 
 
-## Possible future features
+## random ideas & whims
 
 - use https://github.com/tfausak/github-release
 - refresh if any files move outside of the application.
