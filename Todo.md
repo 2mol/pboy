@@ -15,7 +15,7 @@
 (- [ ] change config format to config-ini, ditch htoml?)
 
 
-## Next-NEXT release
+## Future release
 
 - [ ] ability to mark documents as 'to-read'.
 - [ ] option to switch between underscores and spaces.
