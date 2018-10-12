@@ -5,21 +5,22 @@
 
 - [x] show version number in the UI.
 - [x] use xdg path for writing config file instead of home direcory.
-    - [ ] show a screen on first launch to inform where the config file is stored.
-    - [ ] change config format to config-ini while, ditch htoml.
-- [ ] warn when importing an already existing filename.
 - [x] use http://hackage.haskell.org/package/path for filepaths.
-- [ ] asum for exception handling of missing executables.
 - [x] 'Ctrl-o' to open the document while in the middle of a rename/import.
-- [ ] https://vaibhavsagar.com/blog/2018/01/03/static-haskell-nix/
-- [ ] ditch nix for releases, use https://github.com/tfausak/github-release
+- [ ] go back to stack CI for release
 - [x] fix that there are more suggestions than space in the import screen
+- [x] rename existing files
+- [x] improve color scheme
+- [ ] first-launch screen (combined with help screen), show config path and keyboard shortcuts.
+(- [ ] change config format to config-ini, ditch htoml?)
 
 
 ## Next-NEXT release
 
-- [ ] improve color scheme
 - [ ] ability to mark documents as 'to-read'.
+- [ ] option to switch between underscores and spaces.
+- [ ] asum for exception handling of missing executables.
+- [ ] warn when importing an already existing filename.
 
 
 ## Done
@@ -33,7 +34,7 @@
 
 ## Possible future features
 
-- allow renaming files after they have been imported.
+- use https://github.com/tfausak/github-release
 - refresh if any files move outside of the application.
 - try out circleCI
 - move away from ghr for releases and use inbuilt travis uploads instead.

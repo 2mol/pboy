@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -31,8 +32,8 @@ import qualified Path
 import qualified Config
 import qualified Lib
 
-import Paths_pboy (version)
 import Data.Version (showVersion)
+import Paths_pboy   (version)
 
 pboyVersion :: String
 pboyVersion = showVersion version
@@ -45,9 +46,6 @@ data State = State
     , _inbox      :: L.List Name Lib.FileInfo
     , _fileImport :: FileImport
     }
-
-
-type Event = ()
 
 
 data FileImport = FileImport
@@ -68,6 +66,9 @@ data Name
 makeLenses ''FileImport
 
 makeLenses ''State
+
+
+type Event = ()
 
 
 main :: IO ()
@@ -106,26 +107,33 @@ fileImportInit =
     }
 
 
-app :: App State () Name
+app :: App State Event Name
 app = App
     { appDraw = drawUI
     , appChooseCursor = appCursor
     , appHandleEvent = handleEvent
     , appStartEvent = pure
-    , appAttrMap = const theMap
+    , appAttrMap = theMap
     }
 
 
-theMap :: AttrMap
-theMap = attrMap V.defAttr
-    [ (L.listAttr, V.brightWhite `on` V.black)
-    , (L.listSelectedAttr, V.black `on` V.white)
-    , (L.listSelectedFocusedAttr, V.black `on` V.brightWhite)
-    , (E.editAttr, V.brightWhite `on` V.blue)
-    , (E.editFocusedAttr, V.black `on` V.yellow)
-    , ("suggestionList", bg V.cyan)
-    , ("fileNamePreview", V.brightWhite `on` V.green)
-    ]
+theMap :: State -> AttrMap
+theMap s =
+    let
+        selectColor =
+            case F.focusGetCurrent (s ^. focusRing) of
+                Just Library -> V.green
+                _ -> V.yellow
+    in
+    attrMap V.defAttr
+        [ (L.listAttr, V.brightWhite `on` V.black)
+        , (L.listSelectedAttr, V.white `on` V.brightBlack)
+        , (L.listSelectedFocusedAttr, V.black `on` selectColor)
+        , (E.editAttr, V.brightWhite `on` V.blue)
+        , (E.editFocusedAttr, V.black `on` V.yellow)
+        -- , ("suggestionList", bg V.cyan)
+        -- , ("fileNamePreview", V.brightWhite `on` V.green)
+        ]
 
 
 appCursor :: State -> [CursorLocation Name] -> Maybe (CursorLocation Name)
@@ -151,18 +159,20 @@ drawUI s =
 
         libraryAndInbox =
             withBorderStyle BS.unicodeRounded
-                $ B.borderWithLabel (str ("PAPERBOY " ++ pboyVersion))
+                $ B.borderWithLabel (str " PAPERBOY ")
                 $ vBox
                     [ libraryWidget
-                    , B.hBorder
+                    , B.hBorderWithLabel (str " ^ ")
                     , inboxWidget
                     ]
 
         statusBar =
             vLimit 1 $ hBox
-                [ str libraryLabel
+                [ str inboxLabel
                 , fill ' '
-                , str inboxLabel
+                , str ( "v" ++ pboyVersion)
+                , fill ' '
+                , str libraryLabel
                 ]
 
         mainScreen =
@@ -232,13 +242,18 @@ handleLibraryEvent s e =
             case L.listSelectedElement (s ^. library) of
                 Just (_, fileInfo) -> openFile (Lib._fileName fileInfo)
                 _                  -> continue s
+
+        renameAction =
+            case L.listSelectedElement (s ^. library) of
+                Just (_, fileInfo) -> beginFileImport s fileInfo
+                _                  -> continue s
     in
     case e of
         V.EvKey V.KEnter [] ->
             openAction
 
-        V.EvKey (V.KChar ' ') [] ->
-            openAction
+        V.EvKey (V.KChar 'r') [] ->
+            renameAction
 
         _ -> do
             newLibrary <- L.handleListEvent e (s ^. library)
@@ -255,9 +270,6 @@ handleInboxEvent s e =
     in
     case e of
         V.EvKey V.KEnter [] ->
-            importAction
-
-        V.EvKey (V.KChar ' ') [] ->
             importAction
 
         _ -> do

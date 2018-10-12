@@ -1,11 +1,16 @@
 Changelog
 
-1.1.0 candidate, unreleased
-    more robust filepath handling
-    moving config file to respect the XDG Base Directory Specification
+1.1.0, unreleased
+    more robust filepath handling.
+    moving config file to respect the XDG "Base Directory Specification".
+    show library path, inbox path, and version number at the bottom of the UI.
+    ability to rename files in the library by pressing 'r'.
+    small color improvements.
+    fixed bug where the list of suggested filenames was hiding the last suggestion.
+    removed spacebar as a trigger for importing/opening files.
 
 1.0.1, 2018-08-03
-    building with nix, moving CI to nix
+    building with nix, moving CI to nix.
 
 1.0.0, 2018-07-14
-    first major release
+    first major release.
