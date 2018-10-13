@@ -107,6 +107,5 @@ makeDefaultConfig = do
             ]
 
 
--- TODO: clean this up and make absolute
 defaultConfigFile :: Path Rel File
 defaultConfigFile = $(Path.mkRelFile "pboy.toml")

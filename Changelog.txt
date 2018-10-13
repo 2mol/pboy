@@ -5,6 +5,7 @@ Changelog
     moving config file to respect the XDG "Base Directory Specification".
     show library path, inbox path, and version number at the bottom of the UI.
     ability to rename files in the library by pressing 'r'.
+    pressing 'q' in the main screen exits the application.
     small color improvements.
     fixed bug where the list of suggested filenames was hiding the last suggestion.
     removed spacebar as a trigger for importing/opening files.

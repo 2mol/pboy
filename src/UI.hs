@@ -1,4 +1,3 @@
-{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -60,6 +59,7 @@ data Name
     | Library
     | NameSuggestions
     | FileNameEdit
+    | HelpScreen
     deriving (Eq, Ord, Show)
 
 
@@ -159,10 +159,10 @@ drawUI s =
 
         libraryAndInbox =
             withBorderStyle BS.unicodeRounded
-                $ B.borderWithLabel (str " PAPERBOY ")
+                $ joinBorders . B.borderWithLabel (str " PAPERBOY ")
                 $ vBox
                     [ libraryWidget
-                    , B.hBorderWithLabel (str " ^ ")
+                    , B.hBorder
                     , inboxWidget
                     ]
 
@@ -200,17 +200,20 @@ handleEvent s (VtyEvent e) =
     let
         focus = F.focusGetCurrent (s ^. focusRing)
     in
-    case e of
-        V.EvKey (V.KChar 'c') [V.MCtrl] -> halt s
+    case (focus, e) of
+        (_, V.EvKey (V.KChar 'c') [V.MCtrl])     -> halt s
+        (Just Inbox,   V.EvKey V.KEsc [])        -> halt s
+        (Just Library, V.EvKey V.KEsc [])        -> halt s
+        (Just Inbox,   V.EvKey (V.KChar 'q') []) -> halt s
+        (Just Library, V.EvKey (V.KChar 'q') []) -> halt s
 
-        V.EvKey (V.KChar '\t') [] ->
+        (_, V.EvKey V.KEsc []) ->
+            continue $ s
+                & focusRing .~ initFocus
+                & fileImport .~ fileImportInit
+
+        (_, V.EvKey (V.KChar '\t') []) ->
             continue $ s & focusRing %~ F.focusNext
-
-        V.EvKey V.KEsc [] ->
-            if focus `elem` (Just <$> [Inbox, Library])
-                then halt s
-                else
-                    continue $ s & focusRing .~ initFocus & fileImport .~ fileImportInit
 
         _ ->
             case focus of
@@ -379,7 +382,7 @@ drawFileInfo _ fileInfo =
 drawImportWidget :: State -> Widget Name
 drawImportWidget s =
     C.centerLayer
-        $ B.borderWithLabel (str "Import")
+        $ B.borderWithLabel (str " Import ")
         $ padLeftRight 2 $ padTopBottom 1 $ hLimit 70 $ vLimit 20
         $ vBox
             [ str "new filename:"
@@ -403,8 +406,7 @@ drawImportWidget s =
             -- , withAttr "fileNamePreview" $ str (fileNamePreview $ s ^. fileImport ^. nameEdit)
             , fill ' '
             , str
-                "Spaces will be replaced with _ and file extension will be appended.\n\
-                \- [Tab] to switch between editor and suggestions.\n\
-                \- [Enter] to rename the file and move it to your library folder.\n\
-                \- [Ctrl-o] to open the file that you're currently renaming."
+                "[Tab]    - switch between editor and suggestions.\n\
+                \[Enter]  - rename the file and move it to your library folder.\n\
+                \[Ctrl-o] - open the file that you're currently renaming."
             ]

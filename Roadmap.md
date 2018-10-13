@@ -1,4 +1,4 @@
-# PAPERBOY Todo
+# PAPERBOY Roadmap & Todo
 
 
 ## Next release
@@ -13,6 +13,8 @@
 - [x] improve color scheme
 - [ ] first-launch screen (combined with help screen), show config path and keyboard shortcuts.
 (- [ ] change config format to config-ini, ditch htoml?)
+- [ ] 'q' to exit app from main screen
+- [ ] improve performance of parsing large pdfs
 
 
 ## Future release
@@ -32,7 +34,7 @@
 - [x] pin nixpkgs version.
 
 
-## random ideas & whims
+## random ideas & wishes
 
 - use https://github.com/tfausak/github-release
 - refresh if any files move outside of the application.
