@@ -4,4 +4,5 @@ pboy.cabal
 *.swp
 *.pdf
 result
+.vscode
 dot.png

@@ -11,8 +11,6 @@ import           Data.Function           ((&))
 import qualified Data.List               as List
 import           Data.List.NonEmpty      (NonEmpty (..))
 import qualified Data.Maybe              as Maybe
-import           Data.Set                (Set)
-import qualified Data.Set                as S
 import           Data.Text               (Text)
 import qualified Data.Text               as T
 import           Data.Text.Titlecase     (titlecase)
@@ -27,10 +25,6 @@ import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
 
 
-constSupportedExtensions :: Set String
-constSupportedExtensions = S.fromList [".pdf"]
-
-
 data FileInfo = FileInfo
     { _fileName :: Path Abs File
     , _modTime  :: UTCTime
@@ -43,7 +37,7 @@ listFiles path = do
     files <- snd <$> Path.listDir path
     fileInfos <- mapM getFileInfo files
     let sortedFileInfos = reverse $ sortWith _modTime fileInfos
-    pure $ filter fileSupported sortedFileInfos
+    pure $ filter isPdf sortedFileInfos
 
 
 getFileInfo :: Path Abs File -> IO FileInfo
@@ -52,10 +46,9 @@ getFileInfo path = do
     pure $ FileInfo path modTime
 
 
-fileSupported :: FileInfo -> Bool
-fileSupported fileInfo =
-    let extension = Path.fileExtension $ _fileName fileInfo
-    in S.member extension constSupportedExtensions
+isPdf :: FileInfo -> Bool
+isPdf fileInfo =
+    Path.fileExtension (_fileName fileInfo) == ".pdf"
 
 
 -- Getting Filename suggestions:
