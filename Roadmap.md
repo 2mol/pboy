@@ -13,7 +13,7 @@
 - [x] improve color scheme
 - [ ] first-launch screen (combined with help screen), show config path and keyboard shortcuts.
 (- [ ] change config format to config-ini, ditch htoml?)
-- [ ] 'q' to exit app from main screen
+- [x] 'q' to exit app from main screen
 - [ ] improve performance of parsing large pdfs
 
 
