@@ -181,15 +181,19 @@ drawUI s =
         mainScreen =
             libraryAndInbox <=> statusBar
 
-        mFileImportData = s ^. fileImport
+        mFileImport = s ^. fileImport
+
+        currentFocus = F.focusGetCurrent (s ^. focusRing)
 
         ui =
-            case mFileImportData of
-                Just fileImportData ->
-                    [drawImportWidget (s ^. focusRing) fileImportData, mainScreen]
+            case mFileImport of
+                Just fi ->
+                    [ drawImportWidget currentFocus fi
+                    , mainScreen
+                    ]
 
                 _ ->
-                    [helpScreen, mainScreen]
+                    [mainScreen]
     in
         ui
 
@@ -398,7 +402,7 @@ drawFileInfo _ fileInfo =
         fileLabelWidget
 
 
-drawImportWidget :: F.FocusRing Name -> FileImport -> Widget Name
+drawImportWidget :: Maybe Name -> FileImport -> Widget Name
 drawImportWidget focus fileImportData =
     C.centerLayer
         $ B.borderWithLabel (str " Import ")
@@ -409,7 +413,7 @@ drawImportWidget focus fileImportData =
             , vLimit 1
                 $ E.renderEditor
                     (str . T.unpack . T.unlines)
-                    (F.focusGetCurrent focus == Just FileNameEdit)
+                    (focus == Just FileNameEdit)
                     (fileImportData ^. nameEdit)
             , vLimit 1 (fill ' ')
             , str "suggestions:"
@@ -417,7 +421,7 @@ drawImportWidget focus fileImportData =
             , vLimit 6 -- $ withAttr "suggestionList"
                 $ L.renderList
                     (\_ t -> str (T.unpack t))
-                    (F.focusGetCurrent focus == Just NameSuggestions)
+                    (focus == Just NameSuggestions)
                     (fileImportData ^. suggestions)
             -- , B.hBorder
             -- , vLimit 1 (fill ' ')
@@ -434,8 +438,12 @@ data Choice = ChoiceOk deriving Show
 
 helpScreen :: Widget Name
 helpScreen =
-    D.renderDialog d $ C.hCenter $ padAll 1 $ str "This is the dialog body."
+    D.renderDialog d
+        $ C.hCenter
+        $ padAll 1
+        $ str
+            "This is the dialog body."
     where
-        d = D.dialog (Just "Title") (Just (0, choices)) 50
+        d = D.dialog (Just " Welcome to Paperboy ") (Just (0, choices)) 75
 
         choices = [("OK", ChoiceOk)]
