@@ -304,14 +304,16 @@ handleImportScreenEvent :: State -> V.Event -> EventM Name (Next State)
 handleImportScreenEvent s e =
     let
         focus = F.focusGetCurrent (s ^. focusRing)
+
+        maybeFile = s ^. fileImport . currentFile
     in
     case (focus, e) of
         (_, V.EvKey (V.KChar 'o') [V.MCtrl]) ->
             do
                 _ <- liftIO $
                     maybe
-                        (pure (Left "failed to open preview"))
-                        Lib.openFile (s ^. fileImport . currentFile)
+                        (pure ())
+                        Lib.openFile maybeFile
                 continue s
 
         (_, V.EvKey V.KEnter []) ->
@@ -328,8 +330,7 @@ handleImportScreenEvent s e =
                 _ <- liftIO $
                     maybe
                         (pure ())
-                        (\cf -> Lib.fileFile conf cf newFileName)
-                        (s ^. fileImport . currentFile)
+                        (Lib.fileFile conf newFileName) maybeFile
 
                 libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
                 inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)

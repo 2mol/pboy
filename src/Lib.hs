@@ -54,20 +54,18 @@ isPdf fileInfo =
 -- Getting Filename suggestions:
 
 fileNameSuggestions :: Path Abs File -> IO (NonEmpty Text)
-fileNameSuggestions fullFilePath = do
-    plainTextContent <-
-        P.readProcess "pdftotext" [Path.fromAbsFile fullFilePath, "-"] ""
-            & tryJust displayErr
+fileNameSuggestions file = do
+    pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile file
 
-    pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile fullFilePath
+    topLines <- getTopLines file
 
     let
         baseName =
-            F.takeBaseName (Path.fromRelFile $ Path.filename fullFilePath)
+            F.takeBaseName (Path.fromRelFile $ Path.filename file)
                 & T.pack
                 & T.replace "_" " "
 
-        cleanFileName =
+        maybeCleanFileName =
             baseName
                 & sanitize
                 & boolToMaybe lengthCheck
@@ -78,7 +76,20 @@ fileNameSuggestions fullFilePath = do
                 & fmap sanitize
                 >>= boolToMaybe lengthCheck
 
-        topContent =
+        suggestions =
+            maybeCleanFileName : maybeTitle : (fmap Just topLines)
+                & Maybe.catMaybes
+
+    pure $ baseName :| take 5 (List.nub suggestions)
+
+
+getTopLines :: Path Abs File -> IO [Text]
+getTopLines file = do
+    plainTextContent <-
+        P.readProcess "pdftotext" [Path.fromAbsFile file, "-"] ""
+            & tryJust displayErr
+    let
+        topLines =
             case plainTextContent of
                 Left _ -> []
                 Right content ->
@@ -87,13 +98,7 @@ fileNameSuggestions fullFilePath = do
                         & take 16 -- totally arbitrary. subject to improvement later
                         & fmap sanitize
                         & filter lengthCheck
-                        & fmap Just
-
-        suggestions =
-            cleanFileName : maybeTitle : topContent
-                & Maybe.catMaybes
-
-    pure $ baseName :| take 5 (List.nub suggestions)
+    pure topLines
 
 
 lengthCheck :: Text -> Bool
@@ -139,33 +144,34 @@ finalFileName text =
         & T.replace " " "_"
 
 
-fileFile :: Config -> Path Abs File -> Text -> IO ()
-fileFile conf origFilePath newFileName = do
-    newFile <- Path.parseRelFile (T.unpack newFileName ++ Path.fileExtension origFilePath)
+fileFile :: Config -> Text -> Path Abs File -> IO ()
+fileFile conf newFileName file = do
+    newFile <- Path.parseRelFile (T.unpack newFileName ++ Path.fileExtension file)
     let
         newFilePath =
             conf ^. Config.libraryDir </> newFile
 
     case conf ^. Config.importAction of
-        Config.Copy -> Path.copyFile origFilePath newFilePath
-        Config.Move -> Path.renameFile origFilePath newFilePath
+        Config.Copy -> Path.copyFile file newFilePath
+        Config.Move -> Path.renameFile file newFilePath
 
 
-openFile :: Path Abs File -> IO (Either String ())
+openFile :: Path Abs File -> IO ()
 openFile filePath = do
-    linuxOpen <-
-        P.readProcess "xdg-open" [Path.fromAbsFile filePath] ""
-            & tryJust displayErr
+    let
+        openWithCmd s =
+            P.readProcess s [Path.fromAbsFile filePath] ""
+                & tryJust displayErr
+
+    linuxOpen <- openWithCmd "xdg-open"
 
     case linuxOpen of
         Left _ ->
             do
-                _ <-
-                    P.readProcess "open" [Path.fromAbsFile filePath] ""
-                        & tryJust displayErr
-                pure $ Right ()
+                _ <- openWithCmd "open"
+                pure ()
         Right _ ->
-            pure $ Right ()
+            pure ()
 
 
 displayErr :: SomeException -> Maybe String
