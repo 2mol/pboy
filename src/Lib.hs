@@ -6,7 +6,7 @@ import           Config                  (Config)
 import qualified Config
 import           Control.Exception       as E
 import qualified Data.Char               as C
-import           Data.Either.Combinators (rightToMaybe)
+import qualified Data.Either.Combinators as Either
 import           Data.Function           ((&))
 import qualified Data.List               as List
 import           Data.List.NonEmpty      (NonEmpty (..))
@@ -23,7 +23,6 @@ import qualified Path.IO                 as Path
 import qualified System.FilePath         as F
 import qualified System.Process          as P
 import qualified Text.PDF.Info           as PDFI
-
 
 data FileInfo = FileInfo
     { _fileName :: Path Abs File
@@ -71,7 +70,7 @@ fileNameSuggestions file = do
                 & boolToMaybe lengthCheck
 
         maybeTitle =
-            rightToMaybe pdfInfo
+            Either.rightToMaybe pdfInfo
                 >>= PDFI.pdfInfoTitle
                 & fmap sanitize
                 >>= boolToMaybe lengthCheck
@@ -86,8 +85,8 @@ fileNameSuggestions file = do
 getTopLines :: Path Abs File -> IO [Text]
 getTopLines file = do
     plainTextContent <-
-        P.readProcess "pdftotext" [Path.fromAbsFile file, "-"] ""
-            & tryJust displayErr
+        E.try (P.readProcess "pdftotext" [Path.fromAbsFile file, "-"] "")
+        :: IO (Either SomeException String)
     let
         topLines =
             case plainTextContent of
@@ -157,23 +156,16 @@ fileFile conf newFileName file = do
 
 
 openFile :: Path Abs File -> IO ()
-openFile filePath = do
-    let
-        openWithCmd s =
-            P.readProcess s [Path.fromAbsFile filePath] ""
-                & tryJust displayErr
+openFile file = do
+    linuxOpen <- tryOpenWith file "xdg-open"
 
-    linuxOpen <- openWithCmd "xdg-open"
-
-    case linuxOpen of
-        Left _ ->
-            do
-                _ <- openWithCmd "open"
-                pure ()
-        Right _ ->
+    if Either.isLeft linuxOpen
+        then do
+            _ <- tryOpenWith file "open"
             pure ()
+        else pure ()
 
 
-displayErr :: SomeException -> Maybe String
-displayErr e =
-    Just $ displayException e
+tryOpenWith :: Path Abs File -> FilePath -> IO (Either SomeException String)
+tryOpenWith file cmd =
+    E.try (P.readProcess cmd [Path.fromAbsFile file] "")

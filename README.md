@@ -14,10 +14,11 @@ Paperboy keeps its file management dumb on purpose (no keeping files in a databa
 
 # Usage
 
-- Open a new file import dialog with <kbd>Space</kbd> or <kbd>Enter</kbd>.
-- Switch between the library and the inbox with <kbd>Tab</kbd>.
+- Open a new file import dialog with <kbd>Enter</kbd> or <kbd>Space</kbd>.
+- Switch between inbox and library with <kbd>Tab</kbd>.
 - Open a file from the library with <kbd>Enter</kbd> or <kbd>Space</kbd>.
-- Quit the application with <kbd>Esc</kbd> or <kbd>Ctrl + c</kbd>.
+- Rename an already imported file with <kbd>r</kbd>.
+- Quit the application with <kbd>Esc</kbd> or <kbd>q</kbd> or abort with <kbd>Ctrl + c</kbd>.
 
 # Install
 

@@ -255,6 +255,9 @@ handleLibraryEvent s e =
         V.EvKey V.KEnter [] ->
             openAction
 
+        V.EvKey (V.KChar ' ') [] ->
+            openAction
+
         V.EvKey (V.KChar 'r') [] ->
             renameAction
 
@@ -273,6 +276,12 @@ handleInboxEvent s e =
     in
     case e of
         V.EvKey V.KEnter [] ->
+            importAction
+
+        V.EvKey (V.KChar ' ') [] ->
+            importAction
+
+        V.EvKey (V.KChar 'r') [] ->
             importAction
 
         _ -> do
