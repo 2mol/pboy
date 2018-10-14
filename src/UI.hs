@@ -11,6 +11,7 @@ import qualified Brick.Widgets.Border       as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center       as C
 import qualified Brick.Widgets.Core         as BC
+import qualified Brick.Widgets.Dialog       as D
 import qualified Brick.Widgets.Edit         as E
 import qualified Brick.Widgets.List         as L
 import           Control.Monad              (void)
@@ -43,12 +44,12 @@ data State = State
     , _focusRing  :: F.FocusRing Name
     , _library    :: L.List Name Lib.FileInfo
     , _inbox      :: L.List Name Lib.FileInfo
-    , _fileImport :: FileImport
+    , _fileImport :: Maybe FileImport
     }
 
 
 data FileImport = FileImport
-    { _currentFile :: Maybe (Path Abs File)
+    { _currentFile :: Path Abs File
     , _suggestions :: L.List Name Text
     , _nameEdit    :: E.Editor Text Name
     }
@@ -90,7 +91,7 @@ initState = do
         , _focusRing = initFocus
         , _library = libraryList
         , _inbox = inboxList
-        , _fileImport = fileImportInit
+        , _fileImport = Nothing -- fileImportInit
         }
 
 
@@ -98,13 +99,13 @@ initFocus :: F.FocusRing Name
 initFocus = F.focusRing [Inbox, Library]
 
 
-fileImportInit :: FileImport
-fileImportInit =
-    FileImport
-    { _currentFile = Nothing
-    , _suggestions = L.list NameSuggestions (Vec.fromList []) 1
-    , _nameEdit = E.editor FileNameEdit Nothing ""
-    }
+-- fileImportInit :: FileImport
+-- fileImportInit =
+--     FileImport
+--     { _currentFile = Nothing
+--     , _suggestions = L.list NameSuggestions (Vec.fromList []) 1
+--     , _nameEdit = E.editor FileNameEdit Nothing ""
+--     }
 
 
 app :: App State Event Name
@@ -133,8 +134,10 @@ theMap s =
         , (E.editFocusedAttr, V.black `on` V.yellow)
         -- , ("suggestionList", bg V.cyan)
         -- , ("fileNamePreview", V.brightWhite `on` V.green)
+        , (D.dialogAttr, V.white `on` V.blue)
+        , (D.buttonAttr, V.black `on` V.white)
+        , (D.buttonSelectedAttr, bg V.yellow)
         ]
-
 
 appCursor :: State -> [CursorLocation Name] -> Maybe (CursorLocation Name)
 appCursor = F.focusRingCursor (^. focusRing)
@@ -178,19 +181,15 @@ drawUI s =
         mainScreen =
             libraryAndInbox <=> statusBar
 
-        importWidget =
-            drawImportWidget s
+        mFileImportData = s ^. fileImport
 
         ui =
-            case focus of
-                Just NameSuggestions ->
-                    [importWidget, mainScreen]
-
-                Just FileNameEdit ->
-                    [importWidget, mainScreen]
+            case mFileImportData of
+                Just fileImportData ->
+                    [drawImportWidget (s ^. focusRing) fileImportData, mainScreen]
 
                 _ ->
-                    [mainScreen]
+                    [helpScreen, mainScreen]
     in
         ui
 
@@ -210,7 +209,7 @@ handleEvent s (VtyEvent e) =
         (_, V.EvKey V.KEsc []) ->
             continue $ s
                 & focusRing .~ initFocus
-                & fileImport .~ fileImportInit
+                & fileImport .~ Nothing
 
         (_, V.EvKey (V.KChar '\t') []) ->
             continue $ s & focusRing %~ F.focusNext
@@ -292,9 +291,17 @@ handleInboxEvent s e =
 beginFileImport :: State -> Lib.FileInfo -> EventM Name (Next State)
 beginFileImport s fileInfo = do
     let originalFile = Lib._fileName fileInfo
+
     fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions originalFile
 
     let
+        fi =
+            FileImport
+            { _currentFile = originalFile
+            , _suggestions = newFileNames
+            , _nameEdit = E.editor FileNameEdit Nothing fileName
+            }
+
         fileName :| sugg = fileNameSuggestions
 
         newFileNames =
@@ -302,56 +309,53 @@ beginFileImport s fileInfo = do
 
         newState = s
             & focusRing .~ F.focusRing [FileNameEdit, NameSuggestions]
-            & (fileImport . currentFile) ?~ originalFile
-            & (fileImport . suggestions) .~ newFileNames
-            & (fileImport . nameEdit) .~ E.editor FileNameEdit Nothing fileName
+            & fileImport ?~ fi
+            -- & (fileImport . currentFile) ?~ originalFile
+            -- & (fileImport . suggestions) .~ newFileNames
+            -- & (fileImport . nameEdit) .~ E.editor FileNameEdit Nothing fileName
 
     handleImportScreenEvent newState (V.EvKey V.KDown [])
 
 
 handleImportScreenEvent :: State -> V.Event -> EventM Name (Next State)
-handleImportScreenEvent s e =
+handleImportScreenEvent s ev =
     let
         focus = F.focusGetCurrent (s ^. focusRing)
 
-        maybeFile = s ^. fileImport . currentFile
+        maybeFileImport = s ^. fileImport
     in
-    case (focus, e) of
-        (_, V.EvKey (V.KChar 'o') [V.MCtrl]) ->
+    case (maybeFileImport, focus, ev) of
+        (Just fi, _, V.EvKey (V.KChar 'o') [V.MCtrl]) ->
             do
-                _ <- liftIO $
-                    maybe
-                        (pure ())
-                        Lib.openFile maybeFile
+                _ <- liftIO $ Lib.openFile (fi ^. currentFile)
                 continue s
 
-        (_, V.EvKey V.KEnter []) ->
+        (Just fi, _, V.EvKey V.KEnter []) ->
             do
                 let
                     conf = s ^. config
 
                     newFileName =
-                        (s ^. fileImport . nameEdit)
+                        fi ^. nameEdit
                             & E.getEditContents
                             & T.unlines
                             & Lib.finalFileName
 
                 _ <- liftIO $
-                    maybe
-                        (pure ())
-                        (Lib.fileFile conf newFileName) maybeFile
+                    (Lib.fileFile conf newFileName) (fi ^. currentFile)
 
                 libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
                 inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)
 
                 continue $ s
-                    & focusRing .~ initFocus & fileImport .~ fileImportInit
+                    & focusRing .~ initFocus & fileImport .~ Nothing
                     & library .~ L.list Library (Vec.fromList libraryFileInfos) 1
                     & inbox .~ L.list Inbox (Vec.fromList inboxFileInfos) 1
 
-        (Just NameSuggestions, _) ->
+        (Just fi, Just NameSuggestions, _) ->
             do
-                suggestionList <- L.handleListEvent e (s ^. fileImport . suggestions)
+                suggestionList <-
+                    L.handleListEvent ev (fi ^. suggestions)
 
                 let
                     newSuggestion =
@@ -359,16 +363,21 @@ handleImportScreenEvent s e =
                             Just (_, t) ->
                                 E.editor FileNameEdit Nothing t
 
-                            _ -> s ^. fileImport . nameEdit
+                            _ -> fi ^. nameEdit
 
                 newEdit <- E.handleEditorEvent (V.EvKey V.KDown []) newSuggestion
 
-                continue $  s
-                    & (fileImport . suggestions .~ suggestionList)
-                    & (fileImport . nameEdit .~ newEdit)
+                let
+                    newFileImport = fi
+                        & suggestions .~ suggestionList
+                        & nameEdit .~ newEdit
 
-        (Just FileNameEdit, _) ->
-            continue =<< handleEventLensed s (fileImport . nameEdit) E.handleEditorEvent e
+                continue $ s & fileImport .~ Just newFileImport
+
+        (Just fi, Just FileNameEdit, _) -> do
+            newEdit <- E.handleEditorEvent ev (fi ^. nameEdit)
+            let newFileImport = fi & nameEdit .~ newEdit
+            continue $ s & fileImport .~ Just newFileImport
 
         _ -> continue s
 
@@ -389,8 +398,8 @@ drawFileInfo _ fileInfo =
         fileLabelWidget
 
 
-drawImportWidget :: State -> Widget Name
-drawImportWidget s =
+drawImportWidget :: F.FocusRing Name -> FileImport -> Widget Name
+drawImportWidget focus fileImportData =
     C.centerLayer
         $ B.borderWithLabel (str " Import ")
         $ padLeftRight 2 $ padTopBottom 1 $ hLimit 70 $ vLimit 20
@@ -400,16 +409,16 @@ drawImportWidget s =
             , vLimit 1
                 $ E.renderEditor
                     (str . T.unpack . T.unlines)
-                    (F.focusGetCurrent (s ^. focusRing) == Just FileNameEdit)
-                    (s ^. fileImport . nameEdit)
+                    (F.focusGetCurrent focus == Just FileNameEdit)
+                    (fileImportData ^. nameEdit)
             , vLimit 1 (fill ' ')
             , str "suggestions:"
             , B.hBorder
             , vLimit 6 -- $ withAttr "suggestionList"
                 $ L.renderList
                     (\_ t -> str (T.unpack t))
-                    (F.focusGetCurrent (s ^. focusRing) == Just NameSuggestions)
-                    (s ^. fileImport . suggestions)
+                    (F.focusGetCurrent focus == Just NameSuggestions)
+                    (fileImportData ^. suggestions)
             -- , B.hBorder
             -- , vLimit 1 (fill ' ')
             -- , str "filename preview:"
@@ -420,3 +429,13 @@ drawImportWidget s =
                 \[Enter]  - rename the file and move it to your library folder.\n\
                 \[Ctrl-o] - open the file that you're currently renaming."
             ]
+
+data Choice = ChoiceOk deriving Show
+
+helpScreen :: Widget Name
+helpScreen =
+    D.renderDialog d $ C.hCenter $ padAll 1 $ str "This is the dialog body."
+    where
+        d = D.dialog (Just "Title") (Just (0, choices)) 50
+
+        choices = [("OK", ChoiceOk)]
