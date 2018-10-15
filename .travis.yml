@@ -32,8 +32,12 @@ before_install:
   fi
 - stack --version
 
+install:
+  - stack setup
+  - stack build --only-dependencies
+
 script:
-- stack --no-terminal build
+- stack build
 
 after_success:
 - sh tools/install-ghr.sh
