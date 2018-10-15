@@ -1,15 +1,15 @@
 language: generic
 sudo: false
 
+os:
+- osx
+- linux
+
 cache:
   directories:
   - $HOME/.stack
   - $HOME/.local/bin
   - "$TRAVIS_BUILD_DIR/.stack-work"
-
-os:
-- osx
-- linux
 
 addons:
   apt:
@@ -25,7 +25,8 @@ before_install:
   then
     if [ `uname` = "Darwin" ]
     then
-      travis_retry curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
+      # travis_retry curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
+      travis_retry curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
     else
       travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
     fi
