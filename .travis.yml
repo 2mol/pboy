@@ -1,9 +1,29 @@
-language: nix
-sudo: true
+language: generic
+sudo: false
+
+cache:
+  directories:
+  - "$HOME/.stack"
+  # - "$TRAVIS_BUILD_DIR/.stack-work"
+
 os:
 - osx
 - linux
-script: nix-build
+
+addons:
+  apt:
+    packages:
+    - libgmp-dev
+
+before_install:
+# Download and unpack the stack executable
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+
+script:
+- stack --no-terminal build --ghc-options -O2 --pedantic
+
 after_success:
 - sh tools/install-ghr.sh
 - sh tools/attach-binary.sh
