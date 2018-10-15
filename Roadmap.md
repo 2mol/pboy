@@ -14,13 +14,13 @@
 - [ ] first-launch screen (combined with help screen), show config path and keyboard shortcuts.
 (- [ ] change config format to config-ini, ditch htoml?)
 - [x] 'q' to exit app from main screen
+- [ ] get nix build working with megaparsec 7
 
 
 ## Future release
 
 - [ ] ability to mark documents as 'to-read'.
 - [ ] option to switch between underscores and spaces.
-- [ ] asum for exception handling of missing executables.
 - [ ] warn when importing an already existing filename.
 - [ ] improve performance of parsing large pdfs
 
