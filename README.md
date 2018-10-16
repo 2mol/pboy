@@ -4,7 +4,7 @@
 
 Paperboy is a tiny .pdf management utility.
 
-If you tend to download papers or other pdfs, you might have noticed that filenames like `1412.4880.pdf` are not terribly helpful for finding anything later on. Especially if your download folder _also_ contains about eighty files along the lines of `catloaf.jpg`, `David_Lynch_Teaches_Typing.zip`, and `160502_0001.wav`.
+If you download papers and other pdf documents, you might have noticed that filenames like `1412.4880.pdf` are not terribly helpful for finding anything later on. Especially if your download folder _also_ contains about eighty files along the lines of `catloaf.jpg`, `David_Lynch_Teaches_Typing.zip`, and `160502_0001.wav`.
 
 This tool helps with that. It will offer to rename and move files to a specified folder, and it even gives some filename suggestions by looking at the content and the pdf metadata.
 
