@@ -1,16 +1,16 @@
 matrix:
   include:
-  # - language: nix
-  #   sudo: true
-  #   os: osx
+  - language: nix
+    sudo: true
+    os: osx
 
-  #   script: nix-build
+    script: nix-build
 
-  # - language: nix
-  #   sudo: true
-  #   os: linux
+  - language: nix
+    sudo: true
+    os: linux
 
-  #   script: nix-build
+    script: nix-build
 
   - language: generic
     sudo: false

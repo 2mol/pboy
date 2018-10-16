@@ -19,7 +19,7 @@ import           Lens.Micro.TH     (makeLenses)
 import           Path              (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
 import           Path.IO
-import qualified Text.Toml         as Toml
+-- import qualified Text.Toml         as Toml
 
 
 data Config = Config
@@ -53,8 +53,8 @@ getConfig = do
         Right configTxt -> do
             let
                 configResult =
-                    Toml.parseTomlDoc "" configTxt
-                        -- & left (T.pack . Toml.parseErrorPretty)
+                    undefined
+                    -- Toml.parseTomlDoc "" configTxt
 
             case configResult of
                 Left _ -> pure Nothing
@@ -71,12 +71,13 @@ displayErr e =
     Just $ displayException e
 
 
-getConfigHelper :: Toml.Table -> IO (Maybe Config)
+-- getConfigHelper :: Toml.Table -> IO (Maybe Config)
 getConfigHelper configMap =
-    case (configMap ! "inbox", configMap ! "library", configMap ! "move") of
-        (Toml.VString inb, Toml.VString lib, Toml.VBoolean mov) ->
-            Just <$> configHelper inb lib mov
-        _ -> pure Nothing
+    undefined
+    -- case (configMap ! "inbox", configMap ! "library", configMap ! "move") of
+    --     (Toml.VString inb, Toml.VString lib, Toml.VBoolean mov) ->
+    --         Just <$> configHelper inb lib mov
+    --     _ -> pure Nothing
 
 configHelper :: T.Text -> T.Text -> Bool -> IO Config
 configHelper inb lib mov = do

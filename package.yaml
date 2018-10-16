@@ -21,6 +21,7 @@ dependencies:
   - either
   - time
   - brick
+  - config-ini
   - vty
   - fmt
   - microlens
@@ -31,7 +32,6 @@ dependencies:
   - pdfinfo
   - vector
   - titlecase
-  - htoml-megaparsec
   - path
   - path-io
 

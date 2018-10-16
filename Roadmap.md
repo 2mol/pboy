@@ -12,9 +12,8 @@
 - [x] rename existing files
 - [x] improve color scheme
 - [ ] first-launch screen (combined with help screen), show config path and keyboard shortcuts.
-(- [ ] change config format to config-ini, ditch htoml?)
+- [ ] change config format to config-ini, ditch htoml
 - [x] 'q' to exit app from main screen
-(- [ ] get nix build working with megaparsec 7)
 - [ ] static binary - finally figure out how to do this properly
 
 
