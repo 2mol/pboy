@@ -3,16 +3,17 @@ matrix:
   - language: nix
     sudo: true
     os: osx
+    
     script: nix-build
     
   - language: nix
     sudo: true
     os: linux
+    
     script: nix-build
     
   - language: generic
     sudo: false
-
     os: osx
 
     cache:
@@ -27,7 +28,6 @@ matrix:
         - libgmp-dev
 
     before_install:
-    # Download and unpack the stack executable
     - mkdir -p ~/.local/bin
     - export PATH=$HOME/.local/bin:$PATH
     - |
@@ -55,7 +55,6 @@ matrix:
     
   - language: generic
     sudo: false
-
     os: linux
 
     cache:
@@ -70,7 +69,6 @@ matrix:
         - libgmp-dev
 
     before_install:
-    # Download and unpack the stack executable
     - mkdir -p ~/.local/bin
     - export PATH=$HOME/.local/bin:$PATH
     - |
