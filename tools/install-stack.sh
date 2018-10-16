@@ -9,7 +9,7 @@ else
 
   mkdir -p "$HOME/.local/bin"
 
-  if [$TRAVIS_OS_NAME = "osx"]
+  if [ "$TRAVIS_OS_NAME" = "osx" ]
   then
     travis_retry curl --insecure -L $URL > stack.tar.gz
   else
