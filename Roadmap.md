@@ -7,14 +7,15 @@
 - [x] use xdg path for writing config file instead of home direcory.
 - [x] use http://hackage.haskell.org/package/path for filepaths.
 - [x] 'Ctrl-o' to open the document while in the middle of a rename/import.
-- [ ] go back to stack CI for release
+- [x] go back to stack CI for release
 - [x] fix that there are more suggestions than space in the import screen
 - [x] rename existing files
 - [x] improve color scheme
 - [ ] first-launch screen (combined with help screen), show config path and keyboard shortcuts.
 (- [ ] change config format to config-ini, ditch htoml?)
 - [x] 'q' to exit app from main screen
-- [ ] get nix build working with megaparsec 7
+(- [ ] get nix build working with megaparsec 7)
+- [ ] static binary - finally figure out how to do this properly
 
 
 ## Future release
@@ -36,6 +37,7 @@
 
 ## random ideas & wishes
 
+- use https://upx.github.io/ to get a smaller binary size
 - use https://github.com/tfausak/github-release
 - refresh if any files move outside of the application.
 - try out circleCI
