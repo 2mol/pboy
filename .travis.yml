@@ -1,44 +1,53 @@
-language: generic
-sudo: false
+matrix:
+  include:
+  - language: nix
+    sudo: true
+    os:
+    - osx
+    - linux
+    script: nix-build
+    
+  - language: generic
+    sudo: false
 
-os:
-- osx
-- linux
+    os:
+    - osx
+    - linux
 
-cache:
-  directories:
-  - $HOME/.stack
-  - $HOME/.local/bin
-  - "$TRAVIS_BUILD_DIR/.stack-work"
+    cache:
+      directories:
+      - $HOME/.stack
+      - $HOME/.local/bin
+      - "$TRAVIS_BUILD_DIR/.stack-work"
 
-addons:
-  apt:
-    packages:
-    - libgmp-dev
+    addons:
+      apt:
+        packages:
+        - libgmp-dev
 
-before_install:
-# Download and unpack the stack executable
-- mkdir -p ~/.local/bin
-- export PATH=$HOME/.local/bin:$PATH
-- |
-  if test ! -f "$HOME/.local/bin/stack"
-  then
-    if [ `uname` = "Darwin" ]
-    then
-      travis_retry curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
-    else
-      travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
-    fi
-  fi
-- stack --version
+    before_install:
+    # Download and unpack the stack executable
+    - mkdir -p ~/.local/bin
+    - export PATH=$HOME/.local/bin:$PATH
+    - |
+      if test ! -f "$HOME/.local/bin/stack"
+      then
+        if [ `uname` = "Darwin" ]
+        then
+          travis_retry curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
+        else
+          travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+        fi
+      fi
+    - stack --version
 
-install:
-  - stack setup
-  - stack build --only-dependencies
+    install:
+      - stack setup
+      - stack build --only-dependencies
 
-script:
-- stack build
+    script:
+    - stack build
 
-after_success:
-- sh tools/install-ghr.sh
-- sh tools/attach-binary.sh
+    after_success:
+    - sh tools/install-ghr.sh
+    - sh tools/attach-binary.sh
