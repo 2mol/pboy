@@ -40,10 +40,11 @@ library:
 
 executables:
   pboy:
-    main:                Main.hs
-    source-dirs:         app
+    main:        Main.hs
+    source-dirs: app
     ghc-options:
     - -threaded
+    # - -static
     - -rtsopts
     - -with-rtsopts=-N
     - -Wall
@@ -51,6 +52,8 @@ executables:
     - -Wincomplete-record-updates
     - -Wincomplete-uni-patterns
     - -Wredundant-constraints
+    # cc-options: -static
+    # ld-options: -static -pthread
     dependencies:
     - pboy
 
