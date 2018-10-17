@@ -44,6 +44,7 @@ executables:
     source-dirs: app
     ghc-options:
     - -threaded
+    - -O2
     # - -static
     - -rtsopts
     - -with-rtsopts=-N
