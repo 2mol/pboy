@@ -1,5 +1,5 @@
 { nixpkgs ? import <nixpkgs> {}
-, compiler ? "ghc802"
+, compiler ? "ghc843"
 , strip ? true
 , makeWrapper
 , symlinkJoin
