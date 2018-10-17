@@ -1,5 +1,5 @@
-{ nixpkgs ? (import <nixpkgs> {}).pkgsMusl
-, compiler ? "ghc843"
+{ nixpkgs ? import <nixpkgs> {}
+, compiler ? "ghc802"
 , strip ? true
 , makeWrapper
 , symlinkJoin
@@ -8,8 +8,7 @@
 
 let
 
-  # inherit (nixpkgs) pkgs;
-  pkgs = nixpkgs.pkgsMusl;
+  inherit (nixpkgs) pkgs;
 
   pboy = { mkDerivation, base, brick, config-ini, containers
       , directory, either, filepath, fmt, hpack, microlens, microlens-th
@@ -20,7 +19,7 @@ let
         pname = "pboy";
         version = "1.1.0";
         src = ./.;
-        isLibrary = true; # TODO: does this need to be true?
+        isLibrary = true;
         isExecutable = true;
 
         # compile statically
@@ -52,8 +51,7 @@ let
       };
 
   haskellPackages = pkgs.haskell.packages.${compiler};
-
-  # variant = if doBenchmark then pkgs.haskell.lib.doBenchmark else pkgs.lib.id;
+  # haskellPackages = pkgs.haskellPackages;
 
   drv = haskellPackages.callPackage pboy {};
 
