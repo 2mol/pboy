@@ -20,9 +20,9 @@ import           Data.List.NonEmpty         (NonEmpty (..))
 import           Data.Monoid                ((<>))
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
+import qualified Data.Time.Calendar         as Time
+import qualified Data.Time.Clock            as Time
 import qualified Data.Vector                as Vec
-import           Fmt                        (fmt)
-import           Fmt.Time                   (dateDashF)
 import qualified Graphics.Vty               as V
 import           Lens.Micro                 ((%~), (.~), (?~), (^.))
 import           Lens.Micro.TH              (makeLenses)
@@ -393,7 +393,7 @@ drawFileInfo _ fileInfo =
         fileLabel =
             [ str (Path.fromRelFile $ Path.filename $ Lib._fileName fileInfo)
             , fill ' '
-            , str (fmt (dateDashF $ Lib._modTime fileInfo))
+            , str (Time.showGregorian . Time.utctDay $ Lib._modTime fileInfo)
             ]
 
         fileLabelWidget =

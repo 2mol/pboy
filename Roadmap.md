@@ -11,16 +11,16 @@
 - [x] fix that there are more suggestions than space in the import screen
 - [x] rename existing files
 - [x] improve color scheme
-- [ ] first-launch screen (combined with help screen), show config path and keyboard shortcuts.
+- [ ] first-launch screen, show proposed config path, inbox and library paths, as well as keyboard shortcuts.
+- [ ] help screen, show config location.
 - [ ] change config format to config-ini, ditch htoml
 - [x] 'q' to exit app from main screen
-- [ ] static binary - finally figure out how to do this properly
+- [ ] option to switch between underscores and spaces.
 
 
 ## Future release
 
 - [ ] ability to mark documents as 'to-read'.
-- [ ] option to switch between underscores and spaces.
 - [ ] warn when importing an already existing filename.
 - [ ] improve performance of parsing large pdfs
 
@@ -36,14 +36,20 @@
 
 ## random ideas & wishes
 
-- use https://upx.github.io/ to get a smaller binary size
-- use https://github.com/tfausak/github-release
-- refresh if any files move outside of the application.
-- try out circleCI
-- move away from ghr for releases and use inbuilt travis uploads instead.
+want:
+
 - release .deb and .rpm packages.
-- subfolders.
+- use https://upx.github.io/ to get a smaller binary size
+- refresh if any files move outside of the application.
 - make the utility work without a UI -> import documents using only command-line flags.
 - search functionality -> build a search index based on the content we get from `pdftotext`.
 - send files to a personalized email address, pboy will check and pull that.
+
+
+maybe:
+
+- try out circleCI
+- move away from ghr for releases and use inbuilt travis uploads instead.
+- use https://github.com/tfausak/github-release
+- subfolders.
 - tag files to sync to phone (or kindle).

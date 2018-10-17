@@ -23,7 +23,6 @@ dependencies:
   - brick
   - config-ini
   - vty
-  - fmt
   - microlens
   - microlens-th
   - filepath

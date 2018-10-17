@@ -11,7 +11,7 @@ let
   inherit (nixpkgs) pkgs;
 
   pboy = { mkDerivation, base, brick, config-ini, containers
-      , directory, either, filepath, fmt, hpack, microlens, microlens-th
+      , directory, either, filepath, hpack, microlens, microlens-th
       , path, path-io, pdfinfo, process, stdenv, text, time, titlecase
       , unordered-containers, vector, vty
       }:
@@ -34,13 +34,13 @@ let
         ] ;
 
         libraryHaskellDepends = [
-          base brick config-ini containers directory either filepath fmt
+          base brick config-ini containers directory either filepath
           microlens microlens-th path path-io pdfinfo process text time
           titlecase unordered-containers vector vty
         ];
         libraryToolDepends = [ hpack ];
         executableHaskellDepends = [
-          base brick config-ini containers directory either filepath fmt
+          base brick config-ini containers directory either filepath
           microlens microlens-th path path-io pdfinfo process text time
           titlecase unordered-containers vector vty
         ];
