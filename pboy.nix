@@ -1,7 +1,6 @@
-{ nixpkgs ? import <nixpkgs> {}
+{ nixpkgs ? (import <nixpkgs> {}).pkgsMusl
 , compiler ? "ghc843"
 , strip ? true
-# , doBenchmark ? false
 , makeWrapper
 , symlinkJoin
 , poppler_utils
@@ -9,7 +8,8 @@
 
 let
 
-  inherit (nixpkgs) pkgs;
+  # inherit (nixpkgs) pkgs;
+  pkgs = nixpkgs.pkgsMusl;
 
   pboy = { mkDerivation, base, brick, config-ini, containers
       , directory, either, filepath, fmt, hpack, microlens, microlens-th
