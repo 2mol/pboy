@@ -9,7 +9,6 @@ module Config
     , ImportAction(..)
     , tryGetConfig
     , createConfig
-    -- , makeDefaultConfig
     ) where
 
 import qualified Control.Exception as E
@@ -53,15 +52,21 @@ defaultConfigData =
         }
 
 
-createConfig :: IO Config
-createConfig = undefined
+createConfig :: IO ()
+createConfig = do
+    configHome <- Path.getXdgDir Path.XdgConfig Nothing
+    TIO.writeFile (Path.fromAbsFile (configHome </> configPath)) configContent
+    -- readConfigData defaultConfigData
+    where
+        configContent =
+            C.serializeIni $ C.ini defaultConfigData configSpec
 
 
 tryGetConfig :: IO (Either String Config)
 tryGetConfig = do
     configHome <- Path.getXdgDir Path.XdgConfig Nothing
 
-    let configPathStr = Path.fromAbsFile $ configHome </> defaultConfigFile
+    let configPathStr = Path.fromAbsFile $ configHome </> configPath
 
     configTxtResult <-
         E.tryJust displayErr (TIO.readFile configPathStr)
@@ -120,5 +125,5 @@ displayErr e =
     Just $ E.displayException e
 
 
-defaultConfigFile :: Path Rel File
-defaultConfigFile = $(Path.mkRelFile "pboy.toml")
+configPath :: Path Rel File
+configPath = $(Path.mkRelFile "pboy.toml")
