@@ -69,19 +69,17 @@ $ nix-build
 
 # Config
 
+TODO: config file location & format changed
+
 Paperboy creates a `.pboy.toml` in your home directory. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
 
 # Current Limitations
 
-For large files, `pdftotext` can take quite a long time to parse the document, which is stupid because we're only using the first couple of lines for file name suggestions.
+For large files, `pdftotext` can take quite a long time to parse the entire document, which is stupid because we're only using the first couple of lines for file name suggestions.
 
 # Contribute
 
-You're very welcome to open issues, fix the Readme or send pull requests.
-
-If you have feature suggestions, please open an issue, or send a PR against the todo file https://github.com/2mol/pboy/blob/master/Todo.md.
-
-If you are just looking for a place to help, please see the abovementioned document to get an idea of what some of the next priotities are.
+You're very welcome to suggest new features or open issues. See the Roadmap https://github.com/2mol/pboy/blob/master/Roadmap.md to get an idea about what's planned for future releases.
 
 # Thanks
 
