@@ -79,34 +79,30 @@ main =
 
 initState :: IO State
 initState = do
-    conf <- undefined --TODO: if config doesn't exist yet, show a popup offering to create default
+    confResult <- Config.tryGetConfig
 
-    libraryFileInfos <- Lib.listFiles (conf ^. Config.libraryDir)
-    inboxFileInfos <- Lib.listFiles (conf ^. Config.inboxDir)
-    let
-        libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
-        inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
-    pure
-        $ State
-        { _config = conf
-        , _focusRing = initFocus
-        , _library = libraryList
-        , _inbox = inboxList
-        , _fileImport = Nothing -- fileImportInit
-        }
+    case confResult of
+        Right conf -> do
+            libraryFileInfos <- Lib.listFiles (conf ^. Config.libraryDir)
+            inboxFileInfos <- Lib.listFiles (conf ^. Config.inboxDir)
+            let
+                libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
+                inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
+            pure State
+                { _config = conf
+                , _focusRing = initFocus
+                , _library = libraryList
+                , _inbox = inboxList
+                , _fileImport = Nothing
+                }
+        Left _ -> do
+            --TODO: if config doesn't exist yet, show a popup offering to create default
+            Config.createConfig
+            undefined
 
 
 initFocus :: F.FocusRing Name
 initFocus = F.focusRing [Inbox, Library]
-
-
--- fileImportInit :: FileImport
--- fileImportInit =
---     FileImport
---     { _currentFile = Nothing
---     , _suggestions = L.list NameSuggestions (Vec.fromList []) 1
---     , _nameEdit = E.editor FileNameEdit Nothing ""
---     }
 
 
 app :: App State Event Name
