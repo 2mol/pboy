@@ -79,7 +79,8 @@ main =
 
 initState :: IO State
 initState = do
-    conf <- Config.getOrCreateConfig
+    conf <- undefined --TODO: if config doesn't exist yet, show a popup offering to create default
+
     libraryFileInfos <- Lib.listFiles (conf ^. Config.libraryDir)
     inboxFileInfos <- Lib.listFiles (conf ^. Config.inboxDir)
     let

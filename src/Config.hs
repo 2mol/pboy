@@ -7,19 +7,23 @@ module Config
     , libraryDir
     , importAction
     , ImportAction(..)
-    , getOrCreateConfig
-    , makeDefaultConfig
+    , tryGetConfig
+    , createConfig
+    -- , makeDefaultConfig
     ) where
 
--- import           Control.Exception
+import qualified Control.Exception as E
 -- import           Data.HashMap.Lazy ((!))
-import qualified Data.Text         as T
-import qualified Data.Text.IO      as TIO
-import           Lens.Micro.TH     (makeLenses)
-import           Path              (Abs, Dir, File, Path, Rel, (</>))
+import           Data.Function ((&))
+import qualified Data.Text     as T
+import qualified Data.Text.IO  as TIO
+import           Lens.Micro.TH (makeLenses)
+import           Path          (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
-import qualified Path.IO           as Path
-
+import qualified Path.IO       as Path
+-- import Data.Ini.Config
+import           Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
+import qualified Data.Ini.Config.Bidir as C
 
 data Config = Config
     { _inboxDir     :: Path Abs Dir
@@ -31,22 +35,76 @@ data ImportAction
     = Move | Copy
     deriving Show
 
+
+data ConfigData = ConfigData
+    { _inboxDirD   :: FilePath
+    , _libraryDirD :: FilePath
+    , _importMove  :: Bool
+    } deriving Show
+
 makeLenses ''Config
+makeLenses ''ConfigData
 
-
-defaultConfig :: IO Config
-defaultConfig = do
-    home <- Path.getHomeDir
-    inbDir <- Path.resolveDir home $ "Downloads"
-    libDir <- Path.resolveDir home $ "papers"
-    pure Config
-        { _inboxDir = inbDir
-        , _libraryDir = libDir
-        , _importAction = Move
+defaultConfigData :: ConfigData
+defaultConfigData =
+    ConfigData
+        { _inboxDirD = "Downloads"
+        , _libraryDirD = "papers"
+        , _importMove = True
         }
 
-getOrCreateConfig :: IO Config
-getOrCreateConfig = defaultConfig
+createConfig :: IO Config
+createConfig = undefined
+
+
+tryGetConfig :: IO (Maybe Config)
+tryGetConfig = do
+    configHome <- Path.getXdgDir Path.XdgConfig Nothing
+
+    let configPathStr = Path.fromAbsFile $ configHome </> defaultConfigFile
+
+    configTxtResult <-
+        E.tryJust displayErr (TIO.readFile configPathStr)
+
+    case configTxtResult of
+        Right configTxt -> do
+            let
+                configResult = C.parseIni configTxt configIni
+
+            case configResult of
+                Left _ -> pure Nothing
+                Right config ->
+                    Just <$> readConfigData (C.getIniValue config)
+
+
+        Left _ ->
+            pure Nothing
+
+readConfigData :: ConfigData -> IO Config
+readConfigData = undefined
+
+configSpec :: IniSpec ConfigData ()
+configSpec = do
+    C.section "PAPERBOY" $ do
+        inboxDirD .=  C.field "inbox" C.string
+            & C.comment [
+                "The folder to watch for incoming files.\n\
+                \# All paths are relative to your home directory:"
+                ]
+            -- & C.optional
+
+        libraryDirD .=  C.field "library" C.string
+            & C.comment ["The folder to copy/move renamed files to:"]
+
+        importMove .=  C.field "move" C.bool
+            & C.comment [
+                "Whether to move imported files.\n\
+                \# If set to false it will leave the original file unchanged:"
+                ]
+
+configIni :: Ini ConfigData
+configIni = C.ini defaultConfigData configSpec
+
 
 -- getOrCreateConfig :: IO Config
 -- getOrCreateConfig = do
@@ -83,9 +141,9 @@ getOrCreateConfig = defaultConfig
     --         pure Nothing
 
 
--- displayErr :: SomeException -> Maybe String
--- displayErr e =
---     Just $ displayException e
+displayErr :: E.SomeException -> Maybe String
+displayErr e =
+    Just $ E.displayException e
 
 
 -- getConfigHelper :: Toml.Table -> IO (Maybe Config)
@@ -111,17 +169,17 @@ getOrCreateConfig = defaultConfig
 --         , _importAction = act
 --         }
 
-makeDefaultConfig :: IO ()
-makeDefaultConfig = do
-    configHome <- Path.getXdgDir Path.XdgConfig Nothing
-    TIO.writeFile (Path.fromAbsFile (configHome </> defaultConfigFile)) configContent
-    where
-        configContent =
-            T.unlines
-            [ "inbox = \"Downloads\""
-            , "library = \"papers\""
-            , "move = true"
-            ]
+-- makeDefaultConfig :: IO ()
+-- makeDefaultConfig = do
+--     configHome <- Path.getXdgDir Path.XdgConfig Nothing
+--     TIO.writeFile (Path.fromAbsFile (configHome </> defaultConfigFile)) configContent
+--     where
+--         configContent =
+--             T.unlines
+--             [ "inbox = \"Downloads\""
+--             , "library = \"papers\""
+--             , "move = true"
+--             ]
 
 
 defaultConfigFile :: Path Rel File
