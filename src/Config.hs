@@ -9,18 +9,20 @@ module Config
     , ImportAction(..)
     , tryGetConfig
     , createConfig
+    , defaultConfig
+    , configPath
     ) where
 
-import qualified Control.Exception as E
-import           Data.Function ((&))
-import qualified Data.Text.IO  as TIO
-import           Lens.Micro.TH (makeLenses)
-import           Path          (Abs, Dir, File, Path, Rel, (</>))
+import qualified Control.Exception     as E
+import           Data.Function         ((&))
+import           Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
+import qualified Data.Ini.Config.Bidir as C
+import qualified Data.Text.IO          as TIO
+import           Lens.Micro            ((^.))
+import           Lens.Micro.TH         (makeLenses)
+import           Path                  (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
-import qualified Path.IO       as Path
-import           Data.Ini.Config.Bidir   (Ini, IniSpec, (.=))
-import qualified Data.Ini.Config.Bidir   as C
-import           Lens.Micro              ((^.))
+import qualified Path.IO               as Path
 
 
 data Config = Config
@@ -42,7 +44,6 @@ data ConfigData = ConfigData
 makeLenses ''Config
 makeLenses ''ConfigData
 
-
 defaultConfigData :: ConfigData
 defaultConfigData =
     ConfigData
@@ -51,25 +52,23 @@ defaultConfigData =
         , _importMove = True
         }
 
+defaultConfig :: IO Config
+defaultConfig = readConfigData defaultConfigData
 
 createConfig :: IO ()
 createConfig = do
-    configHome <- Path.getXdgDir Path.XdgConfig Nothing
-    TIO.writeFile (Path.fromAbsFile (configHome </> configPath)) configContent
+    cpath <- configPath
+    TIO.writeFile (Path.fromAbsFile cpath) configContent
     -- readConfigData defaultConfigData
     where
         configContent =
             C.serializeIni $ C.ini defaultConfigData configSpec
 
-
 tryGetConfig :: IO (Either String Config)
 tryGetConfig = do
-    configHome <- Path.getXdgDir Path.XdgConfig Nothing
-
-    let configPathStr = Path.fromAbsFile $ configHome </> configPath
-
+    cpath <- configPath
     configTxtResult <-
-        E.tryJust displayErr (TIO.readFile configPathStr)
+        E.tryJust displayErr $ TIO.readFile (Path.fromAbsFile cpath)
 
     let
         configIniResult =
@@ -79,7 +78,6 @@ tryGetConfig = do
             C.getIniValue <$> configIniResult
 
     sequence $ readConfigData <$> configResult
-
 
 readConfigData :: ConfigData -> IO Config
 readConfigData configData = do
@@ -94,7 +92,6 @@ readConfigData configData = do
         , _libraryDir = libDir
         , _importAction = action
         }
-
 
 configSpec :: IniSpec ConfigData ()
 configSpec = do
@@ -115,15 +112,17 @@ configSpec = do
                 \# If set to false it will leave the original file unchanged:"
                 ]
 
-
 configIni :: Ini ConfigData
 configIni = C.ini defaultConfigData configSpec
-
 
 displayErr :: E.SomeException -> Maybe String
 displayErr e =
     Just $ E.displayException e
 
+configFile :: Path Rel File
+configFile = $(Path.mkRelFile "pboy.ini")
 
-configPath :: Path Rel File
-configPath = $(Path.mkRelFile "pboy.toml")
+configPath :: IO (Path Abs File)
+configPath = do
+    configHome <- Path.getXdgDir Path.XdgConfig Nothing
+    pure $ configHome </> configFile
