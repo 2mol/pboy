@@ -13,16 +13,16 @@ module Config
     , configPath
     ) where
 
-import qualified Control.Exception     as E
-import           Data.Function         ((&))
-import           Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
+import qualified Control.Exception as E
+import Data.Function ((&))
+import Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
 import qualified Data.Ini.Config.Bidir as C
-import qualified Data.Text.IO          as TIO
-import           Lens.Micro            ((^.))
-import           Lens.Micro.TH         (makeLenses)
-import           Path                  (Abs, Dir, File, Path, Rel, (</>))
+import qualified Data.Text.IO as TIO
+import Lens.Micro ((^.))
+import Lens.Micro.TH (makeLenses)
+import Path (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
-import qualified Path.IO               as Path
+import qualified Path.IO as Path
 
 
 data Config = Config

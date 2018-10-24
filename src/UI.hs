@@ -5,35 +5,35 @@ module UI where
 
 import Control.Monad.IO.Class (liftIO)
 
-import           Brick
-import qualified Brick.Focus                as F
-import qualified Brick.Widgets.Border       as B
+import Brick
+import qualified Brick.Focus as F
+import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
-import qualified Brick.Widgets.Center       as C
-import qualified Brick.Widgets.Core         as BC
-import qualified Brick.Widgets.Dialog       as D
-import qualified Brick.Widgets.Edit         as E
-import qualified Brick.Widgets.List         as L
-import           Control.Monad              (void)
-import           Data.Function              ((&))
-import           Data.List.NonEmpty         (NonEmpty (..))
-import           Data.Monoid                ((<>))
-import           Data.Text                  (Text)
-import qualified Data.Text                  as T
-import qualified Data.Time.Calendar         as Time
-import qualified Data.Time.Clock            as Time
-import qualified Data.Vector                as Vec
-import qualified Graphics.Vty               as V
-import           Lens.Micro                 ((%~), (.~), (^.))
-import           Lens.Micro.TH              (makeLenses)
-import           Path                       (Abs, File, Path)
+import qualified Brick.Widgets.Center as C
+import qualified Brick.Widgets.Core as BC
+import qualified Brick.Widgets.Dialog as D
+import qualified Brick.Widgets.Edit as E
+import qualified Brick.Widgets.List as L
+import Control.Monad (void)
+import Data.Function ((&))
+import Data.List.NonEmpty (NonEmpty(..))
+import Data.Monoid ((<>))
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Time.Calendar as Time
+import qualified Data.Time.Clock as Time
+import qualified Data.Vector as Vec
+import qualified Graphics.Vty as V
+import Lens.Micro ((%~), (.~), (^.))
+import Lens.Micro.TH (makeLenses)
+import Path (Abs, File, Path)
 import qualified Path
 
 import qualified Config
 import qualified Lib
 
 import Data.Version (showVersion)
-import Paths_pboy   (version)
+import Paths_pboy (version)
 
 pboyVersion :: String
 pboyVersion = showVersion version
