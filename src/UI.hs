@@ -406,7 +406,7 @@ drawImportWidget focus fileImportData =
             , vLimit 1 (fill ' ')
             , str "suggestions:"
             , B.hBorder
-            , vLimit 6 -- $ withAttr "suggestionList"
+            , vLimit 6
                 $ L.renderList
                     (\_ t -> str (T.unpack t))
                     (focus == Just NameSuggestions)
