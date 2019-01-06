@@ -23,6 +23,7 @@
 - [ ] ability to mark documents as 'to-read'.
 - [ ] warn when importing an already existing filename.
 - [ ] improve performance of parsing large pdfs
+- [ ] try the open commands with `asum` from `Data.Foldable`
 
 
 ## Done
