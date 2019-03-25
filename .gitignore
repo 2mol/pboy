@@ -1,8 +1,4 @@
-.stack-work/
-pboy.cabal
-*~
-*.swp
-*.pdf
+dist/
+dist-newstyle/
 result
-.vscode
-dot.png
+

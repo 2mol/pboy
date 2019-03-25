@@ -432,7 +432,7 @@ helpScreen =
         $ str
             "This is the dialog body."
     where
-        d = D.dialog (Just " Welcome to Paperboy ") (Just (0, choices)) 75
+        d = D.dialog (Just " Welcome to PAPERBOY ") (Just (0, choices)) 75
 
         choices = [("Close", HelpClose)]
 
@@ -446,6 +446,6 @@ missingConfigScreen configPath =
         $ str
             ("I will create a config at " <> configPath)
     where
-        d = D.dialog (Just " Welcome to Paperboy ") (Just (0, choices)) 75
+        d = D.dialog (Just " Welcome to PAPERBOY ") (Just (0, choices)) 75
 
         choices = [("Create Config", ConfigCreate), ("Abort", ConfigAbort)]

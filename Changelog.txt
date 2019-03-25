@@ -11,7 +11,8 @@ Changelog
     removed spacebar as a trigger for importing/opening files.
 
 1.0.1, 2018-08-03
-    building with nix, moving CI to nix.
+    building with nix, moving CI to nix. (this all totally failed, and we
+    shall never speak of static linking again)
 
 1.0.0, 2018-07-14
     first major release.

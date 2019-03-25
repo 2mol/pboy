@@ -4,7 +4,7 @@ steps:
       top_level_patterns: false
       records: false
   - imports:
-      align: none
+      # align: none
       list_align: after_alias
       pad_module_names: false
       long_list_align: new_line_multiline
