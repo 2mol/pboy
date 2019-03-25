@@ -1,4 +1,4 @@
-cabal-version: 1.12
+cabal-version: 2.4
 
 name:           pboy
 version:        1.1.0
@@ -9,7 +9,7 @@ bug-reports:    https://github.com/2mol/pboy/issues
 author:         Juri Chomé
 maintainer:     juri.chome@gmail.com
 copyright:      2019 Juri Chomé
-license:        BSD3
+license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
@@ -22,11 +22,11 @@ source-repository head
 
 library
   exposed-modules:
-      Config
-      Lib
       UI
   other-modules:
-      Paths_pboy
+      Config
+    , Lib
+    , Paths_pboy
   hs-source-dirs:
       src
   build-depends:
@@ -57,7 +57,10 @@ executable pboy
       Paths_pboy
   hs-source-dirs:
       app
-  ghc-options: -threaded -O2 -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  ghc-options:
+    -threaded -O2 -rtsopts -with-rtsopts=-N
+    -Wall -Wcompat -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
     , pboy
