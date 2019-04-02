@@ -53,18 +53,10 @@ $ stack install
 
 ## Nix
 
-If you have Nix, then you can install `pboy` with one command:
+If you have Nix, then you can install `pboy` with a single command:
 
 ```
 $ nix-env -if https://github.com/2mol/pboy/tarball/master
-```
-
-If you only build it, then simply do
-
-```
-$ git clone git@github.com:2mol/pboy.git
-$ cd pboy
-$ nix-build
 ```
 
 # Config
