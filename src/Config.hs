@@ -8,19 +8,18 @@ module Config
     , importAction
     , ImportAction(..)
     , tryGetConfig
-    , createConfig
     , defaultConfig
     , configPath
     ) where
 
 import qualified Control.Exception as E
-import Data.Function ((&))
-import Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
+import           Data.Function ((&))
+import           Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
 import qualified Data.Ini.Config.Bidir as C
 import qualified Data.Text.IO as TIO
-import Lens.Micro ((^.))
-import Lens.Micro.TH (makeLenses)
-import Path (Abs, Dir, File, Path, Rel, (</>))
+import           Lens.Micro ((^.))
+import           Lens.Micro.TH (makeLenses)
+import           Path (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
 import qualified Path.IO as Path
 
@@ -55,14 +54,13 @@ defaultConfigData =
 defaultConfig :: IO Config
 defaultConfig = readConfigData defaultConfigData
 
-createConfig :: IO ()
-createConfig = do
-    cpath <- configPath
-    TIO.writeFile (Path.fromAbsFile cpath) configContent
-    -- readConfigData defaultConfigData
-    where
-        configContent =
-            C.serializeIni $ C.ini defaultConfigData configSpec
+-- createConfig :: IO ()
+-- createConfig = do
+--     cpath <- configPath
+--     TIO.writeFile (Path.fromAbsFile cpath) configContent
+--     where
+--         configContent =
+--             C.serializeIni $ C.ini defaultConfigData configSpec
 
 tryGetConfig :: IO (Either String Config)
 tryGetConfig = do
@@ -85,7 +83,7 @@ readConfigData configData = do
     inbDir <- Path.resolveDir home (configData ^. inboxDirD)
     libDir <- Path.resolveDir home (configData ^. libraryDirD)
 
-    let action = if (configData ^. importMove) then Move else Copy
+    let action = if configData ^. importMove then Move else Copy
 
     pure Config
         { _inboxDir = inbDir
@@ -94,22 +92,21 @@ readConfigData configData = do
         }
 
 configSpec :: IniSpec ConfigData ()
-configSpec = do
+configSpec =
     C.section "PAPERBOY" $ do
         inboxDirD .=  C.field "inbox" C.string
-            & C.comment [
-                "The folder to watch for incoming files.\n\
-                \# All paths are relative to your home directory:"
+            & C.comment
+                [ "The folder to watch for incoming files."
+                , "All paths are relative to your home directory:"
                 ]
-            -- & C.optional
 
         libraryDirD .=  C.field "library" C.string
             & C.comment ["The folder to copy/move renamed files to:"]
 
         importMove .=  C.field "move" C.bool
-            & C.comment [
-                "Whether to move imported files.\n\
-                \# If set to false it will leave the original file unchanged:"
+            & C.comment
+                [ "Whether to move imported files."
+                , "If set to false it will leave the original file unchanged:"
                 ]
 
 configIni :: Ini ConfigData

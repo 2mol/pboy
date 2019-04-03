@@ -2,22 +2,22 @@
 
 module Lib where
 
-import Config (Config)
+import           Config (Config)
 import qualified Config
-import Control.Exception as E
+import           Control.Exception as E
 import qualified Data.Char as C
 import qualified Data.Either.Combinators as Either
-import Data.Function ((&))
+import           Data.Function ((&))
 import qualified Data.List as List
-import Data.List.NonEmpty (NonEmpty(..))
+import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Maybe as Maybe
-import Data.Text (Text)
+import           Data.Text (Text)
 import qualified Data.Text as T
-import Data.Text.Titlecase (titlecase)
-import Data.Time.Clock (UTCTime)
-import GHC.Exts (sortWith)
-import Lens.Micro ((^.))
-import Path (Abs, Dir, File, Path, (</>))
+import           Data.Text.Titlecase (titlecase)
+import           Data.Time.Clock (UTCTime)
+import           GHC.Exts (sortWith)
+import           Lens.Micro ((^.))
+import           Path (Abs, Dir, File, Path, (</>))
 import qualified Path
 import qualified Path.IO as Path
 import qualified System.FilePath as F
@@ -76,7 +76,7 @@ fileNameSuggestions file = do
                 >>= boolToMaybe lengthCheck
 
         suggestions =
-            maybeCleanFileName : maybeTitle : (fmap Just topLines)
+            maybeCleanFileName : maybeTitle : fmap Just topLines
                 & Maybe.catMaybes
 
     pure $ baseName :| take 5 (List.nub suggestions)

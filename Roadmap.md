@@ -12,7 +12,6 @@
 - [x] rename existing files
 - [x] improve color scheme
 - [ ] first-launch screen, show proposed config path, inbox and library paths, as well as keyboard shortcuts.
-- [ ] help screen, show config location.
 - [ ] change config format to config-ini, ditch htoml
 - [x] 'q' to exit app from main screen
 - [ ] option to switch between underscores and spaces.
@@ -40,7 +39,7 @@
 want:
 
 - release .deb and .rpm packages.
-- use https://upx.github.io/ to get a smaller binary size
+- static binary
 - refresh if any files move outside of the application.
 - make the utility work without a UI -> import documents using only command-line flags.
 - search functionality -> build a search index based on the content we get from `pdftotext`.
