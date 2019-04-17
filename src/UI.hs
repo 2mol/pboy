@@ -76,7 +76,8 @@ main =
 
 initState :: IO State
 initState = do
-    confResult <- Config.tryGetConfig
+    cpath <- Config.getConfigPath
+    confResult <- Config.tryGetConfig cpath
 
     case confResult of
         Right conf -> do
@@ -100,7 +101,6 @@ initState = do
             -- undefined
 
             defaultConfig <- Config.defaultConfig
-            cpath <- Config.configPath
 
             pure State
                 { _config = defaultConfig

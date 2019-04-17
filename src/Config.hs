@@ -9,7 +9,7 @@ module Config
     , ImportAction(..)
     , tryGetConfig
     , defaultConfig
-    , configPath
+    , getConfigPath
     ) where
 
 import qualified Control.Exception as E
@@ -22,7 +22,6 @@ import           Lens.Micro.TH (makeLenses)
 import           Path (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
 import qualified Path.IO as Path
-
 
 data Config = Config
     { _inboxDir     :: Path Abs Dir
@@ -62,11 +61,10 @@ defaultConfig = readConfigData defaultConfigData
 --         configContent =
 --             C.serializeIni $ C.ini defaultConfigData configSpec
 
-tryGetConfig :: IO (Either String Config)
-tryGetConfig = do
-    cpath <- configPath
+tryGetConfig :: Path Abs File -> IO (Either String Config)
+tryGetConfig configPath = do
     configTxtResult <-
-        E.tryJust displayErr $ TIO.readFile (Path.fromAbsFile cpath)
+        E.tryJust displayErr $ TIO.readFile (Path.fromAbsFile configPath)
 
     let
         configIniResult =
@@ -119,7 +117,7 @@ displayErr e =
 configFile :: Path Rel File
 configFile = $(Path.mkRelFile "pboy.ini")
 
-configPath :: IO (Path Abs File)
-configPath = do
+getConfigPath :: IO (Path Abs File)
+getConfigPath = do
     configHome <- Path.getXdgDir Path.XdgConfig Nothing
     pure $ configHome </> configFile

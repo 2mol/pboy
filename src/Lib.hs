@@ -1,6 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Lib where
+module Lib
+    ( FileInfo(..)
+    , finalFileName
+    , listFiles
+    , fileFile
+    , fileNameSuggestions
+    , openFile
+    ) where
 
 import           Config (Config)
 import qualified Config
