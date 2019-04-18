@@ -248,10 +248,10 @@ handleEvent s _ = continue s
 
 handleFirstStartEvent :: State -> V.Event -> EventM ResourceName (Next State)
 handleFirstStartEvent s e =
-    case (s ^. firstStart) of
+    case s ^. firstStart of
         Just dialog -> do
             newDialog <- D.handleDialogEvent e dialog
-            continue (s & firstStart .~ Just newDialog)
+            continue (s & firstStart ?~ newDialog)
         Nothing -> continue s
 
 handleLibraryEvent :: State -> V.Event -> EventM ResourceName (Next State)
@@ -360,12 +360,12 @@ handleImportScreenEvent fi s ev =
                         & suggestions .~ suggestionList
                         & nameEdit .~ newEdit
 
-                continue $ s & fileImport .~ Just newFileImport
+                continue $ s & fileImport ?~ newFileImport
 
         (Just FileNameEdit, _) -> do
             newEdit <- E.handleEditorEvent ev (fi ^. nameEdit)
             let newFileImport = fi & nameEdit .~ newEdit
-            continue $ s & fileImport .~ Just newFileImport
+            continue $ s & fileImport ?~ newFileImport
 
         _ -> continue s
 
@@ -390,7 +390,7 @@ beginFileImport s fileInfo = do
 
         newState = s
             & focusRing .~ F.focusRing [FileNameEdit, NameSuggestions]
-            & fileImport .~ Just fi
+            & fileImport ?~ fi
             -- & (fileImport . currentFile) ?~ originalFile
             -- & (fileImport . suggestions) .~ newFileNames
             -- & (fileImport . nameEdit) .~ E.editor FileNameEdit Nothing fileName

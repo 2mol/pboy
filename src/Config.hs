@@ -55,7 +55,7 @@ defaultConfig :: IO Config
 defaultConfig = readConfigData defaultConfigData
 
 createConfig :: Path Abs File -> IO ()
-createConfig cpath = do
+createConfig cpath =
     TIO.writeFile (Path.fromAbsFile cpath) configContent
     where
         configContent =
