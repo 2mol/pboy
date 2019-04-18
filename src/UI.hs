@@ -24,7 +24,7 @@ import qualified Data.Time.Calendar as Time
 import qualified Data.Time.Clock as Time
 import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
-import           Lens.Micro ((%~), (.~), (^.))
+import           Lens.Micro ((%~), (.~), (?~), (^.), (^?))
 import           Lens.Micro.TH (makeLenses)
 import           Path (Abs, File, Path)
 import qualified Path
@@ -39,18 +39,15 @@ pboyVersion :: String
 pboyVersion = showVersion version
 
 data State = State
-    { _config    :: Config.Config
-    , _focusRing :: F.FocusRing ResourceName
-    , _library   :: L.List ResourceName Lib.FileInfo
-    , _inbox     :: L.List ResourceName Lib.FileInfo
-    , _popup     :: Popup
+    { _config     :: Config.Config
+    , _focusRing  :: F.FocusRing ResourceName
+    , _firstStart :: Maybe (D.Dialog ConfigChoice)
+    , _library    :: L.List ResourceName Lib.FileInfo
+    , _inbox      :: L.List ResourceName Lib.FileInfo
+    , _fileImport :: Maybe FileImport
     }
 
-data Popup
-    = NoPopup
-    | FileImportPopup FileImport
-    | HelpPopup
-    | NoConfigPopup FilePath
+data ConfigChoice = ConfigCreate | ConfigAbort
 
 data FileImport = FileImport
     { _currentFile :: Path Abs File
@@ -59,8 +56,9 @@ data FileImport = FileImport
     }
 
 data ResourceName
-    = Inbox
+    = FirstStart (Path Abs File)
     | Library
+    | Inbox
     | NameSuggestions
     | FileNameEdit
     deriving (Eq, Ord, Show)
@@ -89,29 +87,28 @@ initState = do
 
             pure State
                 { _config = conf
-                , _focusRing = initFocus
+                , _focusRing = inboxFocus
+                , _firstStart = Nothing
                 , _library = libraryList
                 , _inbox = inboxList
-                , _popup = NoPopup
+                , _fileImport = Nothing
                 }
 
         Left _ -> do
-            --TODO: if config doesn't exist yet, show a popup offering to create default
-            -- Config.createConfig
-            -- undefined
-
             defaultConfig <- Config.defaultConfig
 
             pure State
                 { _config = defaultConfig
-                , _focusRing = initFocus
+                , _firstStart = Just firstStartDialog
+                , _focusRing = F.focusRing [FirstStart cpath]
                 , _library = L.list Library (Vec.fromList []) 1
                 , _inbox = L.list Inbox (Vec.fromList []) 1
-                , _popup = NoConfigPopup $ Path.fromAbsFile cpath
+                , _fileImport = Nothing
                 }
 
-initFocus :: F.FocusRing ResourceName
-initFocus = F.focusRing [Inbox, Library]
+inboxFocus :: F.FocusRing ResourceName
+inboxFocus = F.focusRing [Inbox, Library]
+
 
 app :: App State Event ResourceName
 app = App
@@ -148,7 +145,19 @@ appCursor = F.focusRingCursor (^. focusRing)
 
 drawUI :: State -> [Widget ResourceName]
 drawUI s =
-    let
+    case (currentFocus, s ^. fileImport) of
+        (Just (FirstStart cpath), _)    -> [missingConfigScreen cpath (s ^. firstStart)]
+        (Just Library, _)               -> [mainScreen]
+        (Just Inbox, _)                 -> [mainScreen]
+        (Just NameSuggestions, Just fi) -> [drawImportWidget currentFocus fi, mainScreen]
+        (Just FileNameEdit, Just fi)    -> [drawImportWidget currentFocus fi, mainScreen]
+        _ -> []
+    -- case s ^. popup of
+    --     FileImportPopup fi -> [drawImportWidget currentFocus fi, mainScreen]
+    --     NoConfigPopup cp   -> [missingConfigScreen cp]
+    --     -- HelpPopup          -> [helpScreen, mainScreen]
+    --     _                  -> [mainScreen]
+    where
         focus = F.focusGetCurrent (s ^. focusRing)
 
         inboxWidget =
@@ -185,12 +194,6 @@ drawUI s =
             libraryAndInbox <=> statusBar
 
         currentFocus = F.focusGetCurrent (s ^. focusRing)
-    in
-    case s ^. popup of
-        FileImportPopup fi -> [drawImportWidget currentFocus fi, mainScreen]
-        NoConfigPopup cp   -> [missingConfigScreen cp]
-        -- HelpPopup          -> [helpScreen, mainScreen]
-        _                  -> [mainScreen]
 
 handleEvent :: State -> BrickEvent ResourceName Event -> EventM ResourceName (Next State)
 handleEvent s (VtyEvent e) =
@@ -198,37 +201,58 @@ handleEvent s (VtyEvent e) =
         focus = F.focusGetCurrent (s ^. focusRing)
     in
     case (focus, e) of
-        (_, V.EvKey (V.KChar 'c') [V.MCtrl])     -> halt s
-        (Just Inbox,   V.EvKey V.KEsc [])        -> halt s
-        (Just Library, V.EvKey V.KEsc [])        -> halt s
-        (Just Inbox,   V.EvKey (V.KChar 'q') []) -> halt s
-        (Just Library, V.EvKey (V.KChar 'q') []) -> halt s
+        (_, V.EvKey (V.KChar 'c') [V.MCtrl])            -> halt s
+        (Just Inbox,          V.EvKey V.KEsc [])        -> halt s
+        (Just Library,        V.EvKey V.KEsc [])        -> halt s
+        (Just (FirstStart _), V.EvKey V.KEsc [])        -> halt s
+        (Just Inbox,          V.EvKey (V.KChar 'q') []) -> halt s
+        (Just Library,        V.EvKey (V.KChar 'q') []) -> halt s
+        (Just (FirstStart _), V.EvKey (V.KChar 'q') []) -> halt s
+
+        (Just (FirstStart cpath), V.EvKey V.KEnter []) ->
+            case D.dialogSelection =<< s ^. firstStart of
+                Just ConfigCreate -> do
+                    _ <- liftIO $ Config.createConfig cpath
+                    newState <- liftIO initState
+                    continue newState
+                _ ->
+                    halt s
 
         (_, V.EvKey V.KEsc []) ->
             continue $ s
-                & focusRing .~ initFocus
-                & popup .~ NoPopup
+                & focusRing .~ inboxFocus
 
         (_, V.EvKey (V.KChar '\t') []) ->
             continue $ s & focusRing %~ F.focusNext
 
         _ ->
-            case focus of
-                Just Library ->
+            case (focus, s ^. fileImport) of
+                (Just Library, _) ->
                     handleLibraryEvent s e
 
-                Just Inbox ->
+                (Just Inbox, _) ->
                     handleInboxEvent s e
 
-                Just NameSuggestions ->
-                    handleImportScreenEvent s e
+                (Just NameSuggestions, Just fi) ->
+                    handleImportScreenEvent fi s e
 
-                Just FileNameEdit ->
-                    handleImportScreenEvent s e
+                (Just FileNameEdit, Just fi) ->
+                    handleImportScreenEvent fi s e
+
+                (Just (FirstStart _), _) ->
+                    handleFirstStartEvent s e
 
                 _ ->
                     continue s
 handleEvent s _ = continue s
+
+handleFirstStartEvent :: State -> V.Event -> EventM ResourceName (Next State)
+handleFirstStartEvent s e =
+    case (s ^. firstStart) of
+        Just dialog -> do
+            newDialog <- D.handleDialogEvent e dialog
+            continue (s & firstStart .~ Just newDialog)
+        Nothing -> continue s
 
 handleLibraryEvent :: State -> V.Event -> EventM ResourceName (Next State)
 handleLibraryEvent s e =
@@ -283,6 +307,68 @@ handleInboxEvent s e =
             newInbox <- L.handleListEvent e (s ^. inbox)
             continue (s & inbox .~ newInbox)
 
+handleImportScreenEvent :: FileImport -> State -> V.Event -> EventM ResourceName (Next State)
+handleImportScreenEvent fi s ev =
+    let
+        focus = F.focusGetCurrent (s ^. focusRing)
+    in
+    case (focus, ev) of
+        (_, V.EvKey (V.KChar 'o') [V.MCtrl]) ->
+            do
+                _ <- liftIO $ Lib.openFile (fi ^. currentFile)
+                continue s
+
+        (_, V.EvKey V.KEnter []) ->
+            do
+                let
+                    conf = s ^. config
+
+                    newFileName =
+                        fi ^. nameEdit
+                            & E.getEditContents
+                            & T.unlines
+                            & Lib.finalFileName
+
+                _ <- liftIO $
+                    Lib.fileFile conf newFileName (fi ^. currentFile)
+
+                libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
+                inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)
+
+                continue $ s
+                    & focusRing .~ inboxFocus
+                    & library .~ L.list Library (Vec.fromList libraryFileInfos) 1
+                    & inbox .~ L.list Inbox (Vec.fromList inboxFileInfos) 1
+
+        (Just NameSuggestions, _) ->
+            do
+                suggestionList <-
+                    L.handleListEvent ev (fi ^. suggestions)
+
+                let
+                    newSuggestion =
+                        case L.listSelectedElement suggestionList of
+                            Just (_, t) ->
+                                E.editor FileNameEdit Nothing t
+
+                            _ -> fi ^. nameEdit
+
+                newEdit <- E.handleEditorEvent (V.EvKey V.KDown []) newSuggestion
+
+                let
+                    newFileImport = fi
+                        & suggestions .~ suggestionList
+                        & nameEdit .~ newEdit
+
+                continue $ s & fileImport .~ Just newFileImport
+
+        (Just FileNameEdit, _) -> do
+            newEdit <- E.handleEditorEvent ev (fi ^. nameEdit)
+            let newFileImport = fi & nameEdit .~ newEdit
+            continue $ s & fileImport .~ Just newFileImport
+
+        _ -> continue s
+
 beginFileImport :: State -> Lib.FileInfo -> EventM ResourceName (Next State)
 beginFileImport s fileInfo = do
     let originalFile = Lib._fileName fileInfo
@@ -304,74 +390,12 @@ beginFileImport s fileInfo = do
 
         newState = s
             & focusRing .~ F.focusRing [FileNameEdit, NameSuggestions]
-            & popup .~ FileImportPopup fi
+            & fileImport .~ Just fi
             -- & (fileImport . currentFile) ?~ originalFile
             -- & (fileImport . suggestions) .~ newFileNames
             -- & (fileImport . nameEdit) .~ E.editor FileNameEdit Nothing fileName
 
-    handleImportScreenEvent newState (V.EvKey V.KDown [])
-
-handleImportScreenEvent :: State -> V.Event -> EventM ResourceName (Next State)
-handleImportScreenEvent s ev =
-    let
-        focus = F.focusGetCurrent (s ^. focusRing)
-    in
-    case (s ^. popup, focus, ev) of
-        (FileImportPopup fi, _, V.EvKey (V.KChar 'o') [V.MCtrl]) ->
-            do
-                _ <- liftIO $ Lib.openFile (fi ^. currentFile)
-                continue s
-
-        (FileImportPopup fi, _, V.EvKey V.KEnter []) ->
-            do
-                let
-                    conf = s ^. config
-
-                    newFileResourceName =
-                        fi ^. nameEdit
-                            & E.getEditContents
-                            & T.unlines
-                            & Lib.finalFileName
-
-                _ <- liftIO $
-                    Lib.fileFile conf newFileResourceName (fi ^. currentFile)
-
-                libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
-                inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)
-
-                continue $ s
-                    & focusRing .~ initFocus & popup .~ NoPopup
-                    & library .~ L.list Library (Vec.fromList libraryFileInfos) 1
-                    & inbox .~ L.list Inbox (Vec.fromList inboxFileInfos) 1
-
-        (FileImportPopup fi, Just NameSuggestions, _) ->
-            do
-                suggestionList <-
-                    L.handleListEvent ev (fi ^. suggestions)
-
-                let
-                    newSuggestion =
-                        case L.listSelectedElement suggestionList of
-                            Just (_, t) ->
-                                E.editor FileNameEdit Nothing t
-
-                            _ -> fi ^. nameEdit
-
-                newEdit <- E.handleEditorEvent (V.EvKey V.KDown []) newSuggestion
-
-                let
-                    newFileImport = fi
-                        & suggestions .~ suggestionList
-                        & nameEdit .~ newEdit
-
-                continue $ s & popup .~ FileImportPopup newFileImport
-
-        (FileImportPopup fi, Just FileNameEdit, _) -> do
-            newEdit <- E.handleEditorEvent ev (fi ^. nameEdit)
-            let newFileImport = fi & nameEdit .~ newEdit
-            continue $ s & popup .~ FileImportPopup newFileImport
-
-        _ -> continue s
+    handleImportScreenEvent fi newState (V.EvKey V.KDown [])
 
 --
 
@@ -391,7 +415,7 @@ drawFileInfo _ fileInfo =
 
 
 drawImportWidget :: Maybe ResourceName -> FileImport -> Widget ResourceName
-drawImportWidget focus fileImportData =
+drawImportWidget focus fi =
     C.centerLayer
         $ B.borderWithLabel (str " Import ")
         $ padLeftRight 2 $ padTopBottom 1 $ hLimit 70 $ vLimit 20
@@ -402,7 +426,7 @@ drawImportWidget focus fileImportData =
                 $ E.renderEditor
                     (str . T.unpack . T.unlines)
                     (focus == Just FileNameEdit)
-                    (fileImportData ^. nameEdit)
+                    (fi ^. nameEdit)
             , vLimit 1 (fill ' ')
             , str "suggestions:"
             , B.hBorder
@@ -410,7 +434,7 @@ drawImportWidget focus fileImportData =
                 $ L.renderList
                     (\_ t -> str (T.unpack t))
                     (focus == Just NameSuggestions)
-                    (fileImportData ^. suggestions)
+                    (fi ^. suggestions)
             , fill ' '
             , str
                 "[Tab]    - switch between editor and suggestions.\n\
@@ -432,16 +456,17 @@ drawImportWidget focus fileImportData =
 
 --         choices = [("Close", HelpClose)]
 
-data ConfigChoice = ConfigCreate | ConfigAbort
+firstStartDialog :: D.Dialog ConfigChoice
+firstStartDialog =
+    D.dialog (Just " Welcome to PAPERBOY ") (Just (0, choices)) 75
+    where
+        choices = [("Create Config", ConfigCreate), ("Abort", ConfigAbort)]
 
-missingConfigScreen :: FilePath -> Widget ResourceName
-missingConfigScreen configPath =
-    D.renderDialog dialog
+missingConfigScreen :: Path Abs File -> Maybe (D.Dialog ConfigChoice) -> Widget ResourceName
+missingConfigScreen configPath (Just d) =
+    D.renderDialog d
         $ C.hCenter
         $ padAll 1
         $ str
-            ("I will create a config at " <> configPath)
-    where
-        dialog = D.dialog (Just " Welcome to PAPERBOY ") (Just (0, choices)) 75
-
-        choices = [("Create Config", ConfigCreate), ("Abort", ConfigAbort)]
+            ("I will create a config at " <> Path.fromAbsFile configPath)
+missingConfigScreen _ _ = str ""

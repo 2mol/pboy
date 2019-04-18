@@ -9,6 +9,7 @@ module Config
     , ImportAction(..)
     , tryGetConfig
     , defaultConfig
+    , createConfig
     , getConfigPath
     ) where
 
@@ -53,13 +54,12 @@ defaultConfigData =
 defaultConfig :: IO Config
 defaultConfig = readConfigData defaultConfigData
 
--- createConfig :: IO ()
--- createConfig = do
---     cpath <- configPath
---     TIO.writeFile (Path.fromAbsFile cpath) configContent
---     where
---         configContent =
---             C.serializeIni $ C.ini defaultConfigData configSpec
+createConfig :: Path Abs File -> IO ()
+createConfig cpath = do
+    TIO.writeFile (Path.fromAbsFile cpath) configContent
+    where
+        configContent =
+            C.serializeIni $ C.ini defaultConfigData configSpec
 
 tryGetConfig :: Path Abs File -> IO (Either String Config)
 tryGetConfig configPath = do
