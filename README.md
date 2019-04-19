@@ -1,23 +1,22 @@
-# PAPERBOY
-
 ![import screen](https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png)
 
 [![Build Status](https://travis-ci.org/2mol/pboy.svg?branch=master)](https://travis-ci.org/2mol/pboy)
 
 Paperboy is a tiny .pdf management utility.
 
-Motivated by the frustration of having a download folder full of PDFs with names like 'I08.pdf' and '1412.4880.pdf', I wanted a way of efficiently renaming those documents that I saved for later reading.
+If you download papers and other pdf documents, you might have noticed that filenames like `1412.4880.pdf` are not terribly helpful for finding anything later on. Especially if your download folder _also_ contains about eighty files along the lines of `catloaf.jpg`, `David_Lynch_Teaches_Typing.zip`, and `160502_0001.wav`.
 
-This tool helps with that. It will rename/move documents to a specified folder, and it even gives some filename suggestions by looking at the file content and the pdf metadata.
+This tool helps with that. It will offer to rename and move files to a specified folder, and it even gives some filename suggestions by looking at the content and the pdf metadata.
 
 Paperboy keeps its file management dumb on purpose (no keeping files in a database or hidden library folder), so you can uninstall it at any time and your files will remain perfectly accessible.
 
 # Usage
 
-- Open a new file import dialog with <kbd>Space</kbd> or <kbd>Enter</kbd>.
-- Switch between the library and the inbox with <kbd>Tab</kbd>.
+- Open a new file import dialog with <kbd>Enter</kbd> or <kbd>Space</kbd>.
+- Switch between inbox and library with <kbd>Tab</kbd>.
 - Open a file from the library with <kbd>Enter</kbd> or <kbd>Space</kbd>.
-- Quit the application with <kbd>Esc</kbd> or <kbd>Ctrl + c</kbd>.
+- Rename an already imported file with <kbd>r</kbd>.
+- Quit the application with <kbd>Esc</kbd> or <kbd>q</kbd> or abort with <kbd>Ctrl + c</kbd>.
 
 # Install
 
@@ -54,35 +53,25 @@ $ stack install
 
 ## Nix
 
-If you have Nix, then you can install `pboy` with one command:
+If you have Nix, then you can install `pboy` with a single command:
 
 ```
 $ nix-env -if https://github.com/2mol/pboy/tarball/master
 ```
 
-If you only build it, then simply do
-
-```
-$ git clone git@github.com:2mol/pboy.git
-$ cd pboy
-$ nix-build
-```
-
 # Config
+
+TODO: config file location & format changed
 
 Paperboy creates a `.pboy.toml` in your home directory. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
 
 # Current Limitations
 
-For large files, `pdftotext` can take quite a long time to parse the document, which is stupid because we're only using the first couple of lines for file name suggestions.
+For large files, `pdftotext` can take quite a long time to parse the entire document, which is stupid because we're only using the first couple of lines for file name suggestions.
 
 # Contribute
 
-You're very welcome to open issues, fix the Readme or send pull requests.
-
-If you have feature suggestions, please open an issue, or send a PR against the todo file https://github.com/2mol/pboy/blob/master/Todo.md.
-
-If you are just looking for a place to help, please see the abovementioned document to get an idea of what some of the next priotities are.
+You're very welcome to suggest new features or open issues. See the Roadmap https://github.com/2mol/pboy/blob/master/Roadmap.md to get an idea about what's planned for future releases.
 
 # Thanks
 

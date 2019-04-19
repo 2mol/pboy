@@ -1,7 +1,5 @@
-.stack-work/
-pboy.cabal
-*~
-*.swp
-*.pdf
+dist/
+dist-newstyle/
 result
-dist-newstyle
+.stack-work/
+

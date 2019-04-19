@@ -1,94 +1,107 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Lib where
+module Lib
+    ( FileInfo(..)
+    , finalFileName
+    , listFiles
+    , fileFile
+    , fileNameSuggestions
+    , openFile
+    , sortFileInfoByDate
+    ) where
 
-import           Config                  (Config)
+import           Config (Config)
 import qualified Config
-import           Control.Exception       as E
-import qualified Data.Char               as C
-import           Data.Either.Combinators (rightToMaybe)
-import           Data.Function           ((&))
-import qualified Data.List               as List
-import           Data.List.NonEmpty      (NonEmpty (..))
-import qualified Data.Maybe              as Maybe
-import           Data.Set                (Set)
-import qualified Data.Set                as S
-import           Data.Text               (Text)
-import qualified Data.Text               as T
-import           Data.Text.Titlecase     (titlecase)
-import           Data.Time.Clock         (UTCTime)
-import           GHC.Exts                (sortWith)
-import           Lens.Micro              ((^.))
-import qualified System.Directory        as D
-import           System.FilePath         ((<.>), (</>))
-import qualified System.FilePath         as F
-import qualified System.Process          as P
-import qualified Text.PDF.Info           as PDFI
-
-
-constSupportedExtensions :: Set String
-constSupportedExtensions = S.fromList [".pdf"]
-
+import           Control.Exception as E
+import qualified Data.Char as C
+import qualified Data.Either.Combinators as Either
+import           Data.Function ((&))
+import qualified Data.List as List
+import qualified Data.Maybe as Maybe
+import           Data.Text (Text)
+import qualified Data.Text as T
+import           Data.Text.Titlecase (titlecase)
+import           Data.Time.Clock (UTCTime)
+import           GHC.Exts (sortWith)
+import           Lens.Micro ((^.))
+import           Path (Abs, Dir, File, Path, (</>))
+import qualified Path
+import qualified Path.IO as Path
+import qualified System.FilePath as F
+import qualified System.Process as P
+import qualified Text.PDF.Info as PDFI
 
 data FileInfo = FileInfo
-    { _fileName :: FilePath
+    { _fileName :: Path Abs File
     , _modTime  :: UTCTime
     }
 
 
-listFiles :: FilePath -> IO [FileInfo]
+listFiles :: Path Abs Dir -> IO [FileInfo]
 listFiles path = do
-    D.createDirectoryIfMissing True path
-    files <- D.listDirectory path
-    fileInfos <- mapM getFileInfo (fmap (\f -> path </> f) files)
-    let sortedFileInfos = reverse $ sortWith _modTime fileInfos
-    pure $ filter fileSupported sortedFileInfos
+    Path.ensureDir path
+    files <- snd <$> Path.listDir path
+    fileInfos <- mapM getFileInfo files
+    pure $ filter isPdf fileInfos
 
 
-getFileInfo :: FilePath -> IO FileInfo
+sortFileInfoByDate :: [FileInfo] -> [FileInfo]
+sortFileInfoByDate fileInfos =
+    reverse $ sortWith _modTime fileInfos
+
+
+getFileInfo :: Path Abs File -> IO FileInfo
 getFileInfo path = do
-    modTime <- D.getModificationTime path
-    pure $ FileInfo (F.takeFileName path) modTime
+    modTime <- Path.getModificationTime path
+    pure $ FileInfo path modTime
 
 
-fileSupported :: FileInfo -> Bool
-fileSupported fileInfo =
-    let extension = F.takeExtension $ _fileName fileInfo
-    in S.member extension constSupportedExtensions
+isPdf :: FileInfo -> Bool
+isPdf fileInfo =
+    Path.fileExtension (_fileName fileInfo) == ".pdf"
 
 
 -- Getting Filename suggestions:
 
-fileNameSuggestions :: Config -> FilePath -> IO (NonEmpty Text)
-fileNameSuggestions config filePath = do
-    let
-        fileName = F.takeFileName filePath
-        fullFilePath = (config ^. Config.inboxDir) </> fileName
+fileNameSuggestions :: Path Abs File -> IO (Text, [Text])
+fileNameSuggestions file = do
+    pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile file
 
-    plainTextContent <-
-        P.readProcess "pdftotext" [fullFilePath, "-"] ""
-            & tryJust displayErr
-
-    pdfInfo <- PDFI.pdfInfo fullFilePath
+    topLines <- getTopLines file
 
     let
         baseName =
-            F.takeBaseName fileName
+            F.takeBaseName (Path.fromRelFile $ Path.filename file)
                 & T.pack
                 & T.replace "_" " "
 
-        cleanFileName =
+        maybeCleanFileName =
             baseName
                 & sanitize
                 & boolToMaybe lengthCheck
 
         maybeTitle =
-            rightToMaybe pdfInfo
+            Either.rightToMaybe pdfInfo
                 >>= PDFI.pdfInfoTitle
                 & fmap sanitize
                 >>= boolToMaybe lengthCheck
 
-        topContent =
+        suggestions =
+            maybeCleanFileName : maybeTitle : fmap Just topLines
+                & Maybe.catMaybes
+                & List.nub
+                & take 5
+
+    pure (baseName, suggestions)
+
+
+getTopLines :: Path Abs File -> IO [Text]
+getTopLines file = do
+    plainTextContent <-
+        E.try (P.readProcess "pdftotext" [Path.fromAbsFile file, "-"] "")
+        :: IO (Either SomeException String)
+    let
+        topLines =
             case plainTextContent of
                 Left _ -> []
                 Right content ->
@@ -97,13 +110,7 @@ fileNameSuggestions config filePath = do
                         & take 16 -- totally arbitrary. subject to improvement later
                         & fmap sanitize
                         & filter lengthCheck
-                        & fmap Just
-
-        suggestions =
-            cleanFileName : maybeTitle : topContent
-                & Maybe.catMaybes
-
-    pure $ baseName :| take 5 (List.nub suggestions)
+    pure topLines
 
 
 lengthCheck :: Text -> Bool
@@ -149,44 +156,29 @@ finalFileName text =
         & T.replace " " "_"
 
 
-fileFile :: Config -> FilePath -> Text -> IO ()
-fileFile conf origFileName newFileName = do
+fileFile :: Config -> Text -> Path Abs File -> IO ()
+fileFile conf newFileName file = do
+    newFile <- Path.parseRelFile (T.unpack newFileName ++ Path.fileExtension file)
     let
         newFilePath =
-            conf ^. Config.libraryDir </> (T.unpack newFileName) <.> "pdf"
-
-        origFilePath =
-            (conf ^. Config.inboxDir) </> (F.takeFileName origFileName)
+            conf ^. Config.libraryDir </> newFile
 
     case conf ^. Config.importAction of
-        Config.Copy -> D.copyFile origFilePath newFilePath
-        Config.Move -> D.renameFile origFilePath newFilePath
+        Config.Copy -> Path.copyFile file newFilePath
+        Config.Move -> Path.renameFile file newFilePath
 
 
-openFile :: Config -> FilePath -> IO (Either String ())
-openFile conf fileName = do
-    let
-        cleanFileName =
-            F.takeFileName fileName
+openFile :: Path Abs File -> IO ()
+openFile file = do
+    linuxOpen <- tryOpenWith file "xdg-open"
 
-        filePath =
-            conf ^. Config.libraryDir </> cleanFileName
-
-    linuxOpen <-
-        P.readProcess "xdg-open" [filePath] ""
-            & tryJust displayErr
-
-    case linuxOpen of
-        Left _ ->
-            do
-                _ <-
-                    P.readProcess "open" [filePath] ""
-                        & tryJust displayErr
-                pure $ Right ()
-        Right _ ->
-            pure $ Right ()
+    if Either.isLeft linuxOpen
+        then do
+            _ <- tryOpenWith file "open"
+            pure ()
+        else pure ()
 
 
-displayErr :: SomeException -> Maybe String
-displayErr e =
-    Just $ displayException e
+tryOpenWith :: Path Abs File -> FilePath -> IO (Either SomeException String)
+tryOpenWith file cmd =
+    E.try (P.readProcess cmd [Path.fromAbsFile file] "")

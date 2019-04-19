@@ -1,9 +1,71 @@
-language: nix
-sudo: true
-os:
-- osx
-- linux
-script: nix-build
-after_success:
-- sh tools/install-ghr.sh
-- sh tools/attach-binary.sh
+matrix:
+  include:
+  - language: nix
+    sudo: true
+    os: osx
+
+    script: nix-build
+
+  - language: nix
+    sudo: true
+    os: linux
+
+    script: nix-build
+
+  - language: generic
+    sudo: false
+    os: osx
+
+    cache:
+      directories:
+      - $HOME/.stack
+      - $HOME/.local/bin
+      - "$TRAVIS_BUILD_DIR/.stack-work"
+
+    addons:
+      apt:
+        packages:
+        - libgmp-dev
+
+    before_install:
+    - sh tools/install-stack.sh
+
+    install:
+      - stack setup
+      - stack build --only-dependencies
+
+    script:
+    - stack build
+
+    after_success:
+    - sh tools/install-ghr.sh
+    - sh tools/attach-binary.sh
+
+  - language: generic
+    sudo: false
+    os: linux
+
+    cache:
+      directories:
+      - $HOME/.stack
+      - $HOME/.local/bin
+      - "$TRAVIS_BUILD_DIR/.stack-work"
+
+    addons:
+      apt:
+        packages:
+        - libgmp-dev
+
+    before_install:
+    - sh tools/install-stack.sh
+
+    install:
+      - stack setup
+      - stack build --only-dependencies
+
+    script:
+    - stack build
+
+    after_success:
+    - sh tools/install-ghr.sh
+    - sh tools/attach-binary.sh
