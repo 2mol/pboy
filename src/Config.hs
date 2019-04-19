@@ -24,15 +24,18 @@ import           Path (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
 import qualified Path.IO as Path
 
+
 data Config = Config
     { _inboxDir     :: Path Abs Dir
     , _libraryDir   :: Path Abs Dir
     , _importAction :: ImportAction
     } deriving Show
 
+
 data ImportAction
     = Move | Copy
     deriving Show
+
 
 data ConfigData = ConfigData
     { _inboxDirD   :: FilePath
@@ -40,8 +43,10 @@ data ConfigData = ConfigData
     , _importMove  :: Bool
     } deriving Show
 
+
 makeLenses ''Config
 makeLenses ''ConfigData
+
 
 defaultConfigData :: ConfigData
 defaultConfigData =
@@ -51,8 +56,10 @@ defaultConfigData =
         , _importMove = True
         }
 
+
 defaultConfig :: IO Config
 defaultConfig = readConfigData defaultConfigData
+
 
 createConfig :: Path Abs File -> IO ()
 createConfig cpath =
@@ -60,6 +67,7 @@ createConfig cpath =
     where
         configContent =
             C.serializeIni $ C.ini defaultConfigData configSpec
+
 
 tryGetConfig :: Path Abs File -> IO (Either String Config)
 tryGetConfig configPath = do
@@ -75,6 +83,7 @@ tryGetConfig configPath = do
 
     sequence $ readConfigData <$> configResult
 
+
 readConfigData :: ConfigData -> IO Config
 readConfigData configData = do
     home <- Path.getHomeDir
@@ -88,6 +97,7 @@ readConfigData configData = do
         , _libraryDir = libDir
         , _importAction = action
         }
+
 
 configSpec :: IniSpec ConfigData ()
 configSpec =
@@ -107,15 +117,19 @@ configSpec =
                 , "If set to false it will leave the original file unchanged:"
                 ]
 
+
 configIni :: Ini ConfigData
 configIni = C.ini defaultConfigData configSpec
+
 
 displayErr :: E.SomeException -> Maybe String
 displayErr e =
     Just $ E.displayException e
 
+
 configFile :: Path Rel File
 configFile = $(Path.mkRelFile "pboy.ini")
+
 
 getConfigPath :: IO (Path Abs File)
 getConfigPath = do

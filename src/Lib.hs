@@ -16,7 +16,6 @@ import qualified Data.Char as C
 import qualified Data.Either.Combinators as Either
 import           Data.Function ((&))
 import qualified Data.List as List
-import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Maybe as Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -59,7 +58,7 @@ isPdf fileInfo =
 
 -- Getting Filename suggestions:
 
-fileNameSuggestions :: Path Abs File -> IO (NonEmpty Text)
+fileNameSuggestions :: Path Abs File -> IO (Text, [Text])
 fileNameSuggestions file = do
     pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile file
 
@@ -86,7 +85,7 @@ fileNameSuggestions file = do
             maybeCleanFileName : maybeTitle : fmap Just topLines
                 & Maybe.catMaybes
 
-    pure $ baseName :| take 5 (List.nub suggestions)
+    pure $ (baseName, take 5 (List.nub suggestions))
 
 
 getTopLines :: Path Abs File -> IO [Text]
