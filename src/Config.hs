@@ -63,7 +63,8 @@ defaultConfig = readConfigData defaultConfigData
 
 
 createConfig :: Path Abs File -> IO ()
-createConfig cpath =
+createConfig cpath = do
+    _ <- Path.createDirIfMissing True (Path.parent cpath)
     TIO.writeFile (Path.fromAbsFile cpath) configContent
     where
         configContent =
@@ -131,7 +132,7 @@ displayErr e =
 
 
 configFile :: Path Rel File
-configFile = $(Path.mkRelFile "pboy.ini")
+configFile = $(Path.mkRelFile "pboy/pboy.ini")
 
 
 getConfigPath :: IO (Path Abs File)
