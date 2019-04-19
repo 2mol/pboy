@@ -43,8 +43,10 @@ pboyVersion = showVersion version
 
 data State = State
     { _config     :: Config.Config
+    , _configPath :: Path Abs File
     , _focusRing  :: F.FocusRing ResourceName
     , _firstStart :: Maybe (D.Dialog ConfigChoice)
+    , _help       :: Maybe (D.Dialog HelpChoice)
     , _library    :: L.List ResourceName Lib.FileInfo
     , _inbox      :: L.List ResourceName Lib.FileInfo
     , _fileImport :: Maybe FileImport
@@ -52,6 +54,9 @@ data State = State
 
 
 data ConfigChoice = ConfigCreate | ConfigAbort
+
+
+data HelpChoice = HelpClose
 
 
 data FileImport = FileImport
@@ -63,6 +68,7 @@ data FileImport = FileImport
 
 data ResourceName
     = FirstStart (Path Abs File)
+    | Help
     | Library
     | Inbox
     | NameSuggestions
@@ -88,8 +94,10 @@ initState = do
         Right conf ->
             refreshFiles State
                 { _config = conf
+                , _configPath = cpath
                 , _focusRing = inboxFocus
                 , _firstStart = Nothing
+                , _help = Nothing
                 , _library = L.list Library [] 1
                 , _inbox = L.list Inbox [] 1
                 , _fileImport = Nothing
@@ -100,7 +108,9 @@ initState = do
 
             pure State
                 { _config = defaultConfig
+                , _configPath = cpath
                 , _firstStart = Just firstStartDialog
+                , _help = Nothing
                 , _focusRing = F.focusRing [FirstStart cpath]
                 , _library = L.list Library [] 1
                 , _inbox = L.list Inbox [] 1
@@ -153,7 +163,7 @@ theMap s =
         , (L.listSelectedFocusedAttr, V.black `on` selectedBGColor)
         , (E.editAttr, V.brightWhite `on` V.blue)
         , (E.editFocusedAttr, V.black `on` V.yellow)
-        , (D.dialogAttr, V.white `on` V.blue)
+        , (D.dialogAttr, V.brightWhite `on` V.blue)
         , (D.buttonAttr, V.black `on` V.white)
         , (D.buttonSelectedAttr, bg V.yellow)
         ]
@@ -167,6 +177,7 @@ drawUI :: State -> [Widget ResourceName]
 drawUI s =
     case (currentFocus, s ^. fileImport) of
         (Just (FirstStart cpath), _)    -> [missingConfigScreen cpath (s ^. firstStart)]
+        (Just Help, _)                  -> [helpScreen (s ^. configPath) (s ^. help), mainScreen]
         (Just Library, _)               -> [mainScreen]
         (Just Inbox, _)                 -> [mainScreen]
         (Just NameSuggestions, Just fi) -> [drawImportWidget currentFocus fi, mainScreen]
@@ -234,6 +245,18 @@ handleEvent :: State -> BrickEvent ResourceName Event -> EventM ResourceName (Ne
 handleEvent s (VtyEvent e) =
     let
         focus = F.focusGetCurrent (s ^. focusRing)
+
+        cycleFocus = continue $ s & focusRing %~ F.focusNext
+
+        openHelp =
+            continue $ s
+                & focusRing .~ F.focusRing [Help]
+                & help ?~ helpDialog
+
+        backToMain =
+            continue $ s
+                & focusRing .~ inboxFocus
+                & help .~ Nothing
     in
     case (focus, e) of
         (_, V.EvKey (V.KChar 'c') [V.MCtrl])            -> halt s
@@ -253,12 +276,16 @@ handleEvent s (VtyEvent e) =
                 _ ->
                     halt s
 
-        (_, V.EvKey V.KEsc []) ->
-            continue $ s
-                & focusRing .~ inboxFocus
+        (Just Help, V.EvKey V.KEnter []) -> backToMain
 
-        (_, V.EvKey (V.KChar '\t') []) ->
-            continue $ s & focusRing %~ F.focusNext
+        (_, V.EvKey V.KEsc []) -> backToMain
+
+        (Just Inbox,   V.EvKey (V.KChar '\t') []) -> cycleFocus
+        (Just Library, V.EvKey (V.KChar '\t') []) -> cycleFocus
+
+        (Just Inbox,   V.EvKey (V.KChar 'h') []) -> openHelp
+        (Just Library, V.EvKey (V.KChar 'h') []) -> openHelp
+        (Just Help,    V.EvKey (V.KChar 'h') []) -> backToMain
 
         _ ->
             case (focus, s ^. fileImport) of
@@ -480,22 +507,36 @@ drawImportWidget focus fi =
             ]
 
 
-data HelpChoice = HelpClose
+helpDialog :: D.Dialog HelpChoice
+helpDialog =
+    D.dialog (Just " Help ") (Just (0, choices)) 75
+    where choices = [("Cool", HelpClose)]
 
 
-helpScreen :: Widget ResourceName
-helpScreen =
+helpScreen :: Path Abs File -> Maybe (D.Dialog HelpChoice) -> Widget ResourceName
+helpScreen cpath (Just d) =
     D.renderDialog d
         $ C.hCenter
         $ padAll 1
-        $ str
-            "[Tab]    - switch between library and inbox.\n\
-            \[Enter]  - rename the file and move it to your library folder.\n\
-            \[Ctrl-o] - open the file that you're currently renaming."
-    where
-        d = D.dialog (Just " Welcome to PAPERBOY ") (Just (0, choices)) 75
-
-        choices = [("Cool", HelpClose)]
+        $ vBox $ map str
+            [ "Welcome to PAPERBOY!"
+            , "===================="
+            , " "
+            , "[Enter] or [Space]:"
+            , "  - from inbox: start import/rename."
+            , "  - from library: open pdf."
+            , " "
+            , "[Tab] - switch between inbox and library."
+            , " "
+            , "[Esc] or [q] - quit from main screen."
+            , "[Ctrl-c]     - quit from any screen."
+            , " "
+            , "Your config file is at"
+            , Path.fromAbsFile cpath
+            , " "
+            , "enjoy!"
+            ]
+helpScreen _ _ = str ""
 
 
 firstStartDialog :: D.Dialog ConfigChoice
@@ -506,12 +547,12 @@ firstStartDialog =
 
 
 missingConfigScreen :: Path Abs File -> Maybe (D.Dialog ConfigChoice) -> Widget ResourceName
-missingConfigScreen configPath (Just d) =
+missingConfigScreen cpath (Just d) =
     D.renderDialog d
         $ padAll 1
         $ vBox
             [ C.hCenter (str "I will create a config file at")
             , vLimit 1 (fill ' ')
-            , C.hCenter (str $ Path.fromAbsFile configPath)
+            , C.hCenter (str $ Path.fromAbsFile cpath)
             ]
 missingConfigScreen _ _ = str ""

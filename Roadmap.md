@@ -25,6 +25,7 @@
 - [x] change config format to config-ini, ditch htoml
 - [x] 'q' to exit app from main screen
 - [x] ability to specify multiple folders as inboxes.
+- [x] help screen
 
 - [x] use nix for CI and releases.
 - [x] compiled releases for Mac & Linux so that people other than Haskellers with 24Gb worth of stack/GHC installs can actually use this.

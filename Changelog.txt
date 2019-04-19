@@ -1,15 +1,17 @@
 Changelog
 
 1.1.0, 2019-04-19
-    - first start screen, showing the config file location.
+    - "first start" screen, showing the config file location.
+    - help screen.
+    - changed config location (now respects the XDG Base Directory Specification).
     - ability to rename files in the library by pressing 'r'.
     - ability to open the file while in the process of renaming (Ctrl-o).
     - pressing 'q' in the main screen exits the application.
-    - small color improvements.
-    - moving config file to respect the XDG "Base Directory Specification".
+    - color improvements.
     - show library path, inbox path, and version number in the UI.
     - fixed bug where the list of suggested filenames was hiding the last suggestion.
     - more robust filepath handling.
+    - changed config format from toml to ini.
 
 1.0.1, 2018-08-03
     building with nix, moving CI to nix. (this all totally failed, and we
