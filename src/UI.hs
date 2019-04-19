@@ -85,7 +85,7 @@ initState = do
     confResult <- Config.tryGetConfig cpath
 
     case confResult of
-        Right conf -> do
+        Right conf ->
             refreshFiles State
                 { _config = conf
                 , _focusRing = inboxFocus
