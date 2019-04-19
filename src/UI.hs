@@ -282,6 +282,8 @@ handleEvent s (VtyEvent e) =
 
         (Just Inbox,   V.EvKey (V.KChar '\t') []) -> cycleFocus
         (Just Library, V.EvKey (V.KChar '\t') []) -> cycleFocus
+        (Just NameSuggestions, V.EvKey (V.KChar '\t') []) -> cycleFocus
+        (Just FileNameEdit,    V.EvKey (V.KChar '\t') []) -> cycleFocus
 
         (Just Inbox,   V.EvKey (V.KChar 'h') []) -> openHelp
         (Just Library, V.EvKey (V.KChar 'h') []) -> openHelp
