@@ -102,8 +102,8 @@ initState = do
                 { _config = defaultConfig
                 , _firstStart = Just firstStartDialog
                 , _focusRing = F.focusRing [FirstStart cpath]
-                , _library = L.list Library (Vec.fromList []) 1
-                , _inbox = L.list Inbox (Vec.fromList []) 1
+                , _library = L.list Library [] 1
+                , _inbox = L.list Inbox [] 1
                 , _fileImport = Nothing
                 }
 

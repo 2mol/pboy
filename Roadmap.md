@@ -1,7 +1,17 @@
 # PAPERBOY Roadmap & Todo
 
 
-## Next release
+## Future release
+
+- [ ] option to switch between underscores and spaces.
+- [ ] ability to mark documents as 'to-read'.
+- [ ] warn when importing an already existing filename.
+- [ ] improve performance of parsing large pdfs
+- [ ] try the open commands with `asum` from `Data.Foldable`
+- [ ] refresh if any files move outside of the application.
+
+
+## Done
 
 - [x] show version number in the UI.
 - [x] use xdg path for writing config file instead of home direcory.
@@ -11,21 +21,10 @@
 - [x] fix that there are more suggestions than space in the import screen
 - [x] rename existing files
 - [x] improve color scheme
-- [ ] first-launch screen, show proposed config path, inbox and library paths, as well as keyboard shortcuts.
-- [ ] change config format to config-ini, ditch htoml
+- [x] first-launch screen, show proposed config path, inbox and library paths, as well as keyboard shortcuts.
+- [x] change config format to config-ini, ditch htoml
 - [x] 'q' to exit app from main screen
-- [ ] option to switch between underscores and spaces.
-
-
-## Future release
-
-- [ ] ability to mark documents as 'to-read'.
-- [ ] warn when importing an already existing filename.
-- [ ] improve performance of parsing large pdfs
-- [ ] try the open commands with `asum` from `Data.Foldable`
-
-
-## Done
+- [x] ability to specify multiple folders as inboxes.
 
 - [x] use nix for CI and releases.
 - [x] compiled releases for Mac & Linux so that people other than Haskellers with 24Gb worth of stack/GHC installs can actually use this.
@@ -39,8 +38,6 @@
 want:
 
 - release .deb and .rpm packages.
-- static binary
-- refresh if any files move outside of the application.
 - make the utility work without a UI -> import documents using only command-line flags.
 - search functionality -> build a search index based on the content we get from `pdftotext`.
 - send files to a personalized email address, pboy will check and pull that.
