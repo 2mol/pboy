@@ -84,8 +84,10 @@ fileNameSuggestions file = do
         suggestions =
             maybeCleanFileName : maybeTitle : fmap Just topLines
                 & Maybe.catMaybes
+                & List.nub
+                & take 5
 
-    pure $ (baseName, take 5 (List.nub suggestions))
+    pure (baseName, suggestions)
 
 
 getTopLines :: Path Abs File -> IO [Text]

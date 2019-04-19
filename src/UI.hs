@@ -131,15 +131,16 @@ app = App
 theMap :: State -> AttrMap
 theMap s =
     let
-        selectColor =
+        selectedBGColor =
             case F.focusGetCurrent (s ^. focusRing) of
                 Just Library -> V.green
-                _            -> V.yellow
+                Just Inbox   -> V.yellow
+                _            -> V.brightWhite
     in
     attrMap V.defAttr
-        [ (L.listAttr, V.brightWhite `on` V.black)
-        , (L.listSelectedAttr, V.white `on` V.brightBlack)
-        , (L.listSelectedFocusedAttr, V.black `on` selectColor)
+        [ (L.listAttr, V.white `on` V.black)
+        , (L.listSelectedAttr, V.black `on` V.brightBlack)
+        , (L.listSelectedFocusedAttr, V.black `on` selectedBGColor)
         , (E.editAttr, V.brightWhite `on` V.blue)
         , (E.editFocusedAttr, V.black `on` V.yellow)
         , (D.dialogAttr, V.white `on` V.blue)
@@ -174,7 +175,7 @@ drawUI s =
             "Inbox - " <> Path.fromAbsDir (s ^. config . Config.inboxDir)
 
         libraryLabel =
-            "Library - " <> Path.fromAbsDir (s ^. config . Config.libraryDir)
+            Path.fromAbsDir (s ^. config . Config.libraryDir) <> " - Library"
 
         title = " PAPERBOY " <> "v" <> pboyVersion <> " "
 
@@ -448,7 +449,8 @@ drawImportWidget focus fi =
                     (fi ^. suggestions)
             , fill ' '
             , str
-                "[Tab]    - switch between editor and suggestions.\n\
+                "[Esc]    - cancel.\n\
+                \[Tab]    - switch between editor and suggestions.\n\
                 \[Enter]  - rename the file and move it to your library folder.\n\
                 \[Ctrl-o] - open the file that you're currently renaming."
             ]
