@@ -7,6 +7,7 @@ module Lib
     , fileFile
     , fileNameSuggestions
     , openFile
+    , sortFileInfoByDate
     ) where
 
 import           Config (Config)
@@ -41,8 +42,12 @@ listFiles path = do
     Path.ensureDir path
     files <- snd <$> Path.listDir path
     fileInfos <- mapM getFileInfo files
-    let sortedFileInfos = reverse $ sortWith _modTime fileInfos
-    pure $ filter isPdf sortedFileInfos
+    pure $ filter isPdf fileInfos
+
+
+sortFileInfoByDate :: [FileInfo] -> [FileInfo]
+sortFileInfoByDate fileInfos =
+    reverse $ sortWith _modTime fileInfos
 
 
 getFileInfo :: Path Abs File -> IO FileInfo

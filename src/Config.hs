@@ -3,7 +3,8 @@
 
 module Config
     ( Config(..)
-    , inboxDir
+    , homeDir
+    , inboxDirs
     , libraryDir
     , importAction
     , ImportAction(..)
@@ -26,19 +27,19 @@ import qualified Path.IO as Path
 
 
 data Config = Config
-    { _inboxDir     :: Path Abs Dir
+    { _homeDir      :: Path Abs Dir
+    , _inboxDirs    :: [Path Abs Dir]
     , _libraryDir   :: Path Abs Dir
     , _importAction :: ImportAction
-    } deriving Show
+    }
 
 
 data ImportAction
     = Move | Copy
-    deriving Show
 
 
 data ConfigData = ConfigData
-    { _inboxDirD   :: FilePath
+    { _inboxDirsD  :: [FilePath]
     , _libraryDirD :: FilePath
     , _importMove  :: Bool
     } deriving Show
@@ -51,7 +52,7 @@ makeLenses ''ConfigData
 defaultConfigData :: ConfigData
 defaultConfigData =
     ConfigData
-        { _inboxDirD = "Downloads"
+        { _inboxDirsD= ["Downloads"]
         , _libraryDirD = "papers"
         , _importMove = True
         }
@@ -87,13 +88,14 @@ tryGetConfig configPath = do
 readConfigData :: ConfigData -> IO Config
 readConfigData configData = do
     home <- Path.getHomeDir
-    inbDir <- Path.resolveDir home (configData ^. inboxDirD)
+    inbDir <- mapM (Path.resolveDir home) (configData ^. inboxDirsD)
     libDir <- Path.resolveDir home (configData ^. libraryDirD)
 
     let action = if configData ^. importMove then Move else Copy
 
     pure Config
-        { _inboxDir = inbDir
+        { _homeDir = home
+        , _inboxDirs = inbDir
         , _libraryDir = libDir
         , _importAction = action
         }
@@ -102,19 +104,20 @@ readConfigData configData = do
 configSpec :: IniSpec ConfigData ()
 configSpec =
     C.section "PAPERBOY" $ do
-        inboxDirD .=  C.field "inbox" C.string
+        inboxDirsD .=  C.field "inbox" (C.listWithSeparator "," C.string)
             & C.comment
                 [ "The folder to watch for incoming files."
-                , "All paths are relative to your home directory:"
+                , "Paths are relative to your home directory, but absolute paths are valid too."
+                , "I will watch multiple folders if you give me a comma-separated list"
                 ]
 
         libraryDirD .=  C.field "library" C.string
-            & C.comment ["The folder to copy/move renamed files to:"]
+            & C.comment ["The folder to copy/move renamed files to."]
 
         importMove .=  C.field "move" C.bool
             & C.comment
                 [ "Whether to move imported files."
-                , "If set to false it will leave the original file unchanged:"
+                , "If set to false it will leave the original file unchanged."
                 ]
 
 

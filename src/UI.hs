@@ -1,11 +1,13 @@
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module UI where
 
-import           Control.Monad (void)
+import           Control.Monad (join, void)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Function ((&))
+import           Data.List (intercalate)
 import           Data.Monoid ((<>))
 
 import           Brick
@@ -84,18 +86,12 @@ initState = do
 
     case confResult of
         Right conf -> do
-            libraryFileInfos <- Lib.listFiles (conf ^. Config.libraryDir)
-            inboxFileInfos <- Lib.listFiles (conf ^. Config.inboxDir)
-            let
-                libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
-                inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
-
-            pure State
+            refreshFiles State
                 { _config = conf
                 , _focusRing = inboxFocus
                 , _firstStart = Nothing
-                , _library = libraryList
-                , _inbox = inboxList
+                , _library = L.list Library [] 1
+                , _inbox = L.list Inbox [] 1
                 , _fileImport = Nothing
                 }
 
@@ -110,6 +106,20 @@ initState = do
                 , _inbox = L.list Inbox (Vec.fromList []) 1
                 , _fileImport = Nothing
                 }
+
+
+refreshFiles :: State -> IO State
+refreshFiles s = do
+    libraryFileInfos <- Lib.listFiles (s ^. config . Config.libraryDir)
+    inboxFileInfos_ <- mapM Lib.listFiles (s ^. config . Config.inboxDirs)
+    let
+        inboxFileInfos = Lib.sortFileInfoByDate $ join inboxFileInfos_
+        libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
+        inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
+    pure $ s
+        & library .~ libraryList
+        & inbox .~ inboxList
+
 
 inboxFocus :: F.FocusRing ResourceName
 inboxFocus = F.focusRing [Inbox, Library]
@@ -171,11 +181,25 @@ drawUI s =
         libraryWidget =
             L.renderList drawFileInfo (focus == Just Library) (s ^. library)
 
+        inboxDirs = s ^. config . Config.inboxDirs
+
+        homeDirText =
+            s ^. config . Config.homeDir
+                & Path.fromAbsDir
+                & T.pack
+
+        shortenDir = T.unpack . T.replace homeDirText "~/" . T.pack
+
         inboxLabel =
-            "Inbox - " <> Path.fromAbsDir (s ^. config . Config.inboxDir)
+            inboxDirs
+                & map Path.fromAbsDir
+                & map shortenDir
+                & intercalate ","
 
         libraryLabel =
-            Path.fromAbsDir (s ^. config . Config.libraryDir) <> " - Library"
+            s ^. config . Config.libraryDir
+                & Path.fromAbsDir
+                & shortenDir
 
         title = " PAPERBOY " <> "v" <> pboyVersion <> " "
 
@@ -190,11 +214,14 @@ drawUI s =
 
         statusBar =
             vLimit 1 $ hBox
-                [ str inboxLabel
+                [ str $
+                    (if length inboxDirs > 1 then "[Inboxes]" else "[Inbox]")
+                    <> " "
+                    <> inboxLabel
                 , fill ' '
                 , str " -> "
                 , fill ' '
-                , str libraryLabel
+                , str $ libraryLabel <> " [Library]"
                 ]
 
         mainScreen =
@@ -344,13 +371,10 @@ handleImportScreenEvent fi s ev =
                 _ <- liftIO $
                     Lib.fileFile conf newFileName (fi ^. currentFile)
 
-                libraryFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.libraryDir)
-                inboxFileInfos <- liftIO $ Lib.listFiles (conf ^. Config.inboxDir)
+                newState <- liftIO $ refreshFiles s
 
-                continue $ s
+                continue $ newState
                     & focusRing .~ inboxFocus
-                    & library .~ L.list Library (Vec.fromList libraryFileInfos) 1
-                    & inbox .~ L.list Inbox (Vec.fromList inboxFileInfos) 1
 
         (Just NameSuggestions, _) ->
             do
