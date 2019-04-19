@@ -1,8 +1,9 @@
 Changelog
 
-1.1.0, 2019-04-19
+1.1, 2019-04-19
     - "first start" screen, showing the config file location.
     - help screen.
+    - can now import from multiple inbox folders.
     - changed config location (now respects the XDG Base Directory Specification).
     - ability to rename files in the library by pressing 'r'.
     - ability to open the file while in the process of renaming (Ctrl-o).
