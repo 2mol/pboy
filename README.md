@@ -28,7 +28,7 @@ If you're a Homebrew user, you can install the latest version and its dependenci
 $ brew install 2mol/tools/pboy
 ```
 
-## Get the binary release
+## Linux/Mac binary release
 
 Download the archive for your operating system from [https://github.com/2mol/pboy/releases](https://github.com/2mol/pboy/releases). Extract and install it with
 
@@ -39,17 +39,25 @@ $ mv pboy ~/.local/bin/
 
 For the latter to work, `~/.local/bin/` needs to exist and be in your `PATH`. Alternatively, put it in `/usr/local/bin`.
 
-## Stack
+## Linux, any distro
+
+I am still looking to package Paperboy for Debian/Ubuntu, Arch/Manjaro, Fedora, Doge Linux, or whatever else people install these days.
+
+Any pointers or help with regards to generate `.deb`, `.rpm`, AUR `PKGBUILD`, etc is appreciated. Ideally this could be mostly automated in CI, in the end Paperboy is just a single binary with a dependency or two. How do other packages do it? If you got a good example or link, open a GitHub issue!
+
+## Cabal/Stack
 
 Make sure you have `poppler` installed, which will provide both `pdftotext` and `pdfinfo`. On Linux, install `poppler` with your package manager of choice. If you are on Mac and using Homebrew you can do `brew install poppler`.
 
-Assuming you have stack, the following will compile, then install the `pboy` executable in your `.local/bin`:
+Assuming you have cabal or stack, the following will compile, then install the `pboy` executable in your `.local/bin`:
 
 ```
 $ git clone git@github.com:2mol/pboy.git
 $ cd pboy
 $ stack install
 ```
+
+Replace `stack install` with `cabal new-install` at your leisure.
 
 ## Nix
 
