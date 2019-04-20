@@ -3,14 +3,19 @@
 
 ## Future releases
 
-- [x] don't create any folders unless the first file import is triggered.
-- [x] improve performance of parsing large pdfs
 - [ ] ability to mark documents as 'to-read'.
 - [ ] warn when importing an already existing filename.
 - [ ] refresh if any files move outside of the application.
 
 
 ## Done
+
+1.2
+
+- [x] don't create any folders unless the first file import is triggered.
+- [x] improve performance of parsing large pdfs
+
+1.1
 
 - [x] show version number in the UI.
 - [x] use xdg path for writing config file instead of home direcory.
@@ -25,6 +30,8 @@
 - [x] 'q' to exit app from main screen
 - [x] ability to specify multiple folders as inboxes.
 - [x] help screen
+
+pre 1.1
 
 - [x] use nix for CI and releases.
 - [x] compiled releases for Mac & Linux so that people other than Haskellers with 24Gb worth of stack/GHC installs can actually use this.
