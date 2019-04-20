@@ -1,13 +1,12 @@
 # PAPERBOY Roadmap & Todo
 
 
-## Future release
+## Future releases
 
-- [ ] option to switch between underscores and spaces.
+- [ ] don't create any folders unless the first file import is triggered.
+- [ ] improve performance of parsing large pdfs
 - [ ] ability to mark documents as 'to-read'.
 - [ ] warn when importing an already existing filename.
-- [ ] improve performance of parsing large pdfs
-- [ ] try the open commands with `asum` from `Data.Foldable`
 - [ ] refresh if any files move outside of the application.
 
 
@@ -51,3 +50,5 @@ maybe:
 - use https://github.com/tfausak/github-release
 - subfolders.
 - tag files to sync to phone (or kindle).
+- try various open commands with `asum` from `Data.Foldable`
+- option to switch between underscores and spaces.
