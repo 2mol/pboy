@@ -64,7 +64,7 @@ defaultConfig = readConfigData defaultConfigData
 
 createConfig :: Path Abs File -> IO ()
 createConfig cpath = do
-    _ <- Path.createDirIfMissing True (Path.parent cpath)
+    _ <- Path.ensureDir (Path.parent cpath)
     TIO.writeFile (Path.fromAbsFile cpath) configContent
     where
         configContent =
@@ -109,7 +109,7 @@ configSpec =
             & C.comment
                 [ "The folder to watch for incoming files."
                 , "Paths are relative to your home directory, but absolute paths are valid too."
-                , "I will watch multiple folders if you give me a comma-separated list"
+                , "I will watch multiple folders if you give me a comma-separated list."
                 ]
 
         libraryDirD .=  C.field "library" C.string

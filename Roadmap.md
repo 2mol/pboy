@@ -3,8 +3,8 @@
 
 ## Future releases
 
-- [ ] don't create any folders unless the first file import is triggered.
-- [ ] improve performance of parsing large pdfs
+- [x] don't create any folders unless the first file import is triggered.
+- [x] improve performance of parsing large pdfs
 - [ ] ability to mark documents as 'to-read'.
 - [ ] warn when importing an already existing filename.
 - [ ] refresh if any files move outside of the application.
@@ -45,6 +45,7 @@ want:
 
 maybe:
 
+- recursively list both inbox and library.
 - try out circleCI
 - move away from ghr for releases and use inbuilt travis uploads instead.
 - use https://github.com/tfausak/github-release

@@ -61,13 +61,13 @@ $ nix-env -if https://github.com/2mol/pboy/tarball/master
 
 # Config
 
-TODO: config file location & format changed
+Paperboy creates a `pboy.ini` in your XDG config directory. This is probably in `~/.config/pboy/pboy.ini`, the welcome or help screen will tell you. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
 
-Paperboy creates a `.pboy.toml` in your home directory. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
+**Note**: The config file location & format changed in version 1.1. Sorry to existing users, but the update should be trivial. Simply tweak the inbox and library folders in the new config. You can then delete `~/.pboy.toml`.
 
 # Current Limitations
 
-For large files, `pdftotext` can take quite a long time to parse the entire document, which is stupid because we're only using the first couple of lines for file name suggestions.
+Paperboy doesn't do anything fancy with providing renaming patterns yet. For example, some people requested to be able to specify a format like `author-document_name-date.pdf`, others have asked if they could compose multiple suggestions into one. I haven't figured out a way to do this while keeping the UI simple and straightforward, so the idea needs a bit of design work first.
 
 # Contribute
 
