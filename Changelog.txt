@@ -2,7 +2,7 @@ Changelog
 
 1.2, 2019-04-20
     - faster performance on large pdfs by only parsing the first couple of pages.
-    - won't create the default directories anymore, until the first file is moved.
+    - won't create the default directories until the first file is moved.
 
 1.1, 2019-04-19
     - "first start" screen, showing the config file location.
