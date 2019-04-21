@@ -28,7 +28,7 @@ If you're a Homebrew user, you can install the latest version and its dependenci
 $ brew install 2mol/tools/pboy
 ```
 
-## Get the binary release
+## Linux/Mac binary release
 
 Download the archive for your operating system from [https://github.com/2mol/pboy/releases](https://github.com/2mol/pboy/releases). Extract and install it with
 
@@ -39,17 +39,25 @@ $ mv pboy ~/.local/bin/
 
 For the latter to work, `~/.local/bin/` needs to exist and be in your `PATH`. Alternatively, put it in `/usr/local/bin`.
 
-## Stack
+## Linux, any distro
+
+I am still looking to package Paperboy for Debian/Ubuntu, Arch/Manjaro, Fedora, Doge Linux, or whatever else people install these days.
+
+Any pointers or help with regards to generate `.deb`, `.rpm`, AUR `PKGBUILD`, etc is appreciated. Ideally this could be mostly automated in CI, in the end Paperboy is just a single binary with a dependency or two. How do other packages do it? If you got a good example or link, open a GitHub issue!
+
+## Cabal/Stack
 
 Make sure you have `poppler` installed, which will provide both `pdftotext` and `pdfinfo`. On Linux, install `poppler` with your package manager of choice. If you are on Mac and using Homebrew you can do `brew install poppler`.
 
-Assuming you have stack, the following will compile, then install the `pboy` executable in your `.local/bin`:
+Assuming you have cabal or stack, the following will compile, then install the `pboy` executable in your `.local/bin`:
 
 ```
 $ git clone git@github.com:2mol/pboy.git
 $ cd pboy
 $ stack install
 ```
+
+Replace `stack install` with `cabal new-install` at your leisure.
 
 ## Nix
 
@@ -61,13 +69,13 @@ $ nix-env -if https://github.com/2mol/pboy/tarball/master
 
 # Config
 
-TODO: config file location & format changed
+Paperboy creates a `pboy.ini` in your XDG config directory. This is probably in `~/.config/pboy/pboy.ini`, the welcome or help screen will tell you. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
 
-Paperboy creates a `.pboy.toml` in your home directory. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
+**Note**: The config file location & format changed in version 1.1. Sorry to existing users, but the update should be trivial. Simply tweak the inbox and library folders in the new config. You can then delete `~/.pboy.toml`.
 
 # Current Limitations
 
-For large files, `pdftotext` can take quite a long time to parse the entire document, which is stupid because we're only using the first couple of lines for file name suggestions.
+Paperboy doesn't do anything fancy with providing renaming patterns yet. For example, some people requested to be able to specify a format like `author-document_name-date.pdf`, others have asked if they could compose multiple suggestions into one. I haven't figured out a way to do this while keeping the UI simple and straightforward, so the idea needs a bit of design work first.
 
 # Contribute
 
@@ -77,5 +85,6 @@ You're very welcome to suggest new features or open issues. See the Roadmap http
 
 - [brick](https://github.com/jtdaugherty/brick) is a lovely way to a write a command-line UI.
 - [nmattia](https://github.com/nmattia) did the work to get Paperboy to build with [nix](https://github.com/NixOS/nix) and patiently explained some of the basics to me.
+- OsugiSakae and bri-an on reddit helped me with an annoying performance issue!
 
 The name 'Paperboy' is a reference to [this game](https://en.wikipedia.org/wiki/Paperboy_(video_game)), which I had for the NES and never quite mastered.

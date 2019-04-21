@@ -39,10 +39,12 @@ data FileInfo = FileInfo
 
 listFiles :: Path Abs Dir -> IO [FileInfo]
 listFiles path = do
-    Path.ensureDir path
-    files <- snd <$> Path.listDir path
-    fileInfos <- mapM getFileInfo files
-    pure $ filter isPdf fileInfos
+    dirExists <- Path.doesDirExist path
+    if dirExists then do
+        files <- snd <$> Path.listDir path
+        fileInfos <- mapM getFileInfo files
+        pure $ filter isPdf fileInfos
+    else pure []
 
 
 sortFileInfoByDate :: [FileInfo] -> [FileInfo]
@@ -98,7 +100,7 @@ fileNameSuggestions file = do
 getTopLines :: Path Abs File -> IO [Text]
 getTopLines file = do
     plainTextContent <-
-        E.try (P.readProcess "pdftotext" [Path.fromAbsFile file, "-"] "")
+        E.try (P.readProcess "pdftotext" [Path.fromAbsFile file, "-", "-f", "1", "-l", "4"] "")
         :: IO (Either SomeException String)
     let
         topLines =
@@ -158,7 +160,8 @@ finalFileName text =
 
 fileFile :: Config -> Text -> Path Abs File -> IO ()
 fileFile conf newFileName file = do
-    newFile <- Path.parseRelFile (T.unpack newFileName ++ Path.fileExtension file)
+    _ <- Path.ensureDir (conf ^. Config.libraryDir)
+    newFile <- Path.parseRelFile (T.unpack newFileName <> Path.fileExtension file)
     let
         newFilePath =
             conf ^. Config.libraryDir </> newFile
