@@ -85,5 +85,6 @@ You're very welcome to suggest new features or open issues. See the Roadmap http
 
 - [brick](https://github.com/jtdaugherty/brick) is a lovely way to a write a command-line UI.
 - [nmattia](https://github.com/nmattia) did the work to get Paperboy to build with [nix](https://github.com/NixOS/nix) and patiently explained some of the basics to me.
+- OsugiSakae and bri-an on reddit helped me with an annoying performance issue!
 
 The name 'Paperboy' is a reference to [this game](https://en.wikipedia.org/wiki/Paperboy_(video_game)), which I had for the NES and never quite mastered.
