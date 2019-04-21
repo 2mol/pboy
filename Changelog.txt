@@ -1,6 +1,6 @@
 Changelog
 
-1.2, 2019-04-20
+1.2, 2019-04-21
     - faster performance on large pdfs by only parsing the first couple of pages.
     - won't create the default directories until the first file is moved.
 
