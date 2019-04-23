@@ -116,7 +116,7 @@ getTopLines file = do
 
 
 lengthCheck :: Text -> Bool
-lengthCheck t = T.length t >= 3 && T.length t <= 64
+lengthCheck t = T.length t >= 3 && T.length t <= 251 -- maximum filename length on most Unix FSs (255) - extension (.pdf, 4) = 251
 
 
 boolToMaybe :: (a -> Bool) -> a -> Maybe a
