@@ -29,6 +29,7 @@ import qualified Path
 import qualified Path.IO as Path
 import qualified System.FilePath as F
 import qualified System.Process as P
+import qualified GHC.IO.Handle.Types as IOHT
 import           System.Directory (findExecutable)
 import qualified Text.PDF.Info as PDFI
 
@@ -188,6 +189,7 @@ openFile file = do
                 else pure ()
 
 
-tryOpenWith :: Path Abs File -> FilePath -> IO (P.ProcessHandle)
-tryOpenWith file cmd =
-    P.runCommand (cmd ++ " " ++ Path.fromAbsFile file)
+tryOpenWith :: Path Abs File -> FilePath -> IO ()
+tryOpenWith file cmd = do
+    _ <- P.createProcess (P.proc cmd [Path.fromAbsFile file]){ P.std_out = P.NoStream, P.std_err = P.NoStream }
+    return ()
