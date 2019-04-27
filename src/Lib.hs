@@ -29,6 +29,7 @@ import qualified Path
 import qualified Path.IO as Path
 import qualified System.FilePath as F
 import qualified System.Process as P
+import           System.Directory (findExecutable)
 import qualified Text.PDF.Info as PDFI
 
 data FileInfo = FileInfo
@@ -173,15 +174,20 @@ fileFile conf newFileName file = do
 
 openFile :: Path Abs File -> IO ()
 openFile file = do
-    linuxOpen <- tryOpenWith file "xdg-open"
-
-    if Either.isLeft linuxOpen
+    xdgOpenPresent <- findExecutable "xdg-open"
+    if Maybe.isJust xdgOpenPresent
         then do
-            _ <- tryOpenWith file "open"
+            tryOpenWith file "xdg-open"
             pure ()
-        else pure ()
+        else do
+            openPresent <- findExecutable "open"
+            if Maybe.isJust openPresent
+                then do
+                    tryOpenWith file "open"
+                    pure ()
+                else pure ()
 
 
-tryOpenWith :: Path Abs File -> FilePath -> IO (Either SomeException String)
+tryOpenWith :: Path Abs File -> FilePath -> IO (P.ProcessHandle)
 tryOpenWith file cmd =
-    E.try (P.readProcess cmd [Path.fromAbsFile file] "")
+    P.runCommand (cmd ++ " " ++ Path.fromAbsFile file)
