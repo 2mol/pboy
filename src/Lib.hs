@@ -175,18 +175,18 @@ fileFile conf newFileName file = do
 
 openFile :: Path Abs File -> IO ()
 openFile file = do
-    xdgOpenPresent <- findExecutable "xdg-open"
-    if Maybe.isJust xdgOpenPresent
-        then do
-            tryOpenWith file "xdg-open"
-            pure ()
+    tryViewers ["xdg-open", "open"] file
+
+
+tryViewers :: [[Char]] -> Path Abs File -> IO ()
+tryViewers [] file = do return ()
+tryViewers (e:es) file = do
+    v <- findExecutable e
+    if Maybe.isNothing v
+        then tryViewers es file
         else do
-            openPresent <- findExecutable "open"
-            if Maybe.isJust openPresent
-                then do
-                    tryOpenWith file "open"
-                    pure ()
-                else pure ()
+            tryOpenWith file e
+            return ()
 
 
 tryOpenWith :: Path Abs File -> FilePath -> IO ()
