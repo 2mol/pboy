@@ -166,7 +166,7 @@ fileFile conf newFileName file = do
     newFile <- Path.parseRelFile (T.unpack newFileName <> Path.fileExtension file)
     let
         newFilePath =
-            conf ^. Config.libraryDir </> newFile
+            (conf ^. Config.libraryDir) </> newFile
 
     case conf ^. Config.importAction of
         Config.Copy -> Path.copyFile file newFilePath
