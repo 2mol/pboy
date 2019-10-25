@@ -7,6 +7,7 @@ Changelog
     - more keyboard shortcuts!
     - launch file viewer in background.
     - fix to sort library files by date.
+    Huge thanks to Nils Steinger (https://github.com/n-st) for his contributions to this release.
 
 1.2, 2019-04-21
     - faster performance on large pdfs by only parsing the first couple of pages.
