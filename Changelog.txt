@@ -4,6 +4,7 @@ Changelog
     - new config option: separator character.
     - length limitation for filename lifted to maximum possible length.
     - better help screen, UI hint how to open it with [h].
+    - more keyboard shortcuts!
     - launch file viewer in background.
     - fix to sort library files by date.
 

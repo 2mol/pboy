@@ -321,32 +321,37 @@ handleFirstStartEvent s e =
         Nothing -> continue s
 
 
-handleLibraryEvent :: State -> V.Event -> EventM ResourceName (Next State)
-handleLibraryEvent s e =
+openAction :: State -> EventM n (Next State)
+openAction s =
     let
         openFile fileName = do
             _ <- liftIO $ Lib.openFile fileName
             continue s
+    in
+    case L.listSelectedElement (s ^. library) of
+        Just (_, fileInfo) -> openFile (Lib._fileName fileInfo)
+        _                  -> continue s
 
-        openAction =
-            case L.listSelectedElement (s ^. library) of
-                Just (_, fileInfo) -> openFile (Lib._fileName fileInfo)
-                _                  -> continue s
 
-        renameAction =
+handleLibraryEvent :: State -> V.Event -> EventM ResourceName (Next State)
+handleLibraryEvent s e =
+    let renameAction =
             case L.listSelectedElement (s ^. library) of
                 Just (_, fileInfo) -> beginFileImport s fileInfo
                 _                  -> continue s
     in
     case e of
         V.EvKey V.KEnter [] ->
-            openAction
+            openAction s
 
         V.EvKey (V.KChar ' ') [] ->
-            openAction
+            openAction s
 
         V.EvKey (V.KChar 'r') [] ->
             renameAction
+
+        V.EvKey (V.KChar 'o') [] ->
+            openAction s
 
         _ -> do
             newLibrary <- L.handleListEvent e (s ^. library)
@@ -370,6 +375,9 @@ handleInboxEvent s e =
 
         V.EvKey (V.KChar 'r') [] ->
             importAction
+
+        V.EvKey (V.KChar 'o') [] ->
+            openAction s
 
         _ -> do
             newInbox <- L.handleListEvent e (s ^. inbox)
@@ -531,6 +539,7 @@ helpScreen cpath (Just d) =
             , "    - from inbox: start import/rename."
             , "    - from library: open pdf."
             , "[r] - rename file"
+            , "[o] - open file"
             , " "
             , "[Esc] or [q] - quit from main screen."
             , "[Ctrl-c]     - quit from any screen."
