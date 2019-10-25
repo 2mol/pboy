@@ -395,7 +395,7 @@ handleImportScreenEvent fi s ev =
                         fi ^. nameEdit
                             & E.getEditContents
                             & T.unlines
-                            & Lib.finalFileName
+                            & Lib.finalFileName conf
 
                 _ <- liftIO $
                     Lib.fileFile conf newFileName (fi ^. currentFile)

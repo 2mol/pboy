@@ -153,11 +153,11 @@ validChars x =
 
 -- shelving files into library folder
 
-finalFileName :: Text -> Text
-finalFileName text =
+finalFileName :: Config -> Text -> Text
+finalFileName conf text =
     text
         & T.unwords . T.words
-        & T.replace " " "_"
+        & T.replace " " (conf ^. Config.wordSeparator)
 
 
 fileFile :: Config -> Text -> Path Abs File -> IO ()

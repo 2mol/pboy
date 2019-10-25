@@ -8,6 +8,7 @@ module Config
     , libraryDir
     , importAction
     , ImportAction(..)
+    , wordSeparator
     , tryGetConfig
     , defaultConfig
     , createConfig
@@ -18,6 +19,7 @@ import qualified Control.Exception as E
 import           Data.Function ((&))
 import           Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
 import qualified Data.Ini.Config.Bidir as C
+import           Data.Text (Text)
 import qualified Data.Text.IO as TIO
 import           Lens.Micro ((^.))
 import           Lens.Micro.TH (makeLenses)
@@ -31,6 +33,7 @@ data Config = Config
     , _inboxDirs    :: [Path Abs Dir]
     , _libraryDir   :: Path Abs Dir
     , _importAction :: ImportAction
+    , _wordSeparator:: Text
     }
 
 
@@ -42,6 +45,7 @@ data ConfigData = ConfigData
     { _inboxDirsD  :: [FilePath]
     , _libraryDirD :: FilePath
     , _importMove  :: Bool
+    , _wordSeparatorD :: Text
     } deriving Show
 
 
@@ -55,6 +59,7 @@ defaultConfigData =
         { _inboxDirsD= ["Downloads"]
         , _libraryDirD = "papers"
         , _importMove = True
+        , _wordSeparatorD = "_"
         }
 
 
@@ -93,12 +98,14 @@ readConfigData configData = do
     libDir <- Path.resolveDir home (configData ^. libraryDirD)
 
     let action = if configData ^. importMove then Move else Copy
+    let wordSep = configData ^. wordSeparatorD
 
     pure Config
         { _homeDir = home
         , _inboxDirs = inbDir
         , _libraryDir = libDir
         , _importAction = action
+        , _wordSeparator = wordSep
         }
 
 
@@ -120,6 +127,9 @@ configSpec =
                 [ "Whether to move imported files."
                 , "If set to false it will leave the original file unchanged."
                 ]
+
+        wordSeparatorD .=  C.field "wordseparator" C.text
+            & C.comment ["The character (or characters) to insert between words."]
 
 
 configIni :: Ini ConfigData
