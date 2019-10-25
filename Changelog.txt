@@ -1,5 +1,12 @@
 Changelog
 
+1.3, unreleased
+    - new config option: separator character.
+    - length limitation for filename lifted to maximum possible length.
+    - better help screen, UI hint how to open it with [h].
+    - launch file viewer in background.
+    - fix to sort library files by date.
+
 1.2, 2019-04-21
     - faster performance on large pdfs by only parsing the first couple of pages.
     - won't create the default directories until the first file is moved.
