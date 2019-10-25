@@ -21,7 +21,7 @@ import           Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
 import qualified Data.Ini.Config.Bidir as C
 import           Data.Text (Text)
 import qualified Data.Text.IO as TIO
-import           Lens.Micro ((^.))
+import           Lens.Micro ((^.), (.~))
 import           Lens.Micro.TH (makeLenses)
 import           Path (Abs, Dir, File, Path, Rel, (</>))
 import qualified Path
@@ -85,10 +85,18 @@ tryGetConfig configPath = do
         configIniResult =
             configTxtResult >>= (\t -> C.parseIni t configIni)
 
-        configResult =
+        configDataResult =
             C.getIniValue <$> configIniResult
 
-    sequence $ readConfigData <$> configResult
+        -- special case: allow " " in the .ini to be interpreted as
+        -- a single space. Ugly but neceessary.
+        inferSpace :: Config -> Config
+        inferSpace conf =
+            if conf ^. wordSeparator == "\" \""
+                then conf & wordSeparator .~ " "
+                else conf
+    configResult <- sequence $ readConfigData <$> configDataResult
+    pure $ inferSpace <$> configResult
 
 
 readConfigData :: ConfigData -> IO Config
@@ -120,7 +128,7 @@ configSpec =
                 ]
 
         libraryDirD .=  C.field "library" C.string
-            & C.comment ["The folder to copy/move renamed files to."]
+            & C.comment [ "The folder to copy/move renamed files to." ]
 
         importMove .=  C.field "move" C.bool
             & C.comment
@@ -129,7 +137,10 @@ configSpec =
                 ]
 
         wordSeparatorD .=  C.field "wordseparator" C.text
-            & C.comment ["The character (or characters) to insert between words."]
+            & C.comment
+                [ "The character to insert between words."
+                , "Write \" \" for space."
+                ]
 
 
 configIni :: Ini ConfigData

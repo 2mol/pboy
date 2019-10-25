@@ -120,9 +120,10 @@ initState = do
 
 refreshFiles :: State -> IO State
 refreshFiles s = do
-    libraryFileInfos <- Lib.listFiles (s ^. config . Config.libraryDir)
+    libraryFileInfos_ <- Lib.listFiles (s ^. config . Config.libraryDir)
     inboxFileInfos_ <- mapM Lib.listFiles (s ^. config . Config.inboxDirs)
     let
+        libraryFileInfos = Lib.sortFileInfoByDate libraryFileInfos_
         inboxFileInfos = Lib.sortFileInfoByDate $ join inboxFileInfos_
         libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
         inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
@@ -230,7 +231,7 @@ drawUI s =
                     <> " "
                     <> inboxLabel
                 , fill ' '
-                , str " -> "
+                , str " press h for help "
                 , fill ' '
                 , str $ libraryLabel <> " [Library]"
                 ]
@@ -524,14 +525,16 @@ helpScreen cpath (Just d) =
             [ "Welcome to PAPERBOY!"
             , "===================="
             , " "
-            , "[Enter] or [Space]:"
-            , "  - from inbox: start import/rename."
-            , "  - from library: open pdf."
-            , " "
             , "[Tab] - switch between inbox and library."
+            , " "
+            , "[Enter] or [Space]:"
+            , "    - from inbox: start import/rename."
+            , "    - from library: open pdf."
+            , "[r] - rename file"
             , " "
             , "[Esc] or [q] - quit from main screen."
             , "[Ctrl-c]     - quit from any screen."
+            , "[h]          - this help screen."
             , " "
             , "Your config file is at"
             , Path.fromAbsFile cpath
