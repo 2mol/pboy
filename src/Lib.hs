@@ -29,6 +29,7 @@ import qualified Path
 import qualified Path.IO as Path
 import qualified System.FilePath as F
 import qualified System.Process as P
+import qualified System.Directory
 import qualified Text.PDF.Info as PDFI
 
 data FileInfo = FileInfo
@@ -116,7 +117,9 @@ getTopLines file = do
 
 
 lengthCheck :: Text -> Bool
-lengthCheck t = T.length t >= 3 && T.length t <= 64
+lengthCheck t =
+    -- maximum filename length on most Unix FSs (255) - extension (.pdf, 4) = 251
+    T.length t >= 3 && T.length t <= 251
 
 
 boolToMaybe :: (a -> Bool) -> a -> Maybe a
@@ -151,11 +154,11 @@ validChars x =
 
 -- shelving files into library folder
 
-finalFileName :: Text -> Text
-finalFileName text =
+finalFileName :: Config -> Text -> Text
+finalFileName conf text =
     text
         & T.unwords . T.words
-        & T.replace " " "_"
+        & T.replace " " (conf ^. Config.wordSeparator)
 
 
 fileFile :: Config -> Text -> Path Abs File -> IO ()
@@ -164,7 +167,7 @@ fileFile conf newFileName file = do
     newFile <- Path.parseRelFile (T.unpack newFileName <> Path.fileExtension file)
     let
         newFilePath =
-            conf ^. Config.libraryDir </> newFile
+            (conf ^. Config.libraryDir) </> newFile
 
     case conf ^. Config.importAction of
         Config.Copy -> Path.copyFile file newFilePath
@@ -173,15 +176,21 @@ fileFile conf newFileName file = do
 
 openFile :: Path Abs File -> IO ()
 openFile file = do
-    linuxOpen <- tryOpenWith file "xdg-open"
-
-    if Either.isLeft linuxOpen
-        then do
-            _ <- tryOpenWith file "open"
-            pure ()
-        else pure ()
+    tryOpenWithMany ["xdg-open", "open"] file
 
 
-tryOpenWith :: Path Abs File -> FilePath -> IO (Either SomeException String)
-tryOpenWith file cmd =
-    E.try (P.readProcess cmd [Path.fromAbsFile file] "")
+tryOpenWithMany :: [String] -> Path Abs File -> IO ()
+tryOpenWithMany [] _ = pure ()
+tryOpenWithMany (e:es) file = do
+    exe <- System.Directory.findExecutable e
+    case exe of
+        Nothing -> tryOpenWithMany es file
+        Just _  -> tryOpenWith e file
+
+
+tryOpenWith :: FilePath -> Path Abs File -> IO ()
+tryOpenWith exePath file = do
+    P.createProcess
+        ( P.proc exePath [Path.fromAbsFile file] )
+        { P.std_out = P.NoStream, P.std_err = P.NoStream }
+    pure ()
