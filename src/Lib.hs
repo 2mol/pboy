@@ -8,6 +8,9 @@ module Lib
     , fileNameSuggestions
     , openFile
     , sortFileInfoByDate
+    , sortFileInfoByName
+    , sortFileInfo
+    , SortType(..)
     ) where
 
 import           Config (Config)
@@ -48,9 +51,22 @@ listFiles path = do
     else pure []
 
 
+data SortType = SortDate | SortName
+
+
 sortFileInfoByDate :: [FileInfo] -> [FileInfo]
 sortFileInfoByDate fileInfos =
     reverse $ sortWith _modTime fileInfos
+
+
+sortFileInfoByName :: [FileInfo] -> [FileInfo]
+sortFileInfoByName fileInfos =
+    reverse $ sortWith _fileName fileInfos
+
+
+sortFileInfo :: SortType -> [FileInfo] -> [FileInfo]
+sortFileInfo SortDate = sortFileInfoByDate
+sortFileInfo SortName = sortFileInfoByName
 
 
 getFileInfo :: Path Abs File -> IO FileInfo

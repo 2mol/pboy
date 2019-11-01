@@ -42,14 +42,15 @@ pboyVersion = showVersion version
 
 
 data State = State
-    { _config     :: Config.Config
-    , _configPath :: Path Abs File
-    , _focusRing  :: F.FocusRing ResourceName
-    , _firstStart :: Maybe (D.Dialog ConfigChoice)
-    , _help       :: Maybe (D.Dialog HelpChoice)
-    , _library    :: L.List ResourceName Lib.FileInfo
-    , _inbox      :: L.List ResourceName Lib.FileInfo
-    , _fileImport :: Maybe FileImport
+    { _config       :: Config.Config
+    , _configPath   :: Path Abs File
+    , _focusRing    :: F.FocusRing ResourceName
+    , _firstStart   :: Maybe (D.Dialog ConfigChoice)
+    , _help         :: Maybe (D.Dialog HelpChoice)
+    , _library      :: L.List ResourceName Lib.FileInfo
+    , _inbox        :: L.List ResourceName Lib.FileInfo
+    , _fileImport   :: Maybe FileImport
+    , _libSortOrder :: Lib.SortType
     }
 
 
@@ -101,6 +102,7 @@ initState = do
                 , _library = L.list Library [] 1
                 , _inbox = L.list Inbox [] 1
                 , _fileImport = Nothing
+                , _libSortOrder = Lib.SortDate
                 }
 
         Left _ -> do
@@ -115,6 +117,7 @@ initState = do
                 , _library = L.list Library [] 1
                 , _inbox = L.list Inbox [] 1
                 , _fileImport = Nothing
+                , _libSortOrder = Lib.SortDate
                 }
 
 
@@ -123,13 +126,21 @@ refreshFiles s = do
     libraryFileInfos_ <- Lib.listFiles (s ^. config . Config.libraryDir)
     inboxFileInfos_ <- mapM Lib.listFiles (s ^. config . Config.inboxDirs)
     let
-        libraryFileInfos = Lib.sortFileInfoByDate libraryFileInfos_
+        libraryFileInfos = Lib.sortFileInfo (s ^. libSortOrder) libraryFileInfos_
         inboxFileInfos = Lib.sortFileInfoByDate $ join inboxFileInfos_
         libraryList = L.list Library (Vec.fromList libraryFileInfos) 1
         inboxList = L.list Inbox (Vec.fromList inboxFileInfos) 1
     pure $ s
         & library .~ libraryList
         & inbox .~ inboxList
+
+
+cycleLibSort :: State -> IO State
+cycleLibSort s = do
+    let val = case (s ^. libSortOrder) of
+                Lib.SortName -> Lib.SortDate
+                Lib.SortDate -> Lib.SortName
+    pure $ s & libSortOrder .~ val
 
 
 inboxFocus :: F.FocusRing ResourceName
@@ -290,6 +301,11 @@ handleEvent s (VtyEvent e) =
         (Just Library, V.EvKey (V.KChar 'h') []) -> openHelp
         (Just Help,    V.EvKey (V.KChar 'h') []) -> backToMain
 
+        (_, V.EvKey (V.KChar 'l') []) -> do
+            cycleState <- liftIO $ cycleLibSort s
+            newState <- liftIO $ refreshFiles cycleState
+            continue $ newState
+        
         _ ->
             case (focus, s ^. fileImport) of
                 (Just Library, _) ->
@@ -544,6 +560,7 @@ helpScreen cpath (Just d) =
             , "[Esc] or [q] - quit from main screen."
             , "[Ctrl-c]     - quit from any screen."
             , "[h]          - this help screen."
+            , "[l]          - switch library sort mode"
             , " "
             , "Your config file is at"
             , Path.fromAbsFile cpath
