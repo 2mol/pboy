@@ -269,6 +269,11 @@ handleEvent s (VtyEvent e) =
             continue $ s
                 & focusRing .~ inboxFocus
                 & help .~ Nothing
+
+        cycleLibSortAndReferesh = do
+            cycleState <- liftIO $ cycleLibSort s
+            newState <- liftIO $ refreshFiles cycleState
+            continue $ newState
     in
     case (focus, e) of
         (_, V.EvKey (V.KChar 'c') [V.MCtrl])            -> halt s
@@ -301,10 +306,8 @@ handleEvent s (VtyEvent e) =
         (Just Library, V.EvKey (V.KChar 'h') []) -> openHelp
         (Just Help,    V.EvKey (V.KChar 'h') []) -> backToMain
 
-        (_, V.EvKey (V.KChar 'l') []) -> do
-            cycleState <- liftIO $ cycleLibSort s
-            newState <- liftIO $ refreshFiles cycleState
-            continue $ newState
+        (Just Inbox, V.EvKey (V.KChar 'l') [])   -> cycleLibSortAndReferesh
+        (Just Library, V.EvKey (V.KChar 'l') []) -> cycleLibSortAndReferesh
         
         _ ->
             case (focus, s ^. fileImport) of
