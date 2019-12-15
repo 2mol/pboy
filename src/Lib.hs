@@ -4,6 +4,7 @@ module Lib
     ( FileInfo(..)
     , finalFileName
     , listFiles
+    , relFilePath
     , fileFile
     , fileNameSuggestions
     , openFile
@@ -24,7 +25,7 @@ import           Data.Text.Titlecase (titlecase)
 import           Data.Time.Clock (UTCTime)
 import           GHC.Exts (sortWith)
 import           Lens.Micro ((^.))
-import           Path (Abs, Dir, File, Path, (</>))
+import           Path (Abs, Dir, File, Path, Abs, Rel, (</>), (-<.>))
 import qualified Path
 import qualified Path.IO as Path
 import qualified System.FilePath as F
@@ -34,6 +35,7 @@ import qualified Text.PDF.Info as PDFI
 
 data FileInfo = FileInfo
     { _fileName :: Path Abs File
+    , _baseDir  :: Path Abs Dir
     , _modTime  :: UTCTime
     }
 
@@ -42,8 +44,8 @@ listFiles :: Path Abs Dir -> IO [FileInfo]
 listFiles path = do
     dirExists <- Path.doesDirExist path
     if dirExists then do
-        files <- snd <$> Path.listDir path
-        fileInfos <- mapM getFileInfo files
+        files <- snd <$> Path.listDirRecur path
+        fileInfos <- mapM (getFileInfo path) files
         pure $ filter isPdf fileInfos
     else pure []
 
@@ -53,28 +55,30 @@ sortFileInfoByDate fileInfos =
     reverse $ sortWith _modTime fileInfos
 
 
-getFileInfo :: Path Abs File -> IO FileInfo
-getFileInfo path = do
+getFileInfo :: Path Abs Dir -> Path Abs File -> IO FileInfo
+getFileInfo baseDir path = do
     modTime <- Path.getModificationTime path
-    pure $ FileInfo path modTime
+    pure $ FileInfo path baseDir modTime
 
 
 isPdf :: FileInfo -> Bool
 isPdf fileInfo =
     Path.fileExtension (_fileName fileInfo) == ".pdf"
 
+relFilePath :: FileInfo -> Path Rel File
+relFilePath fileInfo = Maybe.fromMaybe (Path.filename $ _fileName fileInfo) (Path.stripProperPrefix (_baseDir fileInfo) (_fileName fileInfo))
 
 -- Getting Filename suggestions:
 
-fileNameSuggestions :: Path Abs File -> IO (Text, [Text])
-fileNameSuggestions file = do
-    pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile file
+fileNameSuggestions :: FileInfo -> IO (Text, [Text])
+fileNameSuggestions fileInfo = do
+    pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile (_fileName fileInfo)
 
-    topLines <- getTopLines file
+    topLines <- getTopLines (_fileName fileInfo)
 
     let
         baseName =
-            F.takeBaseName (Path.fromRelFile $ Path.filename file)
+            F.takeBaseName (Path.fromRelFile $ Path.filename (_fileName fileInfo))
                 & T.pack
                 & T.replace "_" " "
 
@@ -95,7 +99,7 @@ fileNameSuggestions file = do
                 & List.nub
                 & take 5
 
-    pure (baseName, suggestions)
+    pure (T.pack $ Path.fromRelFile $ Maybe.fromJust ((relFilePath fileInfo) -<.> ""), suggestions)
 
 
 getTopLines :: Path Abs File -> IO [Text]
@@ -163,11 +167,9 @@ finalFileName conf text =
 
 fileFile :: Config -> Text -> Path Abs File -> IO ()
 fileFile conf newFileName file = do
-    _ <- Path.ensureDir (conf ^. Config.libraryDir)
     newFile <- Path.parseRelFile (T.unpack newFileName <> Path.fileExtension file)
-    let
-        newFilePath =
-            (conf ^. Config.libraryDir) </> newFile
+    let newFilePath = (conf ^. Config.libraryDir) </> newFile
+    _ <- Path.ensureDir (Path.parent newFilePath)
 
     case conf ^. Config.importAction of
         Config.Copy -> Path.copyFile file newFilePath

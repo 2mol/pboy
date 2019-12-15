@@ -27,7 +27,7 @@ import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
 import           Lens.Micro ((%~), (.~), (?~), (^.))
 import           Lens.Micro.TH (makeLenses)
-import           Path (Abs, File, Path)
+import           Path (Abs, File, Dir, Path, (</>))
 import qualified Path
 
 import qualified Config
@@ -448,7 +448,7 @@ beginFileImport :: State -> Lib.FileInfo -> EventM ResourceName (Next State)
 beginFileImport s fileInfo = do
     let originalFile = Lib._fileName fileInfo
 
-    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions originalFile
+    fileNameSuggestions <- liftIO $ Lib.fileNameSuggestions fileInfo
 
     let
         fi =
@@ -477,7 +477,8 @@ drawFileInfo :: Bool -> Lib.FileInfo -> Widget ResourceName
 drawFileInfo _ fileInfo =
     let
         fileLabel =
-            [ str (Path.fromRelFile $ Path.filename $ Lib._fileName fileInfo)
+            [
+                str $ Path.fromRelFile $ Lib.relFilePath fileInfo
             , fill ' '
             , str (Time.showGregorian . Time.utctDay $ Lib._modTime fileInfo)
             ]
