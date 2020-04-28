@@ -24,25 +24,24 @@ import           Data.Text.Titlecase (titlecase)
 import           Data.Time.Clock (UTCTime)
 import           GHC.Exts (sortWith)
 import           Lens.Micro ((^.))
-import           Path (Abs, Dir, File, Path, (</>))
-import qualified Path
-import qualified Path.IO as Path
-import qualified System.FilePath as F
+import qualified System.Directory as Dir
+import           System.FilePath ((</>))
+import qualified System.FilePath as FilePath
 import qualified System.Process as P
-import qualified System.Directory
 import qualified Text.PDF.Info as PDFI
 
+
 data FileInfo = FileInfo
-    { _fileName :: Path Abs File
+    { _fileName :: FilePath
     , _modTime  :: UTCTime
     }
 
 
-listFiles :: Path Abs Dir -> IO [FileInfo]
+listFiles :: FilePath -> IO [FileInfo]
 listFiles path = do
-    dirExists <- Path.doesDirExist path
+    dirExists <- Dir.doesDirectoryExist path
     if dirExists then do
-        files <- snd <$> Path.listDir path
+        files <- Dir.getDirectoryContents path
         fileInfos <- mapM getFileInfo files
         pure $ filter isPdf fileInfos
     else pure []
@@ -53,28 +52,28 @@ sortFileInfoByDate fileInfos =
     reverse $ sortWith _modTime fileInfos
 
 
-getFileInfo :: Path Abs File -> IO FileInfo
+getFileInfo :: FilePath -> IO FileInfo
 getFileInfo path = do
-    modTime <- Path.getModificationTime path
+    modTime <- Dir.getModificationTime path
     pure $ FileInfo path modTime
 
 
 isPdf :: FileInfo -> Bool
 isPdf fileInfo =
-    Path.fileExtension (_fileName fileInfo) == ".pdf"
+    FilePath.takeExtension (_fileName fileInfo) == ".pdf"
 
 
 -- Getting Filename suggestions:
 
-fileNameSuggestions :: Path Abs File -> IO (Text, [Text])
+fileNameSuggestions :: FilePath -> IO (Text, [Text])
 fileNameSuggestions file = do
-    pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile file
+    pdfInfo <- PDFI.pdfInfo file
 
     topLines <- getTopLines file
 
     let
         baseName =
-            F.takeBaseName (Path.fromRelFile $ Path.filename file)
+            FilePath.takeBaseName (FilePath.takeBaseName file)
                 & T.pack
                 & T.replace "_" " "
 
@@ -98,10 +97,10 @@ fileNameSuggestions file = do
     pure (baseName, suggestions)
 
 
-getTopLines :: Path Abs File -> IO [Text]
+getTopLines :: FilePath -> IO [Text]
 getTopLines file = do
     plainTextContent <-
-        E.try (P.readProcess "pdftotext" [Path.fromAbsFile file, "-", "-f", "1", "-l", "4"] "")
+        E.try (P.readProcess "pdftotext" [file, "-", "-f", "1", "-l", "4"] "")
         :: IO (Either SomeException String)
     let
         topLines =
@@ -161,36 +160,41 @@ finalFileName conf text =
         & T.replace " " (conf ^. Config.wordSeparator)
 
 
-fileFile :: Config -> Text -> Path Abs File -> IO ()
-fileFile conf newFileName file = do
-    _ <- Path.ensureDir (conf ^. Config.libraryDir)
-    newFile <- Path.parseRelFile (T.unpack newFileName <> Path.fileExtension file)
-    let
+fileFile :: Config -> Text -> FilePath -> IO ()
+fileFile conf newFileNameWithSpaces file = do
+    Dir.createDirectoryIfMissing True (conf ^. Config.libraryDir)
+    let newFileName = T.unpack $ finalFileName conf newFileNameWithSpaces
+        newFile = newFileName <> ".pdf"
         newFilePath =
             (conf ^. Config.libraryDir) </> newFile
 
+    -- _ <- P.createProcess
+    --     ( P.proc "ls" ["-la"] )
+    --     { P.std_out = P.NoStream, P.std_err = P.NoStream }
+
     case conf ^. Config.importAction of
-        Config.Copy -> Path.copyFile file newFilePath
-        Config.Move -> Path.renameFile file newFilePath
+        Config.Copy -> Dir.copyFile file newFilePath
+        Config.Move -> Dir.renameFile file newFilePath
+    -- pure ()
 
 
-openFile :: Path Abs File -> IO ()
+openFile :: FilePath -> IO ()
 openFile file = do
     tryOpenWithMany ["xdg-open", "open"] file
 
 
-tryOpenWithMany :: [String] -> Path Abs File -> IO ()
+tryOpenWithMany :: [String] -> FilePath -> IO ()
 tryOpenWithMany [] _ = pure ()
 tryOpenWithMany (e:es) file = do
-    exe <- System.Directory.findExecutable e
+    exe <- Dir.findExecutable e
     case exe of
         Nothing -> tryOpenWithMany es file
         Just _  -> tryOpenWith e file
 
 
-tryOpenWith :: FilePath -> Path Abs File -> IO ()
+tryOpenWith :: FilePath -> FilePath -> IO ()
 tryOpenWith exePath file = do
-    P.createProcess
-        ( P.proc exePath [Path.fromAbsFile file] )
+    _ <- P.createProcess
+        ( P.proc exePath [file] )
         { P.std_out = P.NoStream, P.std_err = P.NoStream }
     pure ()

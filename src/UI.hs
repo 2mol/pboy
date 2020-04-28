@@ -27,8 +27,7 @@ import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
 import           Lens.Micro ((%~), (.~), (?~), (^.))
 import           Lens.Micro.TH (makeLenses)
-import           Path (Abs, File, Path)
-import qualified Path
+import qualified System.FilePath as FilePath
 
 import qualified Config
 import qualified Lib
@@ -43,7 +42,7 @@ pboyVersion = showVersion version
 
 data State = State
     { _config     :: Config.Config
-    , _configPath :: Path Abs File
+    , _configPath :: FilePath
     , _focusRing  :: F.FocusRing ResourceName
     , _firstStart :: Maybe (D.Dialog ConfigChoice)
     , _help       :: Maybe (D.Dialog HelpChoice)
@@ -60,14 +59,14 @@ data HelpChoice = HelpClose
 
 
 data FileImport = FileImport
-    { _currentFile :: Path Abs File
+    { _currentFile :: FilePath
     , _suggestions :: L.List ResourceName Text
     , _nameEdit    :: E.Editor Text ResourceName
     }
 
 
 data ResourceName
-    = FirstStart (Path Abs File)
+    = FirstStart (FilePath)
     | Help
     | Library
     | Inbox
@@ -197,20 +196,17 @@ drawUI s =
 
         homeDirText =
             s ^. config . Config.homeDir
-                & Path.fromAbsDir
                 & T.pack
 
         shortenDir = T.unpack . T.replace homeDirText "~/" . T.pack
 
         inboxLabel =
             inboxDirs
-                & map Path.fromAbsDir
                 & map shortenDir
                 & intercalate ","
 
         libraryLabel =
             s ^. config . Config.libraryDir
-                & Path.fromAbsDir
                 & shortenDir
 
         title = " PAPERBOY " <> "v" <> pboyVersion <> " "
@@ -411,14 +407,13 @@ handleImportScreenEvent fi s ev =
                 let
                     conf = s ^. config
 
-                    newFileName =
+                    newFileNameWithSpaces =
                         fi ^. nameEdit
                             & E.getEditContents
                             & T.unlines
-                            & Lib.finalFileName conf
 
                 _ <- liftIO $
-                    Lib.fileFile conf newFileName (fi ^. currentFile)
+                    Lib.fileFile conf newFileNameWithSpaces (fi ^. currentFile)
 
                 newState <- liftIO $ refreshFiles s
 
@@ -488,7 +483,7 @@ drawFileInfo :: Bool -> Lib.FileInfo -> Widget ResourceName
 drawFileInfo _ fileInfo =
     let
         fileLabel =
-            [ str (Path.fromRelFile $ Path.filename $ Lib._fileName fileInfo)
+            [ str (FilePath.takeFileName $ Lib._fileName fileInfo)
             , fill ' '
             , str (Time.showGregorian . Time.utctDay $ Lib._modTime fileInfo)
             ]
@@ -535,8 +530,8 @@ helpDialog =
     where choices = [("Cool", HelpClose)]
 
 
-helpScreen :: Path Abs File -> Maybe (D.Dialog HelpChoice) -> Widget ResourceName
-helpScreen cpath (Just d) =
+helpScreen :: FilePath -> Maybe (D.Dialog HelpChoice) -> Widget ResourceName
+helpScreen configPath (Just d) =
     D.renderDialog d
         $ C.hCenter
         $ padAll 1
@@ -557,7 +552,7 @@ helpScreen cpath (Just d) =
             , "[h]          - this help screen."
             , " "
             , "Your config file is at"
-            , Path.fromAbsFile cpath
+            , configPath
             , " "
             , "enjoy!"
             ]
@@ -571,13 +566,13 @@ firstStartDialog =
         choices = [("Create Config", ConfigCreate), ("Abort Mission", ConfigAbort)]
 
 
-missingConfigScreen :: Path Abs File -> Maybe (D.Dialog ConfigChoice) -> Widget ResourceName
-missingConfigScreen cpath (Just d) =
+missingConfigScreen :: FilePath -> Maybe (D.Dialog ConfigChoice) -> Widget ResourceName
+missingConfigScreen configPath (Just d) =
     D.renderDialog d
         $ padAll 1
         $ vBox
             [ C.hCenter (str "I will create a config file at")
             , vLimit 1 (fill ' ')
-            , C.hCenter (str $ Path.fromAbsFile cpath)
+            , C.hCenter (str configPath)
             ]
 missingConfigScreen _ _ = str ""
