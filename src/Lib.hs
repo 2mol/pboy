@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Lib
     ( FileInfo(..)
@@ -29,6 +30,7 @@ import           System.FilePath ((</>))
 import qualified System.FilePath as FilePath
 import qualified System.Process as P
 import qualified Text.PDF.Info as PDFI
+import GHC.IO.Handle (Handle)
 
 
 data FileInfo = FileInfo
@@ -161,21 +163,30 @@ finalFileName conf text =
 
 
 fileFile :: Config -> Text -> FilePath -> IO ()
-fileFile conf newFileNameWithSpaces file = do
+fileFile conf newFilenameRaw file = do
     Dir.createDirectoryIfMissing True (conf ^. Config.libraryDir)
-    let newFileName = T.unpack $ finalFileName conf newFileNameWithSpaces
+    let newFileName = T.unpack $ finalFileName conf newFilenameRaw
         newFile = newFileName <> ".pdf"
         newFilePath =
             (conf ^. Config.libraryDir) </> newFile
 
-    -- _ <- P.createProcess
-    --     ( P.proc "ls" ["-la"] )
-    --     { P.std_out = P.NoStream, P.std_err = P.NoStream }
-
     case conf ^. Config.importAction of
         Config.Copy -> Dir.copyFile file newFilePath
         Config.Move -> Dir.renameFile file newFilePath
-    -- pure ()
+
+    _ <- tryCreateProcess "exiftool" ["-Title=" <> T.unpack newFilenameRaw, newFilePath]
+
+    pure ()
+
+
+tryCreateProcess :: FilePath -> [String] -> IO ()
+tryCreateProcess executable args = do
+    result <- try $ P.createProcess (P.proc executable args)
+        { P.std_out = P.NoStream, P.std_err = P.NoStream }
+
+    case result of
+        Left (_ :: SomeException) -> pure ()
+        Right _ -> pure ()
 
 
 openFile :: FilePath -> IO ()
@@ -189,12 +200,4 @@ tryOpenWithMany (e:es) file = do
     exe <- Dir.findExecutable e
     case exe of
         Nothing -> tryOpenWithMany es file
-        Just _  -> tryOpenWith e file
-
-
-tryOpenWith :: FilePath -> FilePath -> IO ()
-tryOpenWith exePath file = do
-    _ <- P.createProcess
-        ( P.proc exePath [file] )
-        { P.std_out = P.NoStream, P.std_err = P.NoStream }
-    pure ()
+        Just _  -> tryCreateProcess e [file]

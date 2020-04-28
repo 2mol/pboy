@@ -8,7 +8,9 @@ import           Control.Monad (join, void)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Function ((&))
 import           Data.List (intercalate)
+import           Data.List (uncons)
 import           Data.Monoid ((<>))
+import qualified System.FilePath as FilePath
 
 import           Brick
 import qualified Brick.Focus as F
@@ -27,7 +29,6 @@ import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
 import           Lens.Micro ((%~), (.~), (?~), (^.))
 import           Lens.Micro.TH (makeLenses)
-import qualified System.FilePath as FilePath
 
 import qualified Config
 import qualified Lib
@@ -407,13 +408,14 @@ handleImportScreenEvent fi s ev =
                 let
                     conf = s ^. config
 
-                    newFileNameWithSpaces =
+                    newFilenameRaw =
                         fi ^. nameEdit
                             & E.getEditContents
-                            & T.unlines
+                            & uncons
+                            & maybe "" fst
 
                 _ <- liftIO $
-                    Lib.fileFile conf newFileNameWithSpaces (fi ^. currentFile)
+                    Lib.fileFile conf newFilenameRaw (fi ^. currentFile)
 
                 newState <- liftIO $ refreshFiles s
 
