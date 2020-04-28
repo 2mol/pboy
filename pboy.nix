@@ -3,6 +3,7 @@
 , lib
 , symlinkJoin
 , poppler_utils
+, exiftool
 }:
 let
   pboy = haskellPackages.callCabal2nix "pboy" (lib.cleanSource ./.) {};

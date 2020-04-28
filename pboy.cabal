@@ -1,7 +1,7 @@
 cabal-version: 2.4
 
 name:           pboy
-version:        1.3
+version:        1.4
 synopsis:       a small .pdf management utility
 description:    Please see the README on Github at <https://github.com/2mol/pboy#readme>
 homepage:       https://github.com/2mol/pboy#readme
@@ -34,13 +34,13 @@ library
       base >=4.7 && <5
     , brick
     , config-ini
+    , filepath
     , directory
     , either
-    , filepath
     , microlens
     , microlens-th
-    , path
-    , path-io
+    -- , path >=0.7 && <0.8
+    -- , path-io
     , pdfinfo
     , process
     , text
