@@ -327,8 +327,19 @@ openAction s =
         openFile fileName = do
             _ <- liftIO $ Lib.openFile fileName
             continue s
+
+        accessor =
+            case F.focusGetCurrent (s ^. focusRing) of
+                Just Library ->
+                    library
+
+                Just Inbox ->
+                    inbox
+
+                _ ->
+                    library
     in
-    case L.listSelectedElement (s ^. library) of
+    case L.listSelectedElement (s ^. accessor) of
         Just (_, fileInfo) -> openFile (Lib._fileName fileInfo)
         _                  -> continue s
 
