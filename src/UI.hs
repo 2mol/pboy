@@ -198,7 +198,7 @@ drawUI s =
             s ^. config . Config.homeDir
                 & T.pack
 
-        shortenDir = T.unpack . T.replace homeDirText "~/" . T.pack
+        shortenDir = T.unpack . T.replace homeDirText "~" . T.pack
 
         inboxLabel =
             inboxDirs

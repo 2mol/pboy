@@ -41,8 +41,8 @@ listFiles :: FilePath -> IO [FileInfo]
 listFiles path = do
     dirExists <- Dir.doesDirectoryExist path
     if dirExists then do
-        files <- Dir.getDirectoryContents path
-        fileInfos <- mapM getFileInfo files
+        files <- Dir.listDirectory path
+        fileInfos <- mapM getFileInfo (map (path </>) files)
         pure $ filter isPdf fileInfos
     else pure []
 
