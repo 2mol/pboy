@@ -1,11 +1,11 @@
 name: CI
 
 # Trigger the workflow on push or pull request, but only for the master branch
-on:
-  pull_request:
-    branches: [master]
-  push:
-    branches: [master, dev-1.4]
+on: [push, pull_request]
+  # pull_request:
+  #   branches: [master]
+  # push:
+  #   branches: [master, dev-1.4]
 
 jobs:
   cabal:
