@@ -1,6 +1,6 @@
 ![import screen](https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png)
 
-[![CircleCI](https://circleci.com/gh/2mol/pboy.svg?style=svg)](https://circleci.com/gh/2mol/pboy) [![Build Status](https://travis-ci.org/2mol/pboy.svg?branch=master)](https://travis-ci.org/2mol/pboy)
+[![GitHub CI](https://github.com/2mol/pboy/workflows/CI/badge.svg)](https://github.com/2mol/pboy/actions)
 
 Paperboy is a tiny .pdf management utility.
 

@@ -1,4 +1,4 @@
-cabal-version: 2.4
+cabal-version: 3.0
 
 name:           pboy
 version:        1.4
@@ -39,8 +39,6 @@ library
     , either
     , microlens
     , microlens-th
-    -- , path >=0.7 && <0.8
-    -- , path-io
     , pdfinfo
     , process
     , text
