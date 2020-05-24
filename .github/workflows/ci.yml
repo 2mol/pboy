@@ -4,7 +4,8 @@ name: CI
 on:
   pull_request:
     branches: [master]
-  push
+  push:
+    branches: [master, dev-1.4]
 
 jobs:
   cabal:
