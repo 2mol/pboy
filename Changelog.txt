@@ -1,7 +1,8 @@
 Changelog
 
 1.4, unreleased
-    - bugfix where files were always opened from the library instead of where the cursor focus was.
+    - the title is now also set in the pdf metadata. Thanks to https://github.com/ad-si !
+    - bugfix where opening files didn't respect the cursor focus.
     - removal of a dependency that wasn't worth the complexity (`path` and `path-io` were ditched).
 
 1.3, 2019-10-27

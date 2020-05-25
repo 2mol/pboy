@@ -8,7 +8,6 @@ import           Control.Monad (join, void)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Function ((&))
 import           Data.List (intercalate, uncons)
-import           Data.Monoid ((<>))
 import qualified System.FilePath as FilePath
 
 import           Brick
@@ -180,8 +179,8 @@ drawUI s =
         (Just Help, _)                  -> [helpScreen (s ^. configPath) (s ^. help), mainScreen]
         (Just Library, _)               -> [mainScreen]
         (Just Inbox, _)                 -> [mainScreen]
-        (Just NameSuggestions, Just fi) -> [drawImportWidget currentFocus fi, mainScreen]
-        (Just FileNameEdit, Just fi)    -> [drawImportWidget currentFocus fi, mainScreen]
+        (Just NameSuggestions, Just fi) -> [drawImportWidget (s ^. config) currentFocus fi, mainScreen]
+        (Just FileNameEdit, Just fi)    -> [drawImportWidget (s ^. config) currentFocus fi, mainScreen]
         _ -> []
     where
         focus = F.focusGetCurrent (s ^. focusRing)
@@ -495,8 +494,8 @@ drawFileInfo _ fileInfo =
         fileLabelWidget
 
 
-drawImportWidget :: Maybe ResourceName -> FileImport -> Widget ResourceName
-drawImportWidget focus fi =
+drawImportWidget :: Config.Config -> Maybe ResourceName -> FileImport -> Widget ResourceName
+drawImportWidget config focus fi =
     C.centerLayer
         $ B.borderWithLabel (str " Import ")
         $ padLeftRight 2 $ padTopBottom 1 $ hLimit 70 $ vLimit 20
@@ -517,12 +516,17 @@ drawImportWidget focus fi =
                     (focus == Just NameSuggestions)
                     (fi ^. suggestions)
             , fill ' '
-            , str
-                "[Esc]    - cancel.\n\
-                \[Tab]    - switch between editor and suggestions.\n\
-                \[Enter]  - rename the file and move it to your library folder.\n\
-                \[Ctrl-o] - open the file that you're currently renaming."
+            , str $
+                "[Esc]    - cancel.\n"
+                <> "[Tab]    - switch between editor and suggestions.\n"
+                <> "[Enter]  - "
+                    <> moveOrCopy (config ^. Config.importAction)
+                    <> " the file to your library folder, using the new name.\n"
+                <> "[Ctrl-o] - open the file that you're currently renaming."
             ]
+    where
+        moveOrCopy Config.Move = "move"
+        moveOrCopy Config.Copy = "copy"
 
 
 helpDialog :: D.Dialog HelpChoice

@@ -30,7 +30,6 @@ import           System.FilePath ((</>))
 import qualified System.FilePath as FilePath
 import qualified System.Process as P
 import qualified Text.PDF.Info as PDFI
-import GHC.IO.Handle (Handle)
 
 
 data FileInfo = FileInfo
