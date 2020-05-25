@@ -44,8 +44,11 @@ jobs:
 
     - name: Build
       run: |
-        cabal build all
-        ls -lh ${{ steps.setup-haskell-cabal.outputs.cabal-store }}/${{ matrix.ghc }}
+        mkdir bin
+        cabal install --install-method=copy --installdir=bin
+        ls -lh bin/
+        ldd bin/pboy
+
 
     # - name: Build Linux
     #   if: matrix.os == 'ubuntu-latest'
