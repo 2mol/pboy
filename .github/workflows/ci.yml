@@ -47,7 +47,6 @@ jobs:
         mkdir bin
         cabal install --install-method=copy --installdir=bin
         ls -lh bin/
-        ldd bin/pboy
 
 
     # - name: Build Linux
