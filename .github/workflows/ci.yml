@@ -45,7 +45,7 @@ jobs:
     - name: Build
       run: |
         mkdir bin
-        cabal install --install-method=copy --installdir=bin
+        cabal install --enable-executable-static --install-method=copy --installdir=bin
         ls -lh bin/
         ldd bin/pboy
 
