@@ -43,11 +43,16 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.ghc }}-cabal
 
     - name: Build
-      if: ${{ matrix.os }} == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest'
       run: |
-        cabal build all --ld-options='-static'
+        cabal build all --enable-executable-static
         ls -l ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-      # cabal build all --enable-tests --enable-benchmarks --write-ghc-environment-files=always
+
+    - name: Build
+      if: matrix.os == 'macOS-latest'
+      run: |
+        cabal build all
+        ls -l ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
 
 
     - name: Test
