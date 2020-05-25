@@ -43,9 +43,12 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.ghc }}-cabal
 
     - name: Build
+      if: ${{ matrix.os }} == 'ubuntu-latest'
       run: |
         cabal update
-        cabal build all --enable-tests --enable-benchmarks --write-ghc-environment-files=always
+    # cabal build all --enable-tests --enable-benchmarks --write-ghc-environment-files=always
+        cabal build all --ld-options='-static'
+
 
     - name: Test
       run: |
