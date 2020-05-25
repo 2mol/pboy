@@ -7,8 +7,7 @@ module UI where
 import           Control.Monad (join, void)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Function ((&))
-import           Data.List (intercalate)
-import           Data.List (uncons)
+import           Data.List (intercalate, uncons)
 import           Data.Monoid ((<>))
 import qualified System.FilePath as FilePath
 
@@ -67,7 +66,7 @@ data FileImport = FileImport
 
 
 data ResourceName
-    = FirstStart (FilePath)
+    = FirstStart FilePath
     | Help
     | Library
     | Inbox

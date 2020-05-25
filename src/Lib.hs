@@ -190,8 +190,8 @@ tryCreateProcess executable args = do
 
 
 openFile :: FilePath -> IO ()
-openFile file = do
-    tryOpenWithMany ["xdg-open", "open"] file
+openFile =
+    tryOpenWithMany ["xdg-open", "open"]
 
 
 tryOpenWithMany :: [String] -> FilePath -> IO ()
