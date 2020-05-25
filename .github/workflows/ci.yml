@@ -46,7 +46,6 @@ jobs:
       if: ${{ matrix.os }} == 'ubuntu-latest'
       run: |
         cabal update
-    # cabal build all --enable-tests --enable-benchmarks --write-ghc-environment-files=always
         cabal build all --ld-options='-static'
 
 
