@@ -44,7 +44,7 @@ listFiles path = do
     if dirExists then do
         files <- Dir.listDirectory path
         fileInfos <- mapM getFileInfo (map (path </>) files)
-        pure $ filter isPdf fileInfos
+        pure $ filter isPdf (Maybe.catMaybes fileInfos)
     else pure []
 
 
@@ -53,10 +53,20 @@ sortFileInfoByDate fileInfos =
     reverse $ sortWith _modTime fileInfos
 
 
-getFileInfo :: FilePath -> IO FileInfo
+getFileInfo :: FilePath -> IO (Maybe FileInfo)
 getFileInfo path = do
-    modTime <- Dir.getModificationTime path
-    pure $ FileInfo path modTime
+    resModTime <- try $ Dir.getModificationTime path
+    case resModTime of
+        Left (_ :: SomeException) -> pure Nothing
+        Right modTime -> pure $ Just (FileInfo path modTime)
+
+
+    -- result <- try $ P.createProcess (P.proc executable args)
+    --     { P.std_out = P.NoStream, P.std_err = P.NoStream }
+
+    -- case result of
+    --     Left (_ :: SomeException) -> pure ()
+    --     Right _ -> pure ()
 
 
 isPdf :: FileInfo -> Bool
