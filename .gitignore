@@ -3,3 +3,5 @@ dist-newstyle/
 result
 .stack-work/
 stack.yaml.lock
+.vscode/
+
