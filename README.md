@@ -1,4 +1,4 @@
-<img srcset="https://raw.githubusercontent.com/2mol/pboy/dev-1.4/doc/import.png 1x, https://raw.githubusercontent.com/2mol/pboy/dev-1.4/doc/import.png 2x" src="https://raw.githubusercontent.com/2mol/pboy/dev-1.4/doc/import.png" alt="pboy screenshot" />
+<img srcset="https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png 1x, https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png 2x" src="https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png" alt="pboy screenshot" />
 
 [![GitHub CI](https://github.com/2mol/pboy/workflows/CI/badge.svg)](https://github.com/2mol/pboy/actions)
 
