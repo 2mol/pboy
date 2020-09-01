@@ -35,7 +35,7 @@ jobs:
     - name: Build
       run: |
         mkdir bin
-        cabal build --install-method=copy --installdir=bin
+        cabal install --install-method=copy --installdir=bin
 
     - name: Compress binaries
       uses: svenstaro/upx-action@v2
