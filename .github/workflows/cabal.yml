@@ -32,7 +32,19 @@ jobs:
         path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
         key: ${{ runner.os }}-${{ matrix.ghc }}-cabal
 
-    - name: Build
+    # - name: Build
+    #   run: |
+    #     mkdir bin
+    #     cabal install --install-method=copy --installdir=bin
+
+    - name: Build Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        mkdir bin
+        cabal install --install-method=copy --installdir=bin
+
+    - name: Build MacOS
+      if: matrix.os == 'macOS-latest'
       run: |
         mkdir bin
         cabal install --install-method=copy --installdir=bin
@@ -42,9 +54,6 @@ jobs:
       with:
         file: bin/pboy
 
-    # - name: Build Linux
-    #   if: matrix.os == 'ubuntu-latest'
-    #   run: |
     #     mkdir bin
     #     cabal build --install-method=copy --installdir=bin
     # export BIN=$(cabal exec -- which pboy)
