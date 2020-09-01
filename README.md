@@ -100,5 +100,6 @@ This will publish compiled assets for OSX and Linux, but only create a prereleas
 - [nmattia](https://github.com/nmattia) did the work to get Paperboy to build with [nix](https://github.com/NixOS/nix) and patiently explained some of the basics to me.
 - OsugiSakae and bri-an on reddit helped me with an annoying performance issue!
 - [Nils Steinger](https://github.com/n-st) for feature contributions.
+- [Adrian Sieber](https://github.com/ad-si) for contributing.
 
 The name 'Paperboy' is a reference to [this game](https://en.wikipedia.org/wiki/Paperboy_(video_game)), which I had for the NES and never quite mastered.
