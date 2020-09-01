@@ -1,7 +1,7 @@
 Changelog
 
 1.4, 2019-09-01
-    - the title is now also set in the pdf metadata. Thank https://github.com/ad-si !
+    - the title is now also set in the pdf metadata. Thanks https://github.com/ad-si !
     - bugfix where opening files didn't respect the cursor focus.
     - removal of a dependency that wasn't worth the complexity (`path` and `path-io` were ditched).
     - switched to GitHub Actions for releases.
