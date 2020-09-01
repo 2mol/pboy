@@ -42,7 +42,9 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir bin
-        cabal build
+        cabal build --ghc-options='-optl-static' --ld-options='-static' --cc-options='-static -pthread'
+        ls -lh $(cabal exec -- which pboy)
+        strip $(cabal exec -- which pboy)
         ls -lh $(cabal exec -- which pboy)
         ldd $(cabal exec -- which pboy) || true
 
