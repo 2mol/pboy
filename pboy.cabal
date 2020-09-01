@@ -8,7 +8,7 @@ homepage:       https://github.com/2mol/pboy#readme
 bug-reports:    https://github.com/2mol/pboy/issues
 author:         Juri Chomé
 maintainer:     juri.chome@gmail.com
-copyright:      2019 Juri Chomé
+copyright:      2020 Juri Chomé
 license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
