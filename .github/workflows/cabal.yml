@@ -41,7 +41,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir bin
-        cabal build --ghc-options='-optl-static' --ld-options='-static -pthread'
+    # cabal build --ghc-options='-optl-static' --ld-options='-static -pthread'
         cabal install --install-method=copy --installdir=bin
         ldd bin/pboy || true
 
