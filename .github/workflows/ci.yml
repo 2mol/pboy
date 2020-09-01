@@ -43,7 +43,7 @@ jobs:
       run: |
         mkdir bin
         cabal build
-        cabal exec -- which pboy
+        ls -lh $(cabal exec -- which pboy)
         ldd $(cabal exec -- which pboy)
 
     - name: Build MacOS
@@ -51,7 +51,7 @@ jobs:
       run: |
         mkdir bin
         cabal build
-        cabal exec -- which pboy
+        ls -lh $(cabal exec -- which pboy)
         otool -L $(cabal exec -- which pboy)
 
     # - name: Check Linux
