@@ -41,6 +41,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir bin
+        cabal build --ghc-options='-optl-static' --ld-options='-static -pthread'
         cabal install --install-method=copy --installdir=bin
 
     - name: Build MacOS
@@ -53,6 +54,8 @@ jobs:
       uses: svenstaro/upx-action@v2
       with:
         file: bin/pboy
+        args: --best
+        strip: true
 
     #     mkdir bin
     #     cabal build --install-method=copy --installdir=bin
