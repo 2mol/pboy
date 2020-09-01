@@ -62,7 +62,7 @@ jobs:
         strip: true
 
     - name: Publish Release Binaries
-      if: !contains(github.ref, "release")
+      # if: !contains(github.ref, "release")
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
