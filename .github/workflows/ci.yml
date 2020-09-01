@@ -43,21 +43,23 @@ jobs:
       run: |
         mkdir bin
         cabal build
-        export PBOY_BIN=$(cabal exec -- which pboy)
+        cabal exec -- which pboy
+        ldd $(cabal exec -- which pboy)
 
     - name: Build MacOS
       if: matrix.os == 'macOS-latest'
       run: |
         mkdir bin
         cabal build
-        export PBOY_BIN=$(cabal exec -- which pboy)
+        cabal exec -- which pboy
+        otool -L $(cabal exec -- which pboy)
 
-    - name: Check Linux
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        ldd $PBOY_BIN
+    # - name: Check Linux
+    #   if: matrix.os == 'ubuntu-latest'
+    #   run: |
+    #     ldd $PBOY_BIN
 
-    - name: Check MacOS
-      if: matrix.os == 'macOS-latest'
-      run: |
-        otool -L $PBOY_BIN
+    # - name: Check MacOS
+    #   if: matrix.os == 'macOS-latest'
+    #   run: |
+    #     otool -L $PBOY_BIN
