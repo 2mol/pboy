@@ -7,8 +7,8 @@ module UI where
 import           Control.Monad (join, void)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Function ((&))
-import           Data.List (intercalate)
-import           Data.Monoid ((<>))
+import           Data.List (intercalate, uncons)
+import qualified System.FilePath as FilePath
 
 import           Brick
 import qualified Brick.Focus as F
@@ -27,8 +27,6 @@ import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
 import           Lens.Micro ((%~), (.~), (?~), (^.))
 import           Lens.Micro.TH (makeLenses)
-import           Path (Abs, File, Path)
-import qualified Path
 
 import qualified Config
 import qualified Lib
@@ -43,7 +41,7 @@ pboyVersion = showVersion version
 
 data State = State
     { _config     :: Config.Config
-    , _configPath :: Path Abs File
+    , _configPath :: FilePath
     , _focusRing  :: F.FocusRing ResourceName
     , _firstStart :: Maybe (D.Dialog ConfigChoice)
     , _help       :: Maybe (D.Dialog HelpChoice)
@@ -60,14 +58,14 @@ data HelpChoice = HelpClose
 
 
 data FileImport = FileImport
-    { _currentFile :: Path Abs File
+    { _currentFile :: FilePath
     , _suggestions :: L.List ResourceName Text
     , _nameEdit    :: E.Editor Text ResourceName
     }
 
 
 data ResourceName
-    = FirstStart (Path Abs File)
+    = FirstStart FilePath
     | Help
     | Library
     | Inbox
@@ -181,8 +179,8 @@ drawUI s =
         (Just Help, _)                  -> [helpScreen (s ^. configPath) (s ^. help), mainScreen]
         (Just Library, _)               -> [mainScreen]
         (Just Inbox, _)                 -> [mainScreen]
-        (Just NameSuggestions, Just fi) -> [drawImportWidget currentFocus fi, mainScreen]
-        (Just FileNameEdit, Just fi)    -> [drawImportWidget currentFocus fi, mainScreen]
+        (Just NameSuggestions, Just fi) -> [drawImportWidget (s ^. config) currentFocus fi, mainScreen]
+        (Just FileNameEdit, Just fi)    -> [drawImportWidget (s ^. config) currentFocus fi, mainScreen]
         _ -> []
     where
         focus = F.focusGetCurrent (s ^. focusRing)
@@ -197,20 +195,17 @@ drawUI s =
 
         homeDirText =
             s ^. config . Config.homeDir
-                & Path.fromAbsDir
                 & T.pack
 
-        shortenDir = T.unpack . T.replace homeDirText "~/" . T.pack
+        shortenDir = T.unpack . T.replace homeDirText "~" . T.pack
 
         inboxLabel =
             inboxDirs
-                & map Path.fromAbsDir
                 & map shortenDir
                 & intercalate ","
 
         libraryLabel =
             s ^. config . Config.libraryDir
-                & Path.fromAbsDir
                 & shortenDir
 
         title = " PAPERBOY " <> "v" <> pboyVersion <> " "
@@ -327,8 +322,19 @@ openAction s =
         openFile fileName = do
             _ <- liftIO $ Lib.openFile fileName
             continue s
+
+        accessor =
+            case F.focusGetCurrent (s ^. focusRing) of
+                Just Library ->
+                    library
+
+                Just Inbox ->
+                    inbox
+
+                _ ->
+                    library
     in
-    case L.listSelectedElement (s ^. library) of
+    case L.listSelectedElement (s ^. accessor) of
         Just (_, fileInfo) -> openFile (Lib._fileName fileInfo)
         _                  -> continue s
 
@@ -400,14 +406,14 @@ handleImportScreenEvent fi s ev =
                 let
                     conf = s ^. config
 
-                    newFileName =
+                    newFilenameRaw =
                         fi ^. nameEdit
                             & E.getEditContents
-                            & T.unlines
-                            & Lib.finalFileName conf
+                            & uncons
+                            & maybe "" fst
 
                 _ <- liftIO $
-                    Lib.fileFile conf newFileName (fi ^. currentFile)
+                    Lib.fileFile conf newFilenameRaw (fi ^. currentFile)
 
                 newState <- liftIO $ refreshFiles s
 
@@ -477,7 +483,7 @@ drawFileInfo :: Bool -> Lib.FileInfo -> Widget ResourceName
 drawFileInfo _ fileInfo =
     let
         fileLabel =
-            [ str (Path.fromRelFile $ Path.filename $ Lib._fileName fileInfo)
+            [ str (FilePath.takeFileName $ Lib._fileName fileInfo)
             , fill ' '
             , str (Time.showGregorian . Time.utctDay $ Lib._modTime fileInfo)
             ]
@@ -488,8 +494,8 @@ drawFileInfo _ fileInfo =
         fileLabelWidget
 
 
-drawImportWidget :: Maybe ResourceName -> FileImport -> Widget ResourceName
-drawImportWidget focus fi =
+drawImportWidget :: Config.Config -> Maybe ResourceName -> FileImport -> Widget ResourceName
+drawImportWidget config focus fi =
     C.centerLayer
         $ B.borderWithLabel (str " Import ")
         $ padLeftRight 2 $ padTopBottom 1 $ hLimit 70 $ vLimit 20
@@ -510,12 +516,17 @@ drawImportWidget focus fi =
                     (focus == Just NameSuggestions)
                     (fi ^. suggestions)
             , fill ' '
-            , str
-                "[Esc]    - cancel.\n\
-                \[Tab]    - switch between editor and suggestions.\n\
-                \[Enter]  - rename the file and move it to your library folder.\n\
-                \[Ctrl-o] - open the file that you're currently renaming."
+            , str $
+                "[Esc]    - cancel.\n"
+                <> "[Tab]    - switch between editor and suggestions.\n"
+                <> "[Enter]  - "
+                    <> moveOrCopy (config ^. Config.importAction)
+                    <> " the file to your library folder, using the new name.\n"
+                <> "[Ctrl-o] - open the file that you're currently renaming."
             ]
+    where
+        moveOrCopy Config.Move = "move"
+        moveOrCopy Config.Copy = "copy"
 
 
 helpDialog :: D.Dialog HelpChoice
@@ -524,8 +535,8 @@ helpDialog =
     where choices = [("Cool", HelpClose)]
 
 
-helpScreen :: Path Abs File -> Maybe (D.Dialog HelpChoice) -> Widget ResourceName
-helpScreen cpath (Just d) =
+helpScreen :: FilePath -> Maybe (D.Dialog HelpChoice) -> Widget ResourceName
+helpScreen configPath (Just d) =
     D.renderDialog d
         $ C.hCenter
         $ padAll 1
@@ -546,7 +557,7 @@ helpScreen cpath (Just d) =
             , "[h]          - this help screen."
             , " "
             , "Your config file is at"
-            , Path.fromAbsFile cpath
+            , configPath
             , " "
             , "enjoy!"
             ]
@@ -560,13 +571,13 @@ firstStartDialog =
         choices = [("Create Config", ConfigCreate), ("Abort Mission", ConfigAbort)]
 
 
-missingConfigScreen :: Path Abs File -> Maybe (D.Dialog ConfigChoice) -> Widget ResourceName
-missingConfigScreen cpath (Just d) =
+missingConfigScreen :: FilePath -> Maybe (D.Dialog ConfigChoice) -> Widget ResourceName
+missingConfigScreen configPath (Just d) =
     D.renderDialog d
         $ padAll 1
         $ vBox
             [ C.hCenter (str "I will create a config file at")
             , vLimit 1 (fill ' ')
-            , C.hCenter (str $ Path.fromAbsFile cpath)
+            , C.hCenter (str configPath)
             ]
 missingConfigScreen _ _ = str ""

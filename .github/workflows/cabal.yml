@@ -1,0 +1,116 @@
+name: Cabal Build
+
+# Trigger the workflow on push or pull request, but only for the master branch
+on: [push, pull_request]
+  # pull_request:
+  #   branches: [master]
+  # push:
+  #   branches: [master, dev-1.4]
+
+# on:
+#   create:
+#     tags:
+#       - '*'
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ghc ${{ matrix.ghc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+        cabal: ["3.2.0"]
+        ghc: ["8.10.2"]
+        include:
+          - os: ubuntu-latest
+            os_name: linux
+            artifact: "pboy-linux.tar.gz"
+          - os: macOS-latest
+            os_name: osx
+            artifact: "pboy-osx.tar.gz"
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-haskell@v1.1
+      id: setup-haskell-cabal
+      name: Setup Haskell
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: ${{ matrix.cabal }}
+
+    - uses: actions/cache@v1
+      name: Cache cabal-store
+      with:
+        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+        key: ${{ runner.os }}-${{ matrix.ghc }}-cabal
+
+    - name: Build
+      run: |
+        mkdir bin
+        cabal install --install-method=copy --installdir=bin
+        ldd bin/pboy || otool -L bin/pboy || true
+
+    - name: Compress binaries
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: svenstaro/upx-action@v2
+      with:
+        file: bin/pboy
+        args: --best
+        strip: true
+
+    - name: Prepare Publishing
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        cd bin
+        tar -czf ${{ matrix.artifact }} pboy
+        shasum -a 256 ${{ matrix.artifact }}
+
+    - name: Publish Release Binaries
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: bin/${{ matrix.artifact }}
+        tag: ${{ github.ref }}
+        prerelease: true
+        overwrite: true
+
+    # - name: Prepare Linux Publishing
+    #   if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/')
+    #   run: |
+    #     echo ${{ github.event.release.tag_name }}
+
+    # - name: Prepare MacOS Publishing
+    #   if: matrix.os == 'macOS-latest' && startsWith(github.ref, 'refs/tags/')
+    #   run: |
+    #     echo ${{ github.event.release.tag_name }}
+
+
+
+
+    #     mkdir bin
+    #     cabal build --install-method=copy --installdir=bin
+    # export BIN=$(cabal exec -- which pboy)
+    # ls -lh $BIN
+    # strip $BIN && ls -lh $BIN
+    # ldd $BIN || true
+
+    # - name: Build MacOS
+    #   if: matrix.os == 'macOS-latest'
+    #   run: |
+    #     mkdir bin
+    #     cabal build
+    # export BIN=$(cabal exec -- which pboy)
+    # ls -lh $BIN
+    # strip $BIN && ls -lh $BIN
+    # otool -L $BIN
+
+    # - name: Check Linux
+    #   if: matrix.os == 'ubuntu-latest'
+    #   run: |
+    #     ldd $PBOY_BIN
+
+    # - name: Check MacOS
+    #   if: matrix.os == 'macOS-latest'
+    #   run: |
+    #     otool -L $PBOY_BIN

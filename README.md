@@ -1,6 +1,6 @@
-![import screen](https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png)
+<img srcset="https://raw.githubusercontent.com/2mol/pboy/dev-1.4/doc/import.png 1x, https://raw.githubusercontent.com/2mol/pboy/dev-1.4/doc/import.png 2x" src="https://raw.githubusercontent.com/2mol/pboy/dev-1.4/doc/import.png" alt="pboy screenshot" />
 
-[![CircleCI](https://circleci.com/gh/2mol/pboy.svg?style=svg)](https://circleci.com/gh/2mol/pboy) [![Build Status](https://travis-ci.org/2mol/pboy.svg?branch=master)](https://travis-ci.org/2mol/pboy)
+[![GitHub CI](https://github.com/2mol/pboy/workflows/CI/badge.svg)](https://github.com/2mol/pboy/actions)
 
 Paperboy is a tiny .pdf management utility.
 
@@ -77,8 +77,6 @@ $ nix-env -if https://github.com/2mol/pboy/tarball/master
 
 Paperboy creates a `pboy.ini` in your XDG config directory. This is probably in `~/.config/pboy/pboy.ini`, the welcome or help screen will tell you. Use this to change your library and incoming folders, as well as to specify whether you want to move the imported files or just copy them.
 
-**Note**: The config file location & format changed in version 1.1. Sorry to existing users, but the update should be trivial. Simply tweak the inbox and library folders in the new config. You can then delete `~/.pboy.toml`.
-
 # Current Limitations
 
 Paperboy doesn't do anything fancy with providing renaming patterns yet. For example, some people requested to be able to specify a format like `author-document_name-date.pdf`, others have asked if they could compose multiple suggestions into one. I haven't figured out a way to do this while keeping the UI simple and straightforward, so the idea needs a bit of design work first.
@@ -86,6 +84,15 @@ Paperboy doesn't do anything fancy with providing renaming patterns yet. For exa
 # Contribute
 
 You're very welcome to suggest new features or open issues. See the Roadmap https://github.com/2mol/pboy/blob/master/Roadmap.md to get an idea about what's planned for future releases.
+
+Releases can be created by pushing a new tag:
+
+```bash
+git tag -a 1.4rc1 -m "release candidate 1.4"
+git push --follow-tags
+```
+
+This will publish compiled assets for OSX and Linux, but only create a prerelease. For homebrew the [tools repo](https://github.com/2mol/homebrew-tools) also has to be updated with the SHA of the .tar.gz file.
 
 # Thanks
 

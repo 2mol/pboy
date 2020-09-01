@@ -1,1 +1,1 @@
---command="cabal new-repl" --restart=pboy.cabal
+--command="cabal repl" --restart=pboy.cabal

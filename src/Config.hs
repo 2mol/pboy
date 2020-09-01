@@ -21,17 +21,17 @@ import           Data.Ini.Config.Bidir (Ini, IniSpec, (.=))
 import qualified Data.Ini.Config.Bidir as C
 import           Data.Text (Text)
 import qualified Data.Text.IO as TIO
-import           Lens.Micro ((^.), (.~))
+import           Lens.Micro ((.~), (^.))
 import           Lens.Micro.TH (makeLenses)
-import           Path (Abs, Dir, File, Path, Rel, (</>))
-import qualified Path
-import qualified Path.IO as Path
+import qualified System.Directory as Dir
+import           System.FilePath ((</>))
+import qualified System.FilePath as FilePath
 
 
 data Config = Config
-    { _homeDir      :: Path Abs Dir
-    , _inboxDirs    :: [Path Abs Dir]
-    , _libraryDir   :: Path Abs Dir
+    { _homeDir      :: FilePath
+    , _inboxDirs    :: [FilePath]
+    , _libraryDir   :: FilePath
     , _importAction :: ImportAction
     , _wordSeparator:: Text
     }
@@ -67,19 +67,19 @@ defaultConfig :: IO Config
 defaultConfig = readConfigData defaultConfigData
 
 
-createConfig :: Path Abs File -> IO ()
-createConfig cpath = do
-    _ <- Path.ensureDir (Path.parent cpath)
-    TIO.writeFile (Path.fromAbsFile cpath) configContent
+createConfig :: FilePath -> IO ()
+createConfig configPath = do
+    _ <- Dir.createDirectoryIfMissing True (FilePath.takeDirectory configPath)
+    TIO.writeFile configPath configContent
     where
         configContent =
             C.serializeIni $ C.ini defaultConfigData configSpec
 
 
-tryGetConfig :: Path Abs File -> IO (Either String Config)
+tryGetConfig :: FilePath -> IO (Either String Config)
 tryGetConfig configPath = do
     configTxtResult <-
-        E.tryJust displayErr $ TIO.readFile (Path.fromAbsFile configPath)
+        E.tryJust displayErr $ TIO.readFile configPath
 
     let
         configIniResult =
@@ -101,16 +101,16 @@ tryGetConfig configPath = do
 
 readConfigData :: ConfigData -> IO Config
 readConfigData configData = do
-    home <- Path.getHomeDir
-    inbDir <- mapM (Path.resolveDir home) (configData ^. inboxDirsD)
-    libDir <- Path.resolveDir home (configData ^. libraryDirD)
+    homeDir <- Dir.getHomeDirectory
+    let inbDirs = map (homeDir </>) (configData ^. inboxDirsD)
+        libDir = homeDir </> (configData ^. libraryDirD)
 
     let action = if configData ^. importMove then Move else Copy
     let wordSep = configData ^. wordSeparatorD
 
     pure Config
-        { _homeDir = home
-        , _inboxDirs = inbDir
+        { _homeDir = homeDir
+        , _inboxDirs = inbDirs
         , _libraryDir = libDir
         , _importAction = action
         , _wordSeparator = wordSep
@@ -152,11 +152,11 @@ displayErr e =
     Just $ E.displayException e
 
 
-configFile :: Path Rel File
-configFile = $(Path.mkRelFile "pboy/pboy.ini")
+-- configFile :: FilePath
+-- configFile = $(Path.mkRelFile "pboy/pboy.ini")
 
 
-getConfigPath :: IO (Path Abs File)
+getConfigPath :: IO FilePath
 getConfigPath = do
-    configHome <- Path.getXdgDir Path.XdgConfig Nothing
-    pure $ configHome </> configFile
+    configHome <- Dir.getXdgDirectory Dir.XdgConfig ""
+    pure $ configHome </> "pboy/pboy.ini"

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Lib
     ( FileInfo(..)
@@ -24,27 +25,26 @@ import           Data.Text.Titlecase (titlecase)
 import           Data.Time.Clock (UTCTime)
 import           GHC.Exts (sortWith)
 import           Lens.Micro ((^.))
-import           Path (Abs, Dir, File, Path, (</>))
-import qualified Path
-import qualified Path.IO as Path
-import qualified System.FilePath as F
+import qualified System.Directory as Dir
+import           System.FilePath ((</>))
+import qualified System.FilePath as FilePath
 import qualified System.Process as P
-import qualified System.Directory
 import qualified Text.PDF.Info as PDFI
 
+
 data FileInfo = FileInfo
-    { _fileName :: Path Abs File
+    { _fileName :: FilePath
     , _modTime  :: UTCTime
     }
 
 
-listFiles :: Path Abs Dir -> IO [FileInfo]
+listFiles :: FilePath -> IO [FileInfo]
 listFiles path = do
-    dirExists <- Path.doesDirExist path
+    dirExists <- Dir.doesDirectoryExist path
     if dirExists then do
-        files <- snd <$> Path.listDir path
-        fileInfos <- mapM getFileInfo files
-        pure $ filter isPdf fileInfos
+        files <- Dir.listDirectory path
+        fileInfos <- mapM getFileInfo (map (path </>) files)
+        pure $ filter isPdf (Maybe.catMaybes fileInfos)
     else pure []
 
 
@@ -53,28 +53,38 @@ sortFileInfoByDate fileInfos =
     reverse $ sortWith _modTime fileInfos
 
 
-getFileInfo :: Path Abs File -> IO FileInfo
+getFileInfo :: FilePath -> IO (Maybe FileInfo)
 getFileInfo path = do
-    modTime <- Path.getModificationTime path
-    pure $ FileInfo path modTime
+    resModTime <- try $ Dir.getModificationTime path
+    case resModTime of
+        Left (_ :: SomeException) -> pure Nothing
+        Right modTime -> pure $ Just (FileInfo path modTime)
+
+
+    -- result <- try $ P.createProcess (P.proc executable args)
+    --     { P.std_out = P.NoStream, P.std_err = P.NoStream }
+
+    -- case result of
+    --     Left (_ :: SomeException) -> pure ()
+    --     Right _ -> pure ()
 
 
 isPdf :: FileInfo -> Bool
 isPdf fileInfo =
-    Path.fileExtension (_fileName fileInfo) == ".pdf"
+    FilePath.takeExtension (_fileName fileInfo) == ".pdf"
 
 
 -- Getting Filename suggestions:
 
-fileNameSuggestions :: Path Abs File -> IO (Text, [Text])
+fileNameSuggestions :: FilePath -> IO (Text, [Text])
 fileNameSuggestions file = do
-    pdfInfo <- PDFI.pdfInfo $ Path.fromAbsFile file
+    pdfInfo <- PDFI.pdfInfo file
 
     topLines <- getTopLines file
 
     let
         baseName =
-            F.takeBaseName (Path.fromRelFile $ Path.filename file)
+            FilePath.takeBaseName (FilePath.takeBaseName file)
                 & T.pack
                 & T.replace "_" " "
 
@@ -98,10 +108,10 @@ fileNameSuggestions file = do
     pure (baseName, suggestions)
 
 
-getTopLines :: Path Abs File -> IO [Text]
+getTopLines :: FilePath -> IO [Text]
 getTopLines file = do
     plainTextContent <-
-        E.try (P.readProcess "pdftotext" [Path.fromAbsFile file, "-", "-f", "1", "-l", "4"] "")
+        E.try (P.readProcess "pdftotext" [file, "-", "-f", "1", "-l", "4"] "")
         :: IO (Either SomeException String)
     let
         topLines =
@@ -161,36 +171,42 @@ finalFileName conf text =
         & T.replace " " (conf ^. Config.wordSeparator)
 
 
-fileFile :: Config -> Text -> Path Abs File -> IO ()
-fileFile conf newFileName file = do
-    _ <- Path.ensureDir (conf ^. Config.libraryDir)
-    newFile <- Path.parseRelFile (T.unpack newFileName <> Path.fileExtension file)
-    let
+fileFile :: Config -> Text -> FilePath -> IO ()
+fileFile conf newFilenameRaw file = do
+    Dir.createDirectoryIfMissing True (conf ^. Config.libraryDir)
+    let newFileName = T.unpack $ finalFileName conf newFilenameRaw
+        newFile = newFileName <> ".pdf"
         newFilePath =
             (conf ^. Config.libraryDir) </> newFile
 
     case conf ^. Config.importAction of
-        Config.Copy -> Path.copyFile file newFilePath
-        Config.Move -> Path.renameFile file newFilePath
+        Config.Copy -> Dir.copyFile file newFilePath
+        Config.Move -> Dir.renameFile file newFilePath
+
+    _ <- tryCreateProcess "exiftool" ["-Title=" <> T.unpack newFilenameRaw, newFilePath]
+
+    pure ()
 
 
-openFile :: Path Abs File -> IO ()
-openFile file = do
-    tryOpenWithMany ["xdg-open", "open"] file
+tryCreateProcess :: FilePath -> [String] -> IO ()
+tryCreateProcess executable args = do
+    result <- try $ P.createProcess (P.proc executable args)
+        { P.std_out = P.NoStream, P.std_err = P.NoStream }
+
+    case result of
+        Left (_ :: SomeException) -> pure ()
+        Right _ -> pure ()
 
 
-tryOpenWithMany :: [String] -> Path Abs File -> IO ()
+openFile :: FilePath -> IO ()
+openFile =
+    tryOpenWithMany ["xdg-open", "open"]
+
+
+tryOpenWithMany :: [String] -> FilePath -> IO ()
 tryOpenWithMany [] _ = pure ()
 tryOpenWithMany (e:es) file = do
-    exe <- System.Directory.findExecutable e
+    exe <- Dir.findExecutable e
     case exe of
         Nothing -> tryOpenWithMany es file
-        Just _  -> tryOpenWith e file
-
-
-tryOpenWith :: FilePath -> Path Abs File -> IO ()
-tryOpenWith exePath file = do
-    P.createProcess
-        ( P.proc exePath [Path.fromAbsFile file] )
-        { P.std_out = P.NoStream, P.std_err = P.NoStream }
-    pure ()
+        Just _  -> tryCreateProcess e [file]

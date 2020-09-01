@@ -1,14 +1,14 @@
-cabal-version: 2.4
+cabal-version: 3.0
 
 name:           pboy
-version:        1.3
+version:        1.4
 synopsis:       a small .pdf management utility
 description:    Please see the README on Github at <https://github.com/2mol/pboy#readme>
 homepage:       https://github.com/2mol/pboy#readme
 bug-reports:    https://github.com/2mol/pboy/issues
 author:         Juri Chomé
 maintainer:     juri.chome@gmail.com
-copyright:      2019 Juri Chomé
+copyright:      2020 Juri Chomé
 license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
@@ -34,13 +34,11 @@ library
       base >=4.7 && <5
     , brick
     , config-ini
+    , filepath
     , directory
     , either
-    , filepath
     , microlens
     , microlens-th
-    , path
-    , path-io
     , pdfinfo
     , process
     , text
@@ -60,6 +58,8 @@ executable pboy
     -threaded -O2 -rtsopts -with-rtsopts=-N
     -Wall -Wcompat -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Wredundant-constraints
+  -- cc-options: -static
+  -- ld-options: -static -pthread
   build-depends:
       base >=4.7 && <5
     , pboy
