@@ -62,14 +62,16 @@ jobs:
         strip: true
 
     - name: Publish Release Binaries
+      # if: !contains(github.ref, "release")
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: bin/pboy
         asset_name: pboy
-        tag: ${{ github.ref }}
+        tag: ${{ github.event.release.tag_name }}
+        prerelease: true
         overwrite: true
-        body: "This is my release text"
+        # body: "This is my release text"
 
     #     mkdir bin
     #     cabal build --install-method=copy --installdir=bin
