@@ -24,10 +24,10 @@ jobs:
         include:
           - os: ubuntu-latest
             os_name: linux
-            linking_check: "ldd bin/pboy"
+            artifact: "pboy-linux.tar.gz"
           - os: macOS-latest
             os_name: osx
-            linking_check: "otool -L bin/pboy"
+            artifact: "pboy-osx.tar.gz"
 
     steps:
     - uses: actions/checkout@v2
@@ -50,11 +50,6 @@ jobs:
         cabal install --install-method=copy --installdir=bin
         ldd bin/pboy || otool -L bin/pboy || true
 
-    - name: Prepare Publishing
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        echo ${{ github.event.release.tag_name }}
-
     - name: Compress binaries
       if: startsWith(github.ref, 'refs/tags/')
       uses: svenstaro/upx-action@v2
@@ -63,12 +58,18 @@ jobs:
         args: --best
         strip: true
 
+    - name: Prepare Publishing
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        cd bin
+        tar -czf ${{ matrix.artifact }} pboy
+
     - name: Publish Release Binaries
       if: startsWith(github.ref, 'refs/tags/')
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: pboy.tar.gz
+        file: bin/${{ matrix.artifact }}
         asset_name: ${{ runner.os }}-${{ matrix.ghc }}.tar.gz
         tag: ${{ github.ref }}
         prerelease: true
