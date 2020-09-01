@@ -8,7 +8,7 @@ on: [push, pull_request]
   #   branches: [master, dev-1.4]
 
 jobs:
-  cabal:
+  build:
     name: ${{ matrix.os }} / ghc ${{ matrix.ghc }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -32,31 +32,35 @@ jobs:
         path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
         key: ${{ runner.os }}-${{ matrix.ghc }}-cabal
 
-    # - name: Build
+    - name: Build
+      run: |
+        mkdir bin
+        cabal build --install-method=copy --installdir=bin
+
+    - name: Compress binaries
+      uses: svenstaro/upx-action@v2
+      with:
+        file: bin/pboy
+
+    # - name: Build Linux
+    #   if: matrix.os == 'ubuntu-latest'
+    #   run: |
+    #     mkdir bin
+    #     cabal build --install-method=copy --installdir=bin
+    # export BIN=$(cabal exec -- which pboy)
+    # ls -lh $BIN
+    # strip $BIN && ls -lh $BIN
+    # ldd $BIN || true
+
+    # - name: Build MacOS
+    #   if: matrix.os == 'macOS-latest'
     #   run: |
     #     mkdir bin
     #     cabal build
-    #     export PBOY_BIN=$(cabal exec -- which pboy)
-
-    - name: Build Linux
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        mkdir bin
-        cabal build
-        export BIN=$(cabal exec -- which pboy)
-        ls -lh $BIN
-        strip $BIN && ls -lh $BIN
-        ldd $BIN || true
-
-    - name: Build MacOS
-      if: matrix.os == 'macOS-latest'
-      run: |
-        mkdir bin
-        cabal build
-        export BIN=$(cabal exec -- which pboy)
-        ls -lh $BIN
-        strip $BIN && ls -lh $BIN
-        otool -L $BIN
+    # export BIN=$(cabal exec -- which pboy)
+    # ls -lh $BIN
+    # strip $BIN && ls -lh $BIN
+    # otool -L $BIN
 
     # - name: Check Linux
     #   if: matrix.os == 'ubuntu-latest'
