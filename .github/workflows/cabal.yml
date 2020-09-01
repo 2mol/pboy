@@ -43,6 +43,7 @@ jobs:
         mkdir bin
         cabal build --ghc-options='-optl-static' --ld-options='-static -pthread'
         cabal install --install-method=copy --installdir=bin
+        ldd bin/pboy || true
 
     - name: Build MacOS
       if: matrix.os == 'macOS-latest'
