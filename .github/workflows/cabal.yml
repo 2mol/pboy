@@ -62,13 +62,13 @@ jobs:
         strip: true
 
     - name: Publish Release Binaries
-      # if: !contains(github.ref, "release")
+      if: !contains(github.ref, "release")
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: bin/pboy
         asset_name: pboy
-        tag: ${{ github.event.release.tag_name }}
+        tag: ${{ github.ref }}
         prerelease: true
         overwrite: true
         # body: "This is my release text"
