@@ -58,6 +58,16 @@ jobs:
         args: --best
         strip: true
 
+    - name: Publish Release Binaries
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: bin/pboy
+        asset_name: pboy
+        tag: ${{ github.ref }}
+        overwrite: true
+        # body: "This is my release text"
+
     #     mkdir bin
     #     cabal build --install-method=copy --installdir=bin
     # export BIN=$(cabal exec -- which pboy)
