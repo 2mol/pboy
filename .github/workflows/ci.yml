@@ -14,9 +14,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
-        cabal: ["3.2"]
-        ghc:
-          - "8.10.2"
+        # cabal: ["latest"]
+        # ghc: ["latest"]
 
     steps:
     - uses: actions/checkout@v2
@@ -39,6 +38,8 @@ jobs:
         cabal install --install-method=copy --installdir=bin
         ls -lh bin/
         ls -lh ${{ steps.setup-haskell-cabal.outputs.cabal-exe }}
+        otool -L ${{ steps.setup-haskell-cabal.outputs.cabal-exe }} || true
+        ldd ${{ steps.setup-haskell-cabal.outputs.cabal-exe }} || true
 
 
     # - name: Build Linux
@@ -54,6 +55,6 @@ jobs:
     #     ls -l ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
 
 
-    - name: Test
-      run: |
-        cabal test all --enable-tests
+    # - name: Test
+    #   run: |
+    #     cabal test all --enable-tests
