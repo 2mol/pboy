@@ -85,6 +85,15 @@ Paperboy doesn't do anything fancy with providing renaming patterns yet. For exa
 
 You're very welcome to suggest new features or open issues. See the Roadmap https://github.com/2mol/pboy/blob/master/Roadmap.md to get an idea about what's planned for future releases.
 
+Releases can be created by pushing a new tag:
+
+```bash
+git tag -a 1.4rc1 -m "release candidate 1.4"
+git push --follow-tags
+```
+
+This will publish compiled assets for OSX and Linux, but only create a prerelease. For homebrew the [tools repo](https://github.com/2mol/homebrew-tools) also has to be updated with the SHA of the .tar.gz file.
+
 # Thanks
 
 - [brick](https://github.com/jtdaugherty/brick) is a lovely way to a write a command-line UI.
