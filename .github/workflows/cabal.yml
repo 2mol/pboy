@@ -24,8 +24,10 @@ jobs:
         include:
           - os: ubuntu-latest
             os_name: linux
+            linking_check: "ldd bin/pboy"
           - os: macOS-latest
             os_name: osx
+            linking_check: "otool -L bin/pboy"
 
     steps:
     - uses: actions/checkout@v2
@@ -47,6 +49,11 @@ jobs:
         mkdir bin
         cabal install --install-method=copy --installdir=bin
         ldd bin/pboy || otool -L bin/pboy || true
+
+    - name: Prepare Publishing
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo ${{ github.event.release.tag_name }}
 
     - name: Compress binaries
       if: startsWith(github.ref, 'refs/tags/')
