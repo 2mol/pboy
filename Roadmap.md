@@ -6,6 +6,7 @@
 - [ ] ability to mark documents as 'to-read'.
 - [ ] warn when importing an already existing filename.
 - [ ] refresh if any files move outside of the application.
+- [ ] linux distro packages: https://github.com/kowainik/awesome-cabal#os-manifests
 
 
 ## Done
