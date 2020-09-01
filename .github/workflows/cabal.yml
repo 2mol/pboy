@@ -43,6 +43,7 @@ jobs:
         mkdir bin
         cabal install --install-method=copy --installdir=bin
         ldd bin/pboy || true
+        echo ${{ github.event.release.tag_name }}
 
       # cabal build --ghc-options='-optl-static' --ld-options='-static -pthread'
 
@@ -51,6 +52,7 @@ jobs:
       run: |
         mkdir bin
         cabal install --install-method=copy --installdir=bin
+        echo ${{ github.event.release.tag_name }}
 
     - name: Compress binaries
       uses: svenstaro/upx-action@v2
