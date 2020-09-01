@@ -44,7 +44,7 @@ jobs:
         mkdir bin
         cabal build
         ls -lh $(cabal exec -- which pboy)
-        ldd $(cabal exec -- which pboy)
+        ldd $(cabal exec -- which pboy) || true
 
     - name: Build MacOS
       if: matrix.os == 'macOS-latest'
