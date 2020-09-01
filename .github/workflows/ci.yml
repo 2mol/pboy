@@ -37,9 +37,8 @@ jobs:
         mkdir bin
         cabal install --install-method=copy --installdir=bin
         ls -lh bin/
-        ls -lh ${{ steps.setup-haskell-cabal.outputs.cabal-exe }}
-        otool -L ${{ steps.setup-haskell-cabal.outputs.cabal-exe }} || true
-        ldd ${{ steps.setup-haskell-cabal.outputs.cabal-exe }} || true
+        otool -L bin/pboy || true
+        ldd bin/pboy || true
 
 
     # - name: Build Linux
