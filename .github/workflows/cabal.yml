@@ -48,7 +48,6 @@ jobs:
         mkdir bin
         cabal install --install-method=copy --installdir=bin
         ldd bin/pboy || true
-        echo ${{ github.event.release.tag_name }}
 
       # cabal build --ghc-options='-optl-static' --ld-options='-static -pthread'
 
@@ -57,27 +56,36 @@ jobs:
       run: |
         mkdir bin
         cabal install --install-method=copy --installdir=bin
-        echo ${{ github.event.release.tag_name }}
 
     - name: Compress binaries
+      if: startsWith(github.ref, 'refs/tags/')
       uses: svenstaro/upx-action@v2
       with:
         file: bin/pboy
         args: --best
         strip: true
 
-    - name: Publish Release Binaries
-      # if: !contains(github.ref, "release")
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: bin/pboy
-        asset_name: pboy
-        tag: ${{ github.ref }}
-        prerelease: true
-        overwrite: true
-        # body: "This is my release text"
+    # - name: Publish Release Binaries
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   uses: svenstaro/upload-release-action@v2
+    #   with:
+    #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+    #     file: bin/pboy
+    #     asset_name: pboy
+    #     tag: ${{ github.ref }}
+    #     prerelease: true
+    #     overwrite: true
+    #     # body: "This is my release text"
+
+    - name: Publish Linux
+      if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo ${{ github.event.release.tag_name }}
+
+    - name: Publish MacOS
+      if: matrix.os == 'macOS-latest' && startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo ${{ github.event.release.tag_name }}
 
     #     mkdir bin
     #     cabal build --install-method=copy --installdir=bin
