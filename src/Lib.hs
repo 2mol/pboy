@@ -61,20 +61,12 @@ getFileInfo path = do
         Right modTime -> pure $ Just (FileInfo path modTime)
 
 
-    -- result <- try $ P.createProcess (P.proc executable args)
-    --     { P.std_out = P.NoStream, P.std_err = P.NoStream }
-
-    -- case result of
-    --     Left (_ :: SomeException) -> pure ()
-    --     Right _ -> pure ()
-
-
 isPdf :: FileInfo -> Bool
 isPdf fileInfo =
     FilePath.takeExtension (_fileName fileInfo) == ".pdf"
 
 
--- Getting Filename suggestions:
+-- Filename suggestion helpers:
 
 fileNameSuggestions :: FilePath -> IO (Text, [Text])
 fileNameSuggestions file = do

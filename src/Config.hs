@@ -46,7 +46,7 @@ data ConfigData = ConfigData
     , _libraryDirD :: FilePath
     , _importMove  :: Bool
     , _wordSeparatorD :: Text
-    } deriving Show
+    }
 
 
 makeLenses ''Config
@@ -101,19 +101,19 @@ tryGetConfig configPath = do
 
 readConfigData :: ConfigData -> IO Config
 readConfigData configData = do
-    homeDir <- Dir.getHomeDirectory
-    let inbDirs = map (homeDir </>) (configData ^. inboxDirsD)
-        libDir = homeDir </> (configData ^. libraryDirD)
+    homeDir' <- Dir.getHomeDirectory
+    let inboxDirs' = map (homeDir' </>) (configData ^. inboxDirsD)
+        libraryDir' = homeDir' </> (configData ^. libraryDirD)
 
-    let action = if configData ^. importMove then Move else Copy
-    let wordSep = configData ^. wordSeparatorD
+    let importAction' = if configData ^. importMove then Move else Copy
+    let wordSeparator' = configData ^. wordSeparatorD
 
     pure Config
-        { _homeDir = homeDir
-        , _inboxDirs = inbDirs
-        , _libraryDir = libDir
-        , _importAction = action
-        , _wordSeparator = wordSep
+        { _homeDir = homeDir'
+        , _inboxDirs = inboxDirs'
+        , _libraryDir = libraryDir'
+        , _importAction = importAction'
+        , _wordSeparator = wordSeparator'
         }
 
 
@@ -150,10 +150,6 @@ configIni = C.ini defaultConfigData configSpec
 displayErr :: E.SomeException -> Maybe String
 displayErr e =
     Just $ E.displayException e
-
-
--- configFile :: FilePath
--- configFile = $(Path.mkRelFile "pboy/pboy.ini")
 
 
 getConfigPath :: IO FilePath

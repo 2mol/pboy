@@ -495,7 +495,7 @@ drawFileInfo _ fileInfo =
 
 
 drawImportWidget :: Config.Config -> Maybe ResourceName -> FileImport -> Widget ResourceName
-drawImportWidget config focus fi =
+drawImportWidget conf focus fi =
     C.centerLayer
         $ B.borderWithLabel (str " Import ")
         $ padLeftRight 2 $ padTopBottom 1 $ hLimit 70 $ vLimit 20
@@ -520,7 +520,7 @@ drawImportWidget config focus fi =
                 "[Esc]    - cancel.\n"
                 <> "[Tab]    - switch between editor and suggestions.\n"
                 <> "[Enter]  - "
-                    <> moveOrCopy (config ^. Config.importAction)
+                    <> moveOrCopy (conf ^. Config.importAction)
                     <> " the file to your library folder, using the new name.\n"
                 <> "[Ctrl-o] - open the file that you're currently renaming."
             ]
@@ -536,7 +536,7 @@ helpDialog =
 
 
 helpScreen :: FilePath -> Maybe (D.Dialog HelpChoice) -> Widget ResourceName
-helpScreen configPath (Just d) =
+helpScreen confPath (Just d) =
     D.renderDialog d
         $ C.hCenter
         $ padAll 1
@@ -557,7 +557,7 @@ helpScreen configPath (Just d) =
             , "[h]          - this help screen."
             , " "
             , "Your config file is at"
-            , configPath
+            , confPath
             , " "
             , "enjoy!"
             ]
@@ -572,12 +572,12 @@ firstStartDialog =
 
 
 missingConfigScreen :: FilePath -> Maybe (D.Dialog ConfigChoice) -> Widget ResourceName
-missingConfigScreen configPath (Just d) =
+missingConfigScreen confPath (Just d) =
     D.renderDialog d
         $ padAll 1
         $ vBox
             [ C.hCenter (str "I will create a config file at")
             , vLimit 1 (fill ' ')
-            , C.hCenter (str configPath)
+            , C.hCenter (str confPath)
             ]
 missingConfigScreen _ _ = str ""
