@@ -39,12 +39,6 @@ $ mv pboy ~/.local/bin/
 
 For the latter to work, `~/.local/bin/` needs to exist and be in your `PATH`. Alternatively, put it in `/usr/local/bin`.
 
-Note that pboy is linked against libtinfo.so.5, but some distros now have libtinfo.so.6. On Debian 10, for example, pboy doesn't work unless [the libtinfo5 package](https://packages.debian.org/buster/libtinfo5) is installed
-
-```
-sudo apt install libtinfo5
-```
-
 ## Linux, any distro
 
 I am still looking to package Paperboy for Debian/Ubuntu, Arch/Manjaro, Fedora, Doge Linux, or whatever else people install these days.
