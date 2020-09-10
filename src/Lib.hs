@@ -13,7 +13,7 @@ module Lib
 
 import           Config (Config)
 import qualified Config
-import           Control.Exception as E
+import qualified Control.Exception as E
 import qualified Data.Char as C
 import qualified Data.Either.Combinators as Either
 import           Data.Function ((&))
@@ -55,9 +55,9 @@ sortFileInfoByDate fileInfos =
 
 getFileInfo :: FilePath -> IO (Maybe FileInfo)
 getFileInfo path = do
-    resModTime <- try $ Dir.getModificationTime path
+    resModTime <- E.try $ Dir.getModificationTime path
     case resModTime of
-        Left (_ :: SomeException) -> pure Nothing
+        Left (_ :: E.SomeException) -> pure Nothing
         Right modTime -> pure $ Just (FileInfo path modTime)
 
 
@@ -104,7 +104,7 @@ getTopLines :: FilePath -> IO [Text]
 getTopLines file = do
     plainTextContent <-
         E.try (P.readProcess "pdftotext" [file, "-", "-f", "1", "-l", "4"] "")
-        :: IO (Either SomeException String)
+        :: IO (Either E.SomeException String)
     let
         topLines =
             case plainTextContent of
@@ -182,11 +182,11 @@ fileFile conf newFilenameRaw file = do
 
 tryCreateProcess :: FilePath -> [String] -> IO ()
 tryCreateProcess executable args = do
-    result <- try $ P.createProcess (P.proc executable args)
+    result <- E.try $ P.createProcess (P.proc executable args)
         { P.std_out = P.NoStream, P.std_err = P.NoStream }
 
     case result of
-        Left (_ :: SomeException) -> pure ()
+        Left (_ :: E.SomeException) -> pure ()
         Right _ -> pure ()
 
 
