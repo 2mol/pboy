@@ -86,7 +86,9 @@ git tag -a 1.4rc1 -m "release candidate 1.4"
 git push --follow-tags
 ```
 
-This will publish compiled assets for OSX and Linux, but only create a prerelease. For homebrew the [tools repo](https://github.com/2mol/homebrew-tools) also has to be updated with the SHA of the .tar.gz file.
+This will publish compiled assets for OSX and Linux, but only create a prerelease. Once you're confident that the executable isn't broken, a repo contributor can mark the version as a release.
+
+Finally, to publish the new version via Homebrew, the [tools repo](https://github.com/2mol/homebrew-tools) has to be updated with the SHA256 of `pboy-osx.tar.gz`. You can find it in the CI logs, or you could run `shasum -a 256 pboy-osx.tar.gz` manually.
 
 # Thanks
 
