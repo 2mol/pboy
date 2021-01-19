@@ -51,7 +51,6 @@ jobs:
         ldd bin/pboy || otool -L bin/pboy || true
 
     - name: Compress binaries
-      if: startsWith(github.ref, 'refs/tags/')
       uses: svenstaro/upx-action@v2
       with:
         file: bin/pboy
