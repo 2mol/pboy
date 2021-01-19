@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
         cabal: ["3.2.0"]
-        ghc: ["8.10.2"]
+        ghc: ["8.10.3"]
         include:
           - os: ubuntu-latest
             os_name: linux
