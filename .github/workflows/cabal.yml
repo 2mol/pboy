@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
         cabal: ["3.2.0"]
-        ghc: ["8.10.2"]
+        ghc: ["8.10.3"]
         include:
           - os: ubuntu-latest
             os_name: linux
@@ -31,7 +31,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-haskell@v1.1
+    - uses: haskell/actions/setup@v1
       id: setup-haskell-cabal
       name: Setup Haskell
       with:
@@ -51,7 +51,6 @@ jobs:
         ldd bin/pboy || otool -L bin/pboy || true
 
     - name: Compress binaries
-      if: startsWith(github.ref, 'refs/tags/')
       uses: svenstaro/upx-action@v2
       with:
         file: bin/pboy
