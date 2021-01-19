@@ -82,7 +82,7 @@ You're very welcome to suggest new features or open issues. See the Roadmap http
 Releases can be created by pushing a new tag:
 
 ```bash
-git tag -a 1.4rc1 -m "release candidate 1.4"
+git tag -a 1.99rc1 -m "release candidate 1.99"
 git push --follow-tags
 ```
 

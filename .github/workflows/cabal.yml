@@ -4,8 +4,6 @@ name: Cabal Build
 on: [push, pull_request]
   # pull_request:
   #   branches: [master]
-  # push:
-  #   branches: [master, dev-1.4]
 
 # on:
 #   create:
