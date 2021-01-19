@@ -1,4 +1,4 @@
-<img srcset="https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png 1x, https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png 2x" src="https://raw.githubusercontent.com/2mol/pboy/master/doc/import.png" alt="pboy screenshot" />
+<img srcset="https://raw.githubusercontent.com/2mol/pboy/main/doc/import.png 1x, https://raw.githubusercontent.com/2mol/pboy/main/doc/import.png 2x" src="https://raw.githubusercontent.com/2mol/pboy/main/doc/import.png" alt="pboy screenshot" />
 
 [![GitHub CI](https://github.com/2mol/pboy/workflows/CI/badge.svg)](https://github.com/2mol/pboy/actions)
 
@@ -64,7 +64,7 @@ Replace `stack install` with `cabal new-install` at your leisure.
 If you have Nix, then you can install `pboy` with a single command:
 
 ```
-$ nix-env -if https://github.com/2mol/pboy/tarball/master
+$ nix-env -if https://github.com/2mol/pboy/tarball/main
 ```
 
 # Config
@@ -77,7 +77,7 @@ Paperboy doesn't do anything fancy with providing renaming patterns yet. For exa
 
 # Contribute
 
-You're very welcome to suggest new features or open issues. See the Roadmap https://github.com/2mol/pboy/blob/master/Roadmap.md to get an idea about what's planned for future releases.
+You're very welcome to suggest new features or open issues. See the Roadmap https://github.com/2mol/pboy/blob/main/Roadmap.md to get an idea about what's planned for future releases.
 
 Releases can be created by pushing a new tag:
 
