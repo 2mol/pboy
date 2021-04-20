@@ -59,10 +59,10 @@ executable pboy
     -Wall -Wcompat -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Wredundant-constraints
 
-  if os(linux)
-    ghc-options: -static
-    cc-options: -static
-    ld-options: -static -pthread
+--   if os(linux)
+--     ghc-options: -static
+--     cc-options: -static
+--     ld-options: -static -pthread
   build-depends:
       base >=4.7 && <5
     , pboy
