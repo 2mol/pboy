@@ -17,8 +17,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
-        cabal: ["3.2.0"]
-        ghc: ["8.10.3"]
+        cabal: ["3.4.0"]
+        ghc: ["8.10.4"]
         include:
           - os: ubuntu-latest
             os_name: linux
@@ -48,12 +48,12 @@ jobs:
         cabal install --install-method=copy --installdir=bin
         ldd bin/pboy || otool -L bin/pboy || true
 
-    - name: Compress binaries
-      uses: svenstaro/upx-action@v2
-      with:
-        file: bin/pboy
-        args: --best
-        strip: true
+    # - name: Compress binaries
+    #   uses: svenstaro/upx-action@v2
+    #   with:
+    #     file: bin/pboy
+    #     args: --best
+    #     strip: true
 
     - name: Prepare Publishing
       if: startsWith(github.ref, 'refs/tags/')

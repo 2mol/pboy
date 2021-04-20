@@ -1,5 +1,8 @@
 Changelog
 
+1.6, 2021-04-20
+    - build and CI fixes
+
 1.5, 2021-01-19
     - fix the binary compression to work on MacOS Big Sur.
 
