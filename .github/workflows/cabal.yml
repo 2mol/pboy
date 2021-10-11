@@ -17,8 +17,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
-        cabal: ["3.4.0"]
-        ghc: ["8.10.4"]
+        cabal: ["3.6.2"]
+        ghc: ["9.0.1"]
         include:
           - os: ubuntu-latest
             os_name: linux
