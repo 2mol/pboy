@@ -1,5 +1,8 @@
 Changelog
 
+1.7, 2021-10-11
+    - prevent exiftool from writing _original files.
+
 1.6, 2021-04-20
     - fix the notorious kill issue on macOS.
 
