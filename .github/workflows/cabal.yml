@@ -1,9 +1,10 @@
 name: Cabal Build
 
-# Trigger the workflow on push or pull request, but only for the master branch
-on: [push, pull_request]
-  # pull_request:
-  #   branches: [master]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 # on:
 #   create:
@@ -17,8 +18,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
-        cabal: ["3.4.0"]
-        ghc: ["8.10.4"]
+        cabal: ["3.6.2.0"]
+        ghc: ["9.0.1"]
         include:
           - os: ubuntu-latest
             os_name: linux
@@ -29,18 +30,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: haskell/actions/setup@v1
+    - uses: haskell/actions/setup@v1.2
       id: setup-haskell-cabal
-      name: Setup Haskell
       with:
         ghc-version: ${{ matrix.ghc }}
         cabal-version: ${{ matrix.cabal }}
 
-    - uses: actions/cache@v1
-      name: Cache cabal-store
+    - run: cabal update
+    - run: cabal freeze
+
+    - uses: actions/cache@v2
       with:
-        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-        key: ${{ runner.os }}-${{ matrix.ghc }}-cabal
+        path: |
+          ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+          dist-newstyle
+        key: ${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.ghc }}-
 
     - name: Build
       run: |

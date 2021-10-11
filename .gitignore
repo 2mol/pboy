@@ -1,8 +1,4 @@
-dist/
+cabal.project.freeze
 dist-newstyle/
-result
-.stack-work/
-stack.yaml.lock
-.vscode/
-
 bin/
+result

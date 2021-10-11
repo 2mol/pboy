@@ -9,7 +9,7 @@ let
   pboy = haskellPackages.callCabal2nix "pboy" (lib.cleanSource ./.) {};
 in
   symlinkJoin {
-    name = "pboy-1.6";
+    name = "pboy-1.7";
     buildInputs = [makeWrapper];
     postBuild = ''
       wrapProgram "$out/bin/pboy" \

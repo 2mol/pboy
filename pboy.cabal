@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name:           pboy
-version:        1.6
+version:        1.7
 synopsis:       a small .pdf management utility
 description:    Please see the README on Github at <https://github.com/2mol/pboy#readme>
 homepage:       https://github.com/2mol/pboy#readme

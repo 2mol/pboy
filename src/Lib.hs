@@ -175,7 +175,7 @@ fileFile conf newFilenameRaw file = do
         Config.Copy -> Dir.copyFile file newFilePath
         Config.Move -> Dir.renameFile file newFilePath
 
-    _ <- tryCreateProcess "exiftool" ["-Title=" <> T.unpack newFilenameRaw, newFilePath]
+    _ <- tryCreateProcess "exiftool" ["-Title=" <> T.unpack newFilenameRaw, newFilePath, "-overwrite_original"]
 
     pure ()
 
