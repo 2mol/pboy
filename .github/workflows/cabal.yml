@@ -1,8 +1,10 @@
 name: Cabal Build
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
-    branches: [main]
 
 # on:
 #   create:
@@ -28,7 +30,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: haskell/actions/setup@v1
+    - uses: haskell/actions/setup@v1.2
       id: setup-haskell-cabal
       name: Setup Haskell
       with:
@@ -42,7 +44,7 @@ jobs:
       name: Cache cabal-store
       with:
         path: |
-          ~/.cabal/store
+          ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
           dist-newstyle
         key: v2-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
         restore-keys: |
