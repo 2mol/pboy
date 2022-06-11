@@ -27,6 +27,7 @@ library
   other-modules:
       Config
     , Lib
+    , PDFInfo
     , Paths_pboy
   hs-source-dirs:
       src
@@ -39,10 +40,12 @@ library
     , either
     , microlens
     , microlens-th
-    , pdfinfo
+    , mtl
     , process
+    , process-extras
     , text
     , time
+    , time-locale-compat
     , titlecase
     , vector
     , vty
