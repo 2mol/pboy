@@ -29,7 +29,7 @@ import qualified System.Directory as Dir
 import           System.FilePath ((</>))
 import qualified System.FilePath as FilePath
 import qualified System.Process as P
-import qualified Text.PDF.Info as PDFI
+import qualified PDFInfo
 
 
 data FileInfo = FileInfo
@@ -70,7 +70,7 @@ isPdf fileInfo =
 
 fileNameSuggestions :: FilePath -> IO (Text, [Text])
 fileNameSuggestions file = do
-    pdfInfo <- PDFI.pdfInfo file
+    pdfInfo <- PDFInfo.pdfInfo file
 
     topLines <- getTopLines file
 
@@ -87,7 +87,7 @@ fileNameSuggestions file = do
 
         maybeTitle =
             Either.rightToMaybe pdfInfo
-                >>= PDFI.pdfInfoTitle
+                >>= PDFInfo.pdfInfoTitle
                 & fmap sanitize
                 >>= boolToMaybe lengthCheck
 
