@@ -142,6 +142,9 @@ sanitize text =
         & T.unwords . T.words
         & T.unpack
         & filter validChars
+        & T.pack
+        & T.toLower
+        & T.unpack
         & titlecase
         & T.pack
 
